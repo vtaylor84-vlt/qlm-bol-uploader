@@ -12,6 +12,7 @@ interface FormFieldProps {
 
 export const FormField: React.FC<FormFieldProps> = ({ id, label, value, onChange, placeholder, type = 'text', required = false }) => {
   return (
+    // Re-adding the relative position utility which is essential for floating the label
     <div className="relative form-field-container"> 
       <input
         type={type}
@@ -21,7 +22,7 @@ export const FormField: React.FC<FormFieldProps> = ({ id, label, value, onChange
         onChange={onChange as (e: React.ChangeEvent<HTMLInputElement>) => void}
         placeholder=" " 
         required={required}
-        // Using only the custom class
+        // Re-adding the block/w-full utility for width and display
         className="block w-full form-field-input" 
         aria-label={label}
       />
