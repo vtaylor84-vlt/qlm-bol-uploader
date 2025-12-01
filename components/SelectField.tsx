@@ -5,21 +5,22 @@ interface SelectFieldProps {
   label: string;
   value: string;
   onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
-  options: { value: string; label: string }[]; // Standardized on object structure
+  options: { value: string; label: string }[];
   required?: boolean;
 }
 
 export const SelectField: React.FC<SelectFieldProps> = ({ id, label, value, onChange, options, required = false }) => {
   const hasValue = value !== "";
   return (
-    <div className="relative form-field-container">
+    // ⚠️ CRITICAL FIX: Applying the custom container class
+    <div className="form-field-container">
       <select
         id={id}
         name={id}
         value={value}
         onChange={onChange}
         required={required}
-        // ⚠️ FIX: Use ONLY the custom class to ensure terminal styling is applied
+        // ⚠️ CRITICAL FIX: Applying the custom input class
         className={`block w-full form-field-input appearance-none ${!hasValue ? 'text-gray-500' : 'text-white'}`}
         aria-label={label}
       >
@@ -34,6 +35,7 @@ export const SelectField: React.FC<SelectFieldProps> = ({ id, label, value, onCh
           </option>
         ))}
       </select>
+      {/* ⚠️ CRITICAL FIX: Applying the custom label class */}
       <label htmlFor={id} className="form-field-label">
         {label} {required && '(REQUIRED)'}
       </label>
