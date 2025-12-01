@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, ChangeEvent } from 'react';
-import type { FormState, FileState, UploadedFile, Status, ToastState, CompanyName } from '@/types.ts';
-import { generateDescriptionFromImages } from '@/services/geminiService.ts';
+import type { FormState, FileState, UploadedFile, Status, ToastState, CompanyName } from '@/types.ts'; 
+import { generateDescription as generateDescriptionFromImages } from '@/services/geminiService.ts'; // ⚠️ FIX: Uses correct export name and renames it locally
 import { saveSubmissionToQueue as addToQueue, processQueue } from '@/services/queueService.ts'; // ⚠️ FIX: Corrected import name using 'as'
 import { THEME_CONFIG } from '@/constants.ts'; // Import THEME_CONFIG for logo access
 
