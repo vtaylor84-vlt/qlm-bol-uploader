@@ -1,16 +1,16 @@
-import React, { useState, useMemo, useCallback } from 'react';
-import { LoadSubmission, SelectedFile } from '@/types.ts'; // Fixed import path
-import { useTheme } from '@/hooks/useTheme.ts'; // Fixed import path
-import { useFormValidation } from '@/hooks/useFormValidation.ts'; // Fixed import path
-import { useToast } from '@/components/Toast.tsx'; // Fixed import path
-import { COMPANY_OPTIONS, STATES_US } from '@/constants.ts'; // Fixed import path
-import { saveSubmissionToQueue } from '@/services/queueService.ts'; // Fixed import path
+// components/Form.tsx (Top of file)
 
-// Fixed imports for sibling components
-import { InputField } from '@/components/InputField.tsx'; 
-import { SelectField } from '@/components/SelectField.tsx'; 
-import { FileUploadArea } from '@/components/FileUploadArea.tsx'; 
-import { SectionHeader } from '@/components/SectionHeader.tsx'; 
+import React, { useState, useMemo, useCallback } from 'react';
+import { LoadSubmission, SelectedFile } from '@/types.ts';
+import { useTheme } from '@/hooks/useTheme.ts';
+import { useFormValidation } from '@/hooks/useFormValidation.ts';
+import { useToast } from '@/components/Toast.tsx';
+import { COMPANY_OPTIONS, STATES_US } from '@/constants.ts';
+import { saveSubmissionToQueue } from '@/services/queueService.ts';
+import { FormField } from '@/components/FormField.tsx'; 
+import { SelectField } from '@/components/SelectField.tsx'; 
+import { FileUploadArea } from '@/components/FileUploadArea.tsx'; 
+import { SectionHeader } from '@/components/SectionHeader.tsx'; 
 
 
 // Initial state structure remains the same
