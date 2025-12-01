@@ -21,6 +21,7 @@ export const FormField: React.FC<FormFieldProps> = ({ id, label, value, onChange
         onChange={onChange as (e: React.ChangeEvent<HTMLInputElement>) => void}
         placeholder=" " 
         required={required}
+        // Using only the custom class
         className="block w-full form-field-input" 
         aria-label={label}
       />

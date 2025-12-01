@@ -19,6 +19,7 @@ export const SelectField: React.FC<SelectFieldProps> = ({ id, label, value, onCh
         value={value}
         onChange={onChange}
         required={required}
+        // Using only the custom class
         className={`block w-full form-field-input appearance-none ${!hasValue ? 'text-gray-500' : 'text-white'}`}
         aria-label={label}
       >
