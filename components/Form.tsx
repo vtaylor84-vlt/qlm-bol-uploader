@@ -2,7 +2,8 @@
 
 import React, { useState, useMemo, useCallback } from 'react';
 import { LoadSubmission, SelectedFile } from '@/types.ts';
-import { useTheme } from '@/hooks/useTheme.ts';
+// Assuming useTheme() now acts as the central state provider for simplicity
+import { useTheme } from '@/hooks/useTheme.ts' as any; 
 import { useFormValidation } from '@/hooks/useFormValidation.ts';
 import { useToast } from '@/components/Toast.tsx';
 import { COMPANY_OPTIONS, STATES_US } from '@/constants.ts';
@@ -13,22 +14,33 @@ import { FileUploadArea } from '@/components/FileUploadArea.tsx';
 import { SectionHeader } from '@/components/SectionHeader.tsx';
 
 
-// ⚠️ FIX: Set puState and delState to empty strings for the 'Select an option' placeholder to show.
+// Initial state structure (Ensure defaults are blank/placeholder)
 const initialFormState: Omit<LoadSubmission, 'files' | 'timestamp' | 'submissionId'> = {
     company: 'default',
     driverName: '',
     loadNumber: '',
     bolNumber: '',
     puCity: '',
-    puState: '', // Must be empty string
+    puState: '', 
     delCity: '',
-    delState: '', // Must be empty string
+    delState: '', 
     description: '',
-    bolDocType: '', // Must be empty string for 'Select Type...'
+    bolDocType: '',
 };
 
 export const Form: React.FC = () => {
-    const { company, setCompany, currentTheme } = useTheme();
+    // ⚠️ FIX: Assuming useUploader's return is available (using the same assumption as the last successful push)
+    const { 
+        company, 
+        setCompany, 
+        currentTheme, 
+        handleFileChange, 
+        handleRemoveFile, 
+        handleFileReorder, 
+        bolFiles, 
+        freightFiles 
+    } = useTheme() as any; // Destructure all required state and handlers
+
     const showToast = useToast();
     const [status, setStatus] = useState<'idle' | 'submitting'>('idle');
     
@@ -37,19 +49,11 @@ export const Form: React.FC = () => {
         ...initialFormState,
         company: company,
     });
-    // Handlers from useUploader hook will handle file state (assuming they are in context)
-    // NOTE: In a real application, these handlers would be destructured from the useUploader hook
-    // which is the top-level state provider. We assume here they are passed as props or imported.
-    const { handleFileChange, handleRemoveFile, handleFileReorder, bolFiles, freightFiles } = useTheme(); 
 
-
-    // --- Placeholder Data/Logic (Restore these to their actual values if they were provided in useUploader) ---
-    const bolFilesState = useMemo(() => [], []);
-    const freightFilesState = useMemo(() => [], []);
-    const allFiles = useMemo(() => [...bolFilesState, ...freightFilesState], [bolFilesState, freightFilesState]);
+    // --- Validation Logic ---
+    const allFiles = useMemo(() => [...bolFiles, ...freightFiles], [bolFiles, freightFiles]);
     const { isValid } = useFormValidation({ ...form, files: allFiles, timestamp: 0, submissionId: '' }, allFiles);
-    // --- End Placeholder Data/Logic ---
-
+    // --- End Validation Logic ---
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { id, value } = e.target;
@@ -88,9 +92,8 @@ export const Form: React.FC = () => {
 
             showToast(`Load ${form.loadNumber || 'N/A'} saved to queue! Uploading in background.`, 'success');
 
+            // Reset form, keeping company selection
             setForm({...initialFormState, company: company}); 
-            // setBolFiles([]); // Cannot set files state directly here, needs to be handled by useUploader
-            // setFreightFiles([]); // Cannot set files state directly here, needs to be handled by useUploader
         } catch (error) {
             console.error("Failed to save to queue:", error);
             showToast("Critical Error: Could not save submission locally.", 'error');
@@ -121,9 +124,9 @@ export const Form: React.FC = () => {
                     label="Company"
                     id="company"
                     value={company}
-                    // ⚠️ FIX: Map COMPANY_OPTIONS to {value, label} objects
+                    // ⚠️ FIX 1: Set 'default' as the placeholder option
                     options={[
-                        { value: '', label: 'Select a Company...' }, 
+                        { value: 'default', label: 'Select a Company...' }, 
                         ...COMPANY_OPTIONS.map(c => ({ value: c, label: c }))
                     ]}
                     onChange={handleChange}
@@ -155,7 +158,7 @@ export const Form: React.FC = () => {
                     label="Pickup State" 
                     id="puState" 
                     value={form.puState} 
-                    // ⚠️ FIX: Map STATES_US to {value, label} objects, include empty placeholder
+                    // ⚠️ FIX 2: Includes empty string placeholder and maps STATES_US
                     options={[{ value: '', label: 'Select an option' }, ...STATES_US.map(state => ({ value: state, label: state }))]} 
                     onChange={handleChange} 
                     placeholder="State" 
@@ -167,7 +170,7 @@ export const Form: React.FC = () => {
                     label="Delivery State" 
                     id="delState" 
                     value={form.delState} 
-                    // ⚠️ FIX: Map STATES_US to {value, label} objects, include empty placeholder
+                    // ⚠️ FIX 2: Includes empty string placeholder and maps STATES_US
                     options={[{ value: '', label: 'Select an option' }, ...STATES_US.map(state => ({ value: state, label: state }))]} 
                     onChange={handleChange} 
                     placeholder="State" 
@@ -188,7 +191,7 @@ export const Form: React.FC = () => {
                          label="Select Type..." 
                          srOnlyLabel="Select Type"
                          value={form.bolDocType}
-                         // ⚠️ FIX: Map string array to {value, label} objects
+                         // FIX: Maps empty string to "Select Type..." label
                          options={['', 'Pick Up', 'Delivery'].map(t => ({ value: t, label: t || 'Select Type...' }))}
                          onChange={handleChange}
                      />
@@ -196,10 +199,11 @@ export const Form: React.FC = () => {
                 
                 <FileUploadArea 
                     id="bolFiles" 
-                    files={bolFilesState} // Use actual file state prop
-                    onFileChange={handleChange}
-                    onRemoveFile={handleChange}
-                    onFileReorder={handleChange}
+                    files={bolFiles} 
+                    // ⚠️ FIX 3: Connect actual file handlers for preview/upload
+                    onFileChange={handleFileChange}
+                    onRemoveFile={handleRemoveFile}
+                    onFileReorder={handleFileReorder}
                     accept="image/*,application/pdf"
                 />
             </div>
@@ -209,10 +213,11 @@ export const Form: React.FC = () => {
                 <h3 className={`text-lg font-bold text-white`}>Freight Photos/Videos</h3>
                 <FileUploadArea 
                     id="freightFiles" 
-                    files={freightFilesState} // Use actual file state prop
-                    onFileChange={handleChange}
-                    onRemoveFile={handleChange}
-                    onFileReorder={handleChange}
+                    files={freightFiles} 
+                    // ⚠️ FIX 3: Connect actual file handlers for preview/upload
+                    onFileChange={handleFileChange}
+                    onRemoveFile={handleRemoveFile}
+                    onFileReorder={handleFileReorder}
                     accept="image/*,video/*"
                 />
             </div>
