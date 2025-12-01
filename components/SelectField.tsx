@@ -5,14 +5,14 @@ interface SelectFieldProps {
   label: string;
   value: string;
   onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
-  options: { value: string; label: string }[];
+  // Standardized options structure
+  options: { value: string; label: string }[]; 
   required?: boolean;
 }
 
 export const SelectField: React.FC<SelectFieldProps> = ({ id, label, value, onChange, options, required = false }) => {
   const hasValue = value !== "";
   return (
-    // Re-adding the relative position utility
     <div className="relative form-field-container">
       <select
         id={id}
@@ -20,7 +20,6 @@ export const SelectField: React.FC<SelectFieldProps> = ({ id, label, value, onCh
         value={value}
         onChange={onChange}
         required={required}
-        // Using custom classes with block/w-full utility
         className={`block w-full form-field-input appearance-none ${!hasValue ? 'text-gray-500' : 'text-white'}`}
         aria-label={label}
       >
@@ -28,7 +27,8 @@ export const SelectField: React.FC<SelectFieldProps> = ({ id, label, value, onCh
           <option 
             key={option.value} 
             value={option.value} 
-            disabled={option.value === "default" || option.label.includes('Select an option')} 
+            // ⚠️ CRITICAL FIX: Use short-circuit evaluation to safely check 'option.label'
+            disabled={option.value === "default" || (option.label && option.label.includes('Select an option'))} 
             className="bg-gray-900 text-white"
           >
             {option.label}

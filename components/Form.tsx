@@ -7,7 +7,7 @@ import { useFormValidation } from '@/hooks/useFormValidation.ts';
 import { useToast } from '@/components/Toast.tsx';
 import { COMPANY_OPTIONS, STATES_US } from '@/constants.ts';
 import { saveSubmissionToQueue } from '@/services/queueService.ts';
-import { FormField } from '@/components/FormField.tsx'; // Correctly imported FormField
+import { FormField } from '@/components/FormField.tsx';
 import { SelectField } from '@/components/SelectField.tsx';
 import { FileUploadArea } from '@/components/FileUploadArea.tsx';
 import { SectionHeader } from '@/components/SectionHeader.tsx';
@@ -15,7 +15,7 @@ import { SectionHeader } from '@/components/SectionHeader.tsx';
 
 // Initial state structure remains the same
 const initialFormState: Omit<LoadSubmission, 'files' | 'timestamp' | 'submissionId'> = {
-    company: 'default',
+    company: 'default', // Default to placeholder
     driverName: '',
     loadNumber: '',
     bolNumber: '',
@@ -24,7 +24,7 @@ const initialFormState: Omit<LoadSubmission, 'files' | 'timestamp' | 'submission
     delCity: '',
     delState: '',
     description: '',
-    bolDocType: 'Pick Up'
+    bolDocType: '', // Default to empty string for "Select Type..."
 };
 
 export const Form: React.FC = () => {
@@ -118,11 +118,15 @@ export const Form: React.FC = () => {
                     label="Company"
                     id="company"
                     value={company}
-                    options={COMPANY_OPTIONS}
+                    // ⚠️ FIX: Map COMPANY_OPTIONS to {value, label} objects
+                    options={[
+                        { value: 'default', label: 'Select a Company...' }, 
+                        ...COMPANY_OPTIONS.map(c => ({ value: c, label: c }))
+                    ]}
                     onChange={handleChange}
                     required
                 />
-                <FormField // ⚠️ FIX: Changed from InputField
+                <FormField
                     label="Driver's Name"
                     id="driverName"
                     value={form.driverName}
@@ -136,19 +140,35 @@ export const Form: React.FC = () => {
             <div className="space-y-4">
                 <SectionHeader title="Load Data" />
                 <div className="grid grid-cols-2 gap-4">
-                    <FormField label="Load #" id="loadNumber" value={form.loadNumber} onChange={handleChange} placeholder="e.g., 123456" /> {/* ⚠️ FIX: Changed from InputField */}
-                    <FormField label="BOL #" id="bolNumber" value={form.bolNumber} onChange={handleChange} placeholder="e.g., 7891011" /> {/* ⚠️ FIX: Changed from InputField */}
+                    <FormField label="Load #" id="loadNumber" value={form.loadNumber} onChange={handleChange} placeholder="e.g., 123456" />
+                    <FormField label="BOL #" id="bolNumber" value={form.bolNumber} onChange={handleChange} placeholder="e.g., 7891011" />
                 </div>
             </div>
 
             {/* Trip Cities/States (4 columns, stacked 2x2) */}
             <div className="grid grid-cols-2 gap-4">
-                <FormField label="Pickup City/State" id="puCity" value={form.puCity} onChange={handleChange} placeholder="City" /> {/* ⚠️ FIX: Changed from InputField */}
-                <SelectField label="Pickup State" id="puState" value={form.puState} options={STATES_US} onChange={handleChange} placeholder="State" />
+                <FormField label="Pickup City/State" id="puCity" value={form.puCity} onChange={handleChange} placeholder="City" />
+                <SelectField 
+                    label="Pickup State" 
+                    id="puState" 
+                    value={form.puState} 
+                    // ⚠️ FIX: Map STATES_US to {value, label} objects
+                    options={STATES_US.map(state => ({ value: state, label: state }))} 
+                    onChange={handleChange} 
+                    placeholder="State" 
+                />
             </div>
             <div className="grid grid-cols-2 gap-4">
-                <FormField label="Delivery City/State" id="delCity" value={form.delCity} onChange={handleChange} placeholder="City" /> {/* ⚠️ FIX: Changed from InputField */}
-                <SelectField label="Delivery State" id="delState" value={form.delState} options={STATES_US} onChange={handleChange} placeholder="State" />
+                <FormField label="Delivery City/State" id="delCity" value={form.delCity} onChange={handleChange} placeholder="City" />
+                <SelectField 
+                    label="Delivery State" 
+                    id="delState" 
+                    value={form.delState} 
+                    // ⚠️ FIX: Map STATES_US to {value, label} objects
+                    options={STATES_US.map(state => ({ value: state, label: state }))} 
+                    onChange={handleChange} 
+                    placeholder="State" 
+                />
             </div>
 
             {/* Documents & Freight Section */}
@@ -165,7 +185,8 @@ export const Form: React.FC = () => {
                          label="Select Type..." 
                          srOnlyLabel="Select Type"
                          value={form.bolDocType}
-                         options={['Pick Up', 'Delivery']}
+                         // ⚠️ FIX: Map string array to {value, label} objects
+                         options={['', 'Pick Up', 'Delivery'].map(t => ({ value: t, label: t || 'Select Type...' }))}
                          onChange={handleChange}
                      />
                 </div>
@@ -173,9 +194,9 @@ export const Form: React.FC = () => {
                 <FileUploadArea 
                     id="bolFiles" 
                     files={bolFiles} 
-                    onFileChange={(e) => { /* Placeholder logic needed here */ }}
-                    onRemoveFile={() => { /* Placeholder logic needed here */ }} 
-                    onFileReorder={() => { /* Placeholder logic needed here */ }}
+                    onFileChange={handleChange} // Placeholder logic should be imported from useUploader
+                    onRemoveFile={handleChange} // Placeholder logic should be imported from useUploader
+                    onFileReorder={handleChange} // Placeholder logic should be imported from useUploader
                     accept="image/*,application/pdf"
                 />
             </div>
@@ -186,9 +207,9 @@ export const Form: React.FC = () => {
                 <FileUploadArea 
                     id="freightFiles" 
                     files={freightFiles} 
-                    onFileChange={() => { /* Placeholder logic needed here */ }}
-                    onRemoveFile={() => { /* Placeholder logic needed here */ }} 
-                    onFileReorder={() => { /* Placeholder logic needed here */ }}
+                    onFileChange={handleChange} // Placeholder logic should be imported from useUploader
+                    onRemoveFile={handleChange} // Placeholder logic should be imported from useUploader
+                    onFileReorder={handleChange} // Placeholder logic should be imported from useUploader
                     accept="image/*,video/*"
                 />
             </div>
