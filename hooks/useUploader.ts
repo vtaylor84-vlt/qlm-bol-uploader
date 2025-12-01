@@ -5,7 +5,7 @@ import { saveSubmissionToQueue as addToQueue, processQueue } from '@/services/qu
 import { THEME_CONFIG } from '@/constants.ts'; 
 
 const initialState: FormState = {
-  // ⚠️ FIX 1: Set default values to 'default' or empty string for placeholders
+  // FIX 1: Set default values to 'default' or empty string for placeholders
   company: 'default', 
   driverName: '',
   loadNumber: '',
@@ -30,7 +30,7 @@ export const useUploader = () => {
   const [toast, setToast] = useState<ToastState>({ message: '', type: 'success' });
   const [validationError, setValidationError] = useState<string>('');
 
-  // ⚠️ FIX 2: Dynamic Theme/Logo Logic
+  // Dynamic Theme/Logo Logic
   const currentTheme = useMemo(() => {
     return THEME_CONFIG[formState.company as CompanyName] || THEME_CONFIG.default;
   }, [formState.company]);
@@ -63,7 +63,7 @@ export const useUploader = () => {
     setTimeout(() => setToast(prev => (prev.message === message ? { message: '', type: 'success' } : prev)), 5500);
   };
 
-  // ⚠️ FIX 3: File Handler Logic (Enables Previews)
+  // File Handler Logic (Enables Previews)
   const handleFileChange = useCallback((e: ChangeEvent<HTMLInputElement>, fileType: keyof FileState) => {
     if (e.target.files) {
       const allCurrentFiles = [...fileState.bolFiles, ...fileState.freightFiles];
@@ -80,7 +80,6 @@ export const useUploader = () => {
           newFiles.push({
             id: `${file.name}-${file.lastModified}-${Math.random()}`,
             file,
-            // Create the preview URL here—CRITICAL for thumbnails to display
             previewUrl: URL.createObjectURL(file), 
           });
           existingFileSignatures.add(signature);
@@ -142,7 +141,6 @@ export const useUploader = () => {
     setStatus('submitting');
     
     try {
-      // Logic for adding to queue
       await addToQueue({ formState, fileState });
       
       const loadId = formState.loadNumber || formState.bolNumber || `Trip-${formState.puCity}-${formState.delCity}`;
@@ -171,7 +169,6 @@ export const useUploader = () => {
         setStatus('idle');
         return;
       }
-      // Note: generateDescription is the function that was exported as generateCargoDescription
       const description = await generateDescription(imageFiles); 
       setFormState(prev => ({ ...prev, description }));
       setStatus('success');

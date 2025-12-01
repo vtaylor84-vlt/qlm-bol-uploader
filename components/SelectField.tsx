@@ -26,7 +26,7 @@ export const SelectField: React.FC<SelectFieldProps> = ({ id, label, value, onCh
           <option 
             key={option.value} 
             value={option.value} 
-            // ⚠️ CRITICAL FIX: Safe check for option.label before calling includes()
+            // CRITICAL FIX: Safe check for option.label before calling includes()
             disabled={option.value === "" || (option.label && option.label.includes('Select an option'))} 
             className="bg-gray-900 text-white"
           >
