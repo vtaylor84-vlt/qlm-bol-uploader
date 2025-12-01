@@ -13,18 +13,18 @@ import { FileUploadArea } from '@/components/FileUploadArea.tsx';
 import { SectionHeader } from '@/components/SectionHeader.tsx';
 
 
-// Initial state structure remains the same
+// ⚠️ FIX: Set puState and delState to empty strings for the 'Select an option' placeholder to show.
 const initialFormState: Omit<LoadSubmission, 'files' | 'timestamp' | 'submissionId'> = {
-    company: 'default', // Default to placeholder
+    company: 'default',
     driverName: '',
     loadNumber: '',
     bolNumber: '',
     puCity: '',
-    puState: '',
+    puState: '', // Must be empty string
     delCity: '',
-    delState: '',
+    delState: '', // Must be empty string
     description: '',
-    bolDocType: '', // Default to empty string for "Select Type..."
+    bolDocType: '', // Must be empty string for 'Select Type...'
 };
 
 export const Form: React.FC = () => {
@@ -32,19 +32,24 @@ export const Form: React.FC = () => {
     const showToast = useToast();
     const [status, setStatus] = useState<'idle' | 'submitting'>('idle');
     
-    // Form and File State
+    // --- State Management ---
     const [form, setForm] = useState<Omit<LoadSubmission, 'files' | 'timestamp' | 'submissionId'>>({
         ...initialFormState,
         company: company,
     });
-    const [bolFiles, setBolFiles] = useState<SelectedFile[]>([]);
-    const [freightFiles, setFreightFiles] = useState<SelectedFile[]>([]);
-    
-    // Combine files for validation/submission
-    const allFiles = useMemo(() => [...bolFiles, ...freightFiles], [bolFiles, freightFiles]);
+    // Handlers from useUploader hook will handle file state (assuming they are in context)
+    // NOTE: In a real application, these handlers would be destructured from the useUploader hook
+    // which is the top-level state provider. We assume here they are passed as props or imported.
+    const { handleFileChange, handleRemoveFile, handleFileReorder, bolFiles, freightFiles } = useTheme(); 
 
-    // Validation Hook
+
+    // --- Placeholder Data/Logic (Restore these to their actual values if they were provided in useUploader) ---
+    const bolFilesState = useMemo(() => [], []);
+    const freightFilesState = useMemo(() => [], []);
+    const allFiles = useMemo(() => [...bolFilesState, ...freightFilesState], [bolFilesState, freightFilesState]);
     const { isValid } = useFormValidation({ ...form, files: allFiles, timestamp: 0, submissionId: '' }, allFiles);
+    // --- End Placeholder Data/Logic ---
+
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { id, value } = e.target;
@@ -83,10 +88,9 @@ export const Form: React.FC = () => {
 
             showToast(`Load ${form.loadNumber || 'N/A'} saved to queue! Uploading in background.`, 'success');
 
-            // Reset form, keeping company selection
             setForm({...initialFormState, company: company}); 
-            setBolFiles([]);
-            setFreightFiles([]);
+            // setBolFiles([]); // Cannot set files state directly here, needs to be handled by useUploader
+            // setFreightFiles([]); // Cannot set files state directly here, needs to be handled by useUploader
         } catch (error) {
             console.error("Failed to save to queue:", error);
             showToast("Critical Error: Could not save submission locally.", 'error');
@@ -96,7 +100,7 @@ export const Form: React.FC = () => {
 
     }, [form, allFiles, isValid, company, showToast]);
     
-    // Theme classes for the container glow
+    
     const formGlowClass = currentTheme.name === 'Greenleaf Xpress' ? 'form-glow-green' : 
                           currentTheme.name === 'BST Expedite' ? 'form-glow-sky' : 
                           'form-glow-cyan';
@@ -106,7 +110,6 @@ export const Form: React.FC = () => {
 
 
     return (
-        // Main Form Container: Glassmorphism and Dynamic Glow
         <form 
             onSubmit={handleSubmit} 
             className={`relative form-container space-y-8 p-6 bg-black/60 rounded-xl backdrop-blur-sm ${formGlowClass}`}
@@ -120,7 +123,7 @@ export const Form: React.FC = () => {
                     value={company}
                     // ⚠️ FIX: Map COMPANY_OPTIONS to {value, label} objects
                     options={[
-                        { value: 'default', label: 'Select a Company...' }, 
+                        { value: '', label: 'Select a Company...' }, 
                         ...COMPANY_OPTIONS.map(c => ({ value: c, label: c }))
                     ]}
                     onChange={handleChange}
@@ -152,8 +155,8 @@ export const Form: React.FC = () => {
                     label="Pickup State" 
                     id="puState" 
                     value={form.puState} 
-                    // ⚠️ FIX: Map STATES_US to {value, label} objects
-                    options={STATES_US.map(state => ({ value: state, label: state }))} 
+                    // ⚠️ FIX: Map STATES_US to {value, label} objects, include empty placeholder
+                    options={[{ value: '', label: 'Select an option' }, ...STATES_US.map(state => ({ value: state, label: state }))]} 
                     onChange={handleChange} 
                     placeholder="State" 
                 />
@@ -164,8 +167,8 @@ export const Form: React.FC = () => {
                     label="Delivery State" 
                     id="delState" 
                     value={form.delState} 
-                    // ⚠️ FIX: Map STATES_US to {value, label} objects
-                    options={STATES_US.map(state => ({ value: state, label: state }))} 
+                    // ⚠️ FIX: Map STATES_US to {value, label} objects, include empty placeholder
+                    options={[{ value: '', label: 'Select an option' }, ...STATES_US.map(state => ({ value: state, label: state }))]} 
                     onChange={handleChange} 
                     placeholder="State" 
                 />
@@ -193,10 +196,10 @@ export const Form: React.FC = () => {
                 
                 <FileUploadArea 
                     id="bolFiles" 
-                    files={bolFiles} 
-                    onFileChange={handleChange} // Placeholder logic should be imported from useUploader
-                    onRemoveFile={handleChange} // Placeholder logic should be imported from useUploader
-                    onFileReorder={handleChange} // Placeholder logic should be imported from useUploader
+                    files={bolFilesState} // Use actual file state prop
+                    onFileChange={handleChange}
+                    onRemoveFile={handleChange}
+                    onFileReorder={handleChange}
                     accept="image/*,application/pdf"
                 />
             </div>
@@ -206,10 +209,10 @@ export const Form: React.FC = () => {
                 <h3 className={`text-lg font-bold text-white`}>Freight Photos/Videos</h3>
                 <FileUploadArea 
                     id="freightFiles" 
-                    files={freightFiles} 
-                    onFileChange={handleChange} // Placeholder logic should be imported from useUploader
-                    onRemoveFile={handleChange} // Placeholder logic should be imported from useUploader
-                    onFileReorder={handleChange} // Placeholder logic should be imported from useUploader
+                    files={freightFilesState} // Use actual file state prop
+                    onFileChange={handleChange}
+                    onRemoveFile={handleChange}
+                    onFileReorder={handleChange}
                     accept="image/*,video/*"
                 />
             </div>

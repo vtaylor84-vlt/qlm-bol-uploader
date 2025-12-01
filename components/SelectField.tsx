@@ -5,8 +5,7 @@ interface SelectFieldProps {
   label: string;
   value: string;
   onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
-  // Standardized options structure
-  options: { value: string; label: string }[]; 
+  options: { value: string; label: string }[];
   required?: boolean;
 }
 
@@ -27,8 +26,8 @@ export const SelectField: React.FC<SelectFieldProps> = ({ id, label, value, onCh
           <option 
             key={option.value} 
             value={option.value} 
-            // ⚠️ CRITICAL FIX: Use short-circuit evaluation to safely check 'option.label'
-            disabled={option.value === "default" || (option.label && option.label.includes('Select an option'))} 
+            // ⚠️ CRITICAL FIX: Safe check for option.label before calling includes()
+            disabled={option.value === "" || (option.label && option.label.includes('Select an option'))} 
             className="bg-gray-900 text-white"
           >
             {option.label}
