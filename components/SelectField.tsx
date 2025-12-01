@@ -19,15 +19,15 @@ export const SelectField: React.FC<SelectFieldProps> = ({ id, label, value, onCh
         value={value}
         onChange={onChange}
         required={required}
+        // ⚠️ FIX: Use ONLY the custom class to ensure terminal styling is applied
         className={`block w-full form-field-input appearance-none ${!hasValue ? 'text-gray-500' : 'text-white'}`}
         aria-label={label}
       >
-        {/* Render options from the array */}
         {options.map((option) => (
           <option 
             key={option.value} 
             value={option.value} 
-            disabled={option.value === "default"} 
+            disabled={option.value === "default" || option.label.includes('Select an option')} 
             className="bg-gray-900 text-white"
           >
             {option.label}

@@ -18,16 +18,17 @@ export const FormField: React.FC<FormFieldProps> = ({ id, label, value, onChange
         id={id}
         name={id}
         value={value}
-        onChange={onChange as (e: React.ChangeEvent<HTMLInputElement>) => void} // Cast for input element only
+        onChange={onChange as (e: React.ChangeEvent<HTMLInputElement>) => void}
         placeholder=" " // Note: A single space is used to trigger :placeholder-shown
         required={required}
-        className="block w-full form-field-input"
+        // ⚠️ FIX: Use ONLY the custom class to ensure terminal styling is applied
+        className="block w-full form-field-input" 
         aria-label={label}
       />
       <label htmlFor={id} className="form-field-label">
         {label} {required && '(REQUIRED)'}
       </label>
-      {placeholder && !value && <span className="absolute left-3 bottom-2 text-gray-500 text-sm pointer-events-none">{placeholder}</span>}
+      {/* ⚠️ NOTE: Placeholder logic is likely redundant due to custom CSS handling */}
     </div>
   );
 };
