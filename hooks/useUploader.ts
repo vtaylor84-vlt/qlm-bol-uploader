@@ -1,22 +1,23 @@
-import { useState, useCallback, useEffect, ChangeEvent } from 'react';
+import { useState, useCallback, useEffect, ChangeEvent, useMemo } from 'react';
 import type { FormState, FileState, UploadedFile, Status, ToastState, CompanyName } from '@/types.ts';
-import { generateCargoDescription as generateDescriptionFromImages } from '@/services/geminiService.ts'; // ⚠️ FINAL FIX: Corrected export name to generateCargoDescription
+import { generateCargoDescription as generateDescription } from '@/services/geminiService.ts'; // Corrected import name
 import { saveSubmissionToQueue as addToQueue, processQueue } from '@/services/queueService.ts'; 
-import { THEME_CONFIG } from '@/constants.ts'; // Import THEME_CONFIG for logo access
+import { THEME_CONFIG } from '@/constants.ts'; 
 
-// ⚠️ FIX 1 & 2: Set default values to blank/placeholder strings
 const initialState: FormState = {
-  company: 'default', // Changed to 'default' to map to 'QLM Driver Upload' and trigger 'Select a Company'
+  // ⚠️ FIX 1: Set default values to 'default' or empty string for placeholders
+  company: 'default', 
   driverName: '',
   loadNumber: '',
   bolNumber: '',
   puCity: '',
-  puState: '',
+  puState: '', // Must be empty string
   delCity: '',
-  delState: '',
+  delState: '', // Must be empty string
   description: '',
-  bolDocType: '', // Changed to empty string to trigger 'Select Type...'
+  bolDocType: '', // Must be empty string
 };
+
 const initialFileState: FileState = {
   bolFiles: [],
   freightFiles: [],
@@ -29,11 +30,16 @@ export const useUploader = () => {
   const [toast, setToast] = useState<ToastState>({ message: '', type: 'success' });
   const [validationError, setValidationError] = useState<string>('');
 
-  // ⚠️ FIX 3: Dynamic Logo Component Access (Based on THEME_CONFIG in constants.ts)
-  const currentTheme = THEME_CONFIG[formState.company as CompanyName] || THEME_CONFIG.default;
-  const DynamicLogo = currentTheme.logo;
+  // ⚠️ FIX 2: Dynamic Theme/Logo Logic
+  const currentTheme = useMemo(() => {
+    return THEME_CONFIG[formState.company as CompanyName] || THEME_CONFIG.default;
+  }, [formState.company]);
 
-  // Effect to process the queue on app load and when network status changes
+  const DynamicLogo = useMemo(() => {
+    return currentTheme.logo;
+  }, [currentTheme]);
+
+  // Effect to process the queue on app load and clean up URLs
   useEffect(() => {
     processQueue();
     window.addEventListener('online', processQueue);
@@ -45,28 +51,19 @@ export const useUploader = () => {
       // Clean up object URLs when component unmounts
       [...fileState.bolFiles, ...fileState.freightFiles].forEach(f => URL.revokeObjectURL(f.previewUrl));
     };
-  }, []); // Run only once on mount
+  }, []); 
 
   const handleInputChange = useCallback((e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    // Special handling for radio buttons (bolDocType) which might use the 'name' prop instead of 'id'
-    if (e.target instanceof HTMLInputElement && e.target.type === 'radio') {
-      setFormState(prevState => ({ ...prevState, [name]: value }));
-    } else {
-      setFormState(prevState => ({ ...prevState, [name]: value }));
-    }
+    setFormState(prevState => ({ ...prevState, [name]: value }));
   }, []);
 
   const showToast = (message: string, type: ToastState['type'] = 'success') => {
     setToast({ message, type });
-    // This timeout is for auto-clearing the message state. The component itself handles visibility.
     setTimeout(() => setToast(prev => (prev.message === message ? { message: '', type: 'success' } : prev)), 5500);
   };
 
-  // ⚠️ FIX 4: Thumbnail/Preview Fix
-  // The logic for URL.createObjectURL is correct here, but ensure it's used.
-  // The 'FilePreview.tsx' code you provided earlier didn't use the theme, so we assume
-  // that the 'FileThumbnail.tsx' is now responsible for displaying the preview URL.
+  // ⚠️ FIX 3: File Handler Logic (Enables Previews)
   const handleFileChange = useCallback((e: ChangeEvent<HTMLInputElement>, fileType: keyof FileState) => {
     if (e.target.files) {
       const allCurrentFiles = [...fileState.bolFiles, ...fileState.freightFiles];
@@ -83,7 +80,7 @@ export const useUploader = () => {
           newFiles.push({
             id: `${file.name}-${file.lastModified}-${Math.random()}`,
             file,
-            // Create the preview URL here. This is necessary for display.
+            // Create the preview URL here—CRITICAL for thumbnails to display
             previewUrl: URL.createObjectURL(file), 
           });
           existingFileSignatures.add(signature);
@@ -145,6 +142,7 @@ export const useUploader = () => {
     setStatus('submitting');
     
     try {
+      // Logic for adding to queue
       await addToQueue({ formState, fileState });
       
       const loadId = formState.loadNumber || formState.bolNumber || `Trip-${formState.puCity}-${formState.delCity}`;
@@ -173,7 +171,8 @@ export const useUploader = () => {
         setStatus('idle');
         return;
       }
-      const description = await generateDescriptionFromImages(imageFiles);
+      // Note: generateDescription is the function that was exported as generateCargoDescription
+      const description = await generateDescription(imageFiles); 
       setFormState(prev => ({ ...prev, description }));
       setStatus('success');
     } catch (err) {
@@ -192,12 +191,15 @@ export const useUploader = () => {
     toast,
     validationError,
     handleInputChange,
-    handleFileChange,
-    handleRemoveFile,
-    handleFileReorder,
+    handleFileChange: handleFileChange as (e: ChangeEvent<HTMLInputElement>, fileType: keyof FileState) => void,
+    handleRemoveFile: handleRemoveFile as (fileId: string, fileType: keyof FileState) => void,
+    handleFileReorder: handleFileReorder as (draggedId: string, targetId: string, fileType: keyof FileState) => void,
     handleSubmit,
     generateDescription,
-    // Expose the logo for App.tsx to use
     DynamicLogo,
+    currentTheme,
+    // Expose file state directly for Form.tsx
+    bolFiles: fileState.bolFiles,
+    freightFiles: fileState.freightFiles,
   };
 };
