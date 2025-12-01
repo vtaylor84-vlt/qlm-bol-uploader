@@ -3,12 +3,12 @@ import { Header } from '@/components/Header.tsx';
 import { FormField } from '@/components/FormField.tsx';
 import { SelectField } from '@/components/SelectField.tsx';
 import { FileUploadArea } from '@/components/FileUploadArea.tsx';
-import { ToastContainer } from '@/components/Toast.tsx'; // Use ToastContainer if Toast.tsx exports a container
+import { ToastContainer } from '@/components/Toast.tsx'; 
 import { GeminiAISection } from '@/components/GeminiAISection.tsx';
 import { useUploader } from '@/hooks/useUploader.ts';
-import { COMPANY_OPTIONS, STATES_US } from '@/constants.ts'; // Corrected import names
+import { COMPANY_OPTIONS, STATES_US } from '@/constants.ts'; 
 import { SectionHeader } from '@/components/SectionHeader.tsx';
-import '@/src/style.css'; // Ensure global styles are loaded
+import '@/src/style.css'; 
 
 export default function App() {
   const {
@@ -23,7 +23,8 @@ export default function App() {
     handleFileReorder,
     handleSubmit,
     generateDescription,
-    DynamicLogo, // ⚠️ Pulled the DynamicLogo from the hook
+    DynamicLogo,
+    currentTheme, // Pull currentTheme from hook for dynamic styling/props
   } = useUploader();
 
   const isFormValid =
@@ -33,14 +34,18 @@ export default function App() {
   
   const getLoadIdentifier = () => {
     if (!isFormValid) return '';
-    return formState.loadNumber || formState.bolNumber || `Trip-${formState.puCity.toUpperCase()}-${formState.delCity.toUpperCase()}`;
+    // Use optional chaining/fallback strings if puCity/delCity are empty
+    const pu = formState.puCity.toUpperCase() || 'PU';
+    const del = formState.delCity.toUpperCase() || 'DEL';
+
+    return formState.loadNumber || formState.bolNumber || `Trip-${pu}-${del}`;
   };
 
   return (
     <div className="min-h-screen text-gray-100 flex flex-col items-center p-4 selection:bg-cyan-400 selection:text-black relative z-10">
       <div className="w-full max-w-2xl mx-auto">
         
-        {/* ⚠️ FIX 3: Pass DynamicLogo and companyName to Header */}
+        {/* Pass DynamicLogo and companyName to Header */}
         <Header 
           DynamicLogo={DynamicLogo} 
           companyName={formState.company} 
@@ -61,7 +66,7 @@ export default function App() {
                   id="company"
                   label="Company"
                   value={formState.company}
-                  // Ensure 'name' matches 'id' for the handler to work correctly
+                  // Input Handler for Select Field
                   onChange={(e) => handleInputChange({ ...e, target: { ...e.target, name: 'company' } as HTMLSelectElement })}
                   options={[
                     { value: 'default', label: 'Select a Company...' }, 
@@ -73,6 +78,7 @@ export default function App() {
                   id="driverName"
                   label="Driver Name"
                   value={formState.driverName}
+                  // Input Handler for text Field
                   onChange={(e) => handleInputChange({ ...e, target: { ...e.target, name: 'driverName' } as HTMLInputElement })}
                   placeholder="e.g., John Doe"
                   required
@@ -109,7 +115,8 @@ export default function App() {
                     <label htmlFor="pickup">Pick Up</label>
                     <input type="radio" id="delivery" name="bolDocType" value="Delivery" checked={formState.bolDocType === 'Delivery'} onChange={handleInputChange} />
                     <label htmlFor="delivery">Delivery</label>
-                    <input type="radio" id="selectType" name="bolDocType" value="" checked={formState.bolDocType === ''} onChange={handleInputChange} className="sr-only" />
+                    {/* Placeholder for "Select Type..." state when nothing is selected */}
+                    <input type="radio" id="selectType" name="bolDocType" value="" checked={formState.bolDocType === ''} onChange={handleInputChange} className="sr-only" /> 
                 </div>
                 <FileUploadArea
                   id="bolFiles"
@@ -140,8 +147,10 @@ export default function App() {
                 <GeminiAISection
                     onGenerate={() => generateDescription(fileState.freightFiles)}
                     description={formState.description}
+                    // Input Handler for textarea
                     handleInputChange={(e) => handleInputChange({ ...e, target: { ...e.target, name: 'description' } as HTMLTextAreaElement })}
                     status={status}
+                    currentTheme={currentTheme} // Pass currentTheme to fix the 'glowColor' crash
                 />
               </div>
             )}
@@ -154,7 +163,7 @@ export default function App() {
                 disabled={!isFormValid || status === 'submitting'}
                 className="w-full text-lg font-orbitron font-bold text-black bg-gray-300 hover:bg-white disabled:bg-gray-600 disabled:text-gray-400 disabled:cursor-not-allowed py-3 transition-colors duration-200"
               >
-                {status === 'submitting' ? 'SAVING...' : isFormValid ? `Submit Documents for Load: ${getLoadIdentifier()}` : 'Complete Required Fields'}
+                {status === 'submitting' ? 'SAVING...' : isFormValid ? `SUBMIT DOCUMENTS FOR LOAD: ${getLoadIdentifier()}` : 'COMPLETE REQUIRED FIELDS'}
               </button>
             </div>
           </form>
@@ -162,7 +171,7 @@ export default function App() {
       </div>
 
       {toast.message && (
-        <ToastContainer // Assuming this is the correct component export
+        <ToastContainer 
           message={toast.message}
           type={toast.type}
         />
