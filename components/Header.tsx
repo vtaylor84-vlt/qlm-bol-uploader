@@ -1,30 +1,24 @@
 import React from 'react';
-import { useTheme } from '@/hooks/useTheme.ts'; // Fixed import path
 
-export const Header: React.FC = () => {
-    const { currentTheme } = useTheme();
+interface HeaderProps {
+  DynamicLogo: React.FC | (() => null);
+  companyName: string;
+}
 
-    // Use the DynamicLogo component provided by the theme hook
-    const DynamicLogoComponent = currentTheme.logo;
-    const glowingTextClass = currentTheme.name === 'Greenleaf Xpress' ? 'glowing-text-green' : 
-                             currentTheme.name === 'BST Expedite' ? 'glowing-text-sky' : 
-                             'glowing-text-cyan';
-
-    return (
-        <header className="text-center mb-8 relative z-10">
-            {currentTheme.name === 'QLM Driver Upload' ? (
-                // Default Header Text (When no company is selected)
-                <h1 
-                    className={`font-orbitron text-4xl md:text-5xl font-bold text-white ${glowingTextClass}`}
-                >
-                    QLM Driver Upload
-                </h1>
-            ) : (
-                // Dynamic Logo Component (Greenleaf or BST)
-                <div className="mt-4">
-                    <DynamicLogoComponent />
-                </div>
-            )}
-        </header>
-    );
+export const Header: React.FC<HeaderProps> = ({ DynamicLogo, companyName }) => {
+  return (
+    <header className="text-center py-6">
+      {companyName === 'default' ? (
+        // QLM Driver Upload title when no company is selected
+        <h1 className="font-orbitron text-4xl md:text-5xl font-black text-cyan-300 glowing-text uppercase tracking-widest">
+          QLM Driver Upload
+        </h1>
+      ) : (
+        // Logo when a company is selected
+        <div className="mt-4">
+          <DynamicLogo />
+        </div>
+      )}
+    </header>
+  );
 };
