@@ -12,15 +12,13 @@ interface SelectFieldProps {
 export const SelectField: React.FC<SelectFieldProps> = ({ id, label, value, onChange, options, required = false }) => {
   const hasValue = value !== "";
   return (
-    // ⚠️ CRITICAL FIX: Applying the custom container class
-    <div className="form-field-container">
+    <div className="relative form-field-container">
       <select
         id={id}
         name={id}
         value={value}
         onChange={onChange}
         required={required}
-        // ⚠️ CRITICAL FIX: Applying the custom input class
         className={`block w-full form-field-input appearance-none ${!hasValue ? 'text-gray-500' : 'text-white'}`}
         aria-label={label}
       >
@@ -35,7 +33,6 @@ export const SelectField: React.FC<SelectFieldProps> = ({ id, label, value, onCh
           </option>
         ))}
       </select>
-      {/* ⚠️ CRITICAL FIX: Applying the custom label class */}
       <label htmlFor={id} className="form-field-label">
         {label} {required && '(REQUIRED)'}
       </label>
