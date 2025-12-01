@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, ChangeEvent } from 'react';
 import type { FormState, FileState, UploadedFile, Status, ToastState, CompanyName } from '@/types.ts';
 import { generateDescriptionFromImages } from '@/services/geminiService.ts';
-import { addToQueue, processQueue } from '@/services/queueService.ts';
+import { saveSubmissionToQueue as addToQueue, processQueue } from '@/services/queueService.ts'; // ⚠️ FIX: Corrected import name using 'as'
 import { THEME_CONFIG } from '@/constants.ts'; // Import THEME_CONFIG for logo access
 
 // ⚠️ FIX 1 & 2: Set default values to blank/placeholder strings
