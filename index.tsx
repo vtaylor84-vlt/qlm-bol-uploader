@@ -1,7 +1,8 @@
 // index.tsx
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { App } from './App';
+// FIX: Changed { App } to App for default export resolution
+import App from './App.tsx'; 
 
 const container = document.getElementById('root');
 if (container) {
