@@ -1,5 +1,5 @@
 import React from 'react';
-import { SelectedFile, FileType, BolCategory } from '../types';
+import { SelectedFile, FileType, BolCategory } from '@/types'; // Fixed import path
 
 interface FilePreviewProps {
     file: SelectedFile;

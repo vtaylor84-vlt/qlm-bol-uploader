@@ -1,6 +1,8 @@
 import { useState, useMemo } from 'react';
-import { CompanyName, CompanyTheme } from '../types';
-import { THEME_CONFIG } from '../constants';
+// ⚠️ FIX: Absolute import using the new alias.
+import { CompanyName, CompanyTheme } from '@/types.ts'; 
+// ⚠️ FIX: Absolute import using the new alias.
+import { THEME_CONFIG } from '@/constants.ts'; 
 
 type UseThemeResult = {
     company: CompanyName;

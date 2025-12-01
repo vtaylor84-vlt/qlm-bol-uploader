@@ -1,5 +1,5 @@
 import React from 'react';
-import { useTheme } from '../hooks/useTheme.ts';
+import { useTheme } from '@/hooks/useTheme.ts'; // Fixed import path
 
 export const Header: React.FC = () => {
     const { currentTheme } = useTheme();

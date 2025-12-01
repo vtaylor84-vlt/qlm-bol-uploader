@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
-import { useTheme } from './hooks/useTheme.ts';
-import { Header } from './components/Header.tsx';
-import { Form } from './components/Form.tsx';
-import { ToastContainer } from './components/Toast.tsx';
+import { useTheme } from '@/hooks/useTheme.ts';
+import { Header } from '@/components/Header.tsx';
+import { Form } from '@/components/Form.tsx';
+import { ToastContainer } from '@/components/Toast.tsx';
 import './src/style.css'; // Ensure global styles are loaded
 
 const App: React.FC = () => {

@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    // ... other options
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"]
+    },
+    // Required to resolve file extension issues robustly
+    "moduleResolution": "bundler" 
+  },
+  "include": ["src", "components", "hooks", "services", "assets", "index.tsx", "App.tsx"]
+}
