@@ -2,7 +2,7 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 // FINAL FIX: Explicitly using ./App.tsx to resolve component loading
-import App from './App.tsx'; 
+import App from './App.'; 
 
 const container = document.getElementById('root');
 if (container) {
