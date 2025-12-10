@@ -1,15 +1,17 @@
+// components/FilePreview.tsx (COMPLETE, FINAL SCRIPT)
 import React from 'react';
-import { SelectedFile, FileType, BolCategory } from '@/types'; // Fixed import path
+// FIX TS6133: Only importing UploadedFile as that's the only type used in the component interface
+import { UploadedFile } from '@/types.ts'; 
 
 interface FilePreviewProps {
-    file: SelectedFile;
+    file: UploadedFile; 
     onRemove: (id: string) => void;
     index: number;
     dragHandleProps: any;
 }
 
 export const FilePreview: React.FC<FilePreviewProps> = ({ file, onRemove, index, dragHandleProps }) => {
-    const isImageOrVideo = file.file.type.startsWith('image/') || file.file.type.startsWith('video/');
+    // FIX TS6133: Removed unused local variable 'isImageOrVideo'
     const isPDF = file.file.type === 'application/pdf';
 
     const renderPreview = () => {
@@ -17,7 +19,6 @@ export const FilePreview: React.FC<FilePreviewProps> = ({ file, onRemove, index,
             return <img src={file.previewUrl} alt={file.file.name} className="object-cover w-full h-full" />;
         }
         if (file.file.type.startsWith('video/')) {
-             // For video, show the thumbnail URL (which can be a simple 'play' icon if no thumbnail is generated)
             return (
                 <div className="flex items-center justify-center w-full h-full bg-slate-900">
                     <span className="text-4xl text-[--color-primary]">🎬</span>
@@ -48,7 +49,7 @@ export const FilePreview: React.FC<FilePreviewProps> = ({ file, onRemove, index,
             {/* Overlay for details and removal */}
             <div className="absolute inset-0 bg-black bg-opacity-60 flex flex-col justify-between p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 <div className="flex justify-between items-start">
-                    {/* File Type Tag */}
+                    {/* File Type Tag (Uses file.type which must be present on UploadedFile) */}
                     <span className={`px-2 py-0.5 text-xs font-bold rounded ${file.type === 'BOL' ? 'bg-indigo-600' : 'bg-amber-600'} text-white`}>
                         {file.type}
                     </span>
@@ -62,10 +63,10 @@ export const FilePreview: React.FC<FilePreviewProps> = ({ file, onRemove, index,
                     </button>
                 </div>
                 
-                {/* File Details and Category */}
+                {/* File Details and Category (Uses file.category which must be present on UploadedFile) */}
                 <div className="text-xs text-white">
                     <p className="font-bold truncate">{file.file.name}</p>
-                    {file.type === 'BOL' && (
+                    {file.type === 'BOL' && file.category && (
                         <span className={`mt-1 inline-block px-1 py-0 border border-white text-white text-[10px] rounded-full`}>
                             {file.category}
                         </span>
