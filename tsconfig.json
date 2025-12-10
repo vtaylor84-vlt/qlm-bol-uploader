@@ -1,12 +1,31 @@
 {
   "compilerOptions": {
-    // ... other options
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "resolveJsonModule": true,
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./src/*"] 
     },
-    // Required to resolve file extension issues robustly
-    "moduleResolution": "bundler" 
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "disableSourceOfProjectReferenceRedirect": true
   },
-  "include": ["src", "components", "hooks", "services", "assets", "index.tsx", "App.tsx"]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx"
+  ],
+  "exclude": ["node_modules", "vite.config.ts"],
+  "references": [{ "path": "./tsconfig.node.json" }]
 }

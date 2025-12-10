@@ -1,63 +1,147 @@
+/* src/style.css */
+
+/* --- 1. TAILWIND DIRECTIVES (REQUIRED FOR LOCAL BUILD) --- */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* --- Custom Cyberpunk Global Styles --- */
+/* --- 2. CUSTOM AESTHETIC & FORM STYLES (Moved from index.html) --- */
 
 body {
-  background-color: #000 !important;
-  overflow-x: hidden;
-  color: #e2e8f0; /* Ensure text is visible */
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: #000 !important;
+    color: #E0E0E0;
+    overflow-x: hidden;
 }
 
 /* --- Animated Grid Background --- */
 body::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-image: 
-    linear-gradient(to right, rgba(0, 255, 255, 0.1) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(0, 255, 255, 0.1) 1px, transparent 1px);
-  background-size: 40px 40px;
-  animation: grid-scroll 30s linear infinite;
-  z-index: -10; /* Move background behind content */
-  opacity: 0.5;
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        linear-gradient(to right, rgba(0, 255, 255, 0.08) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(0, 255, 255, 0.08) 1px, transparent 1px);
+    background-size: 2.5rem 2.5rem;
+    animation: grid-scroll 30s linear infinite;
+    z-index: -1;
+    opacity: 0.8; 
 }
 
-/* --- Form Glow Utilities --- */
-.form-glow-cyan::before { box-shadow: 0 0 15px rgba(0, 255, 255, 0.3), 0 0 30px rgba(0, 255, 255, 0.2); }
-.form-glow-green::before { box-shadow: 0 0 15px rgba(74, 222, 128, 0.3), 0 0 30px rgba(74, 222, 128, 0.2); }
-.form-glow-sky::before { box-shadow: 0 0 15px rgba(56, 189, 248, 0.3), 0 0 30px rgba(56, 189, 248, 0.2); }
-
-.form-container {
-  position: relative;
-  z-index: 10;
-}
-.form-container::before {
-  content: '';
-  position: absolute;
-  inset: -2px;
-  border-radius: 0.75rem;
-  z-index: -1;
-  transition: box-shadow 0.3s ease-in-out;
-}
-
-/* --- Keyframe Animations --- */
 @keyframes grid-scroll {
-  from { background-position: 0 0; }
-  to { background-position: -120px -120px; }
+    from { background-position: 0 0; }
+    to { background-position: -80px -80px; }
 }
 
+.font-orbitron {
+    font-family: 'Orbitron', sans-serif;
+}
+
+/* --- Custom Glowing Text Classes (for dynamic theming) --- */
+.glowing-text-cyan {
+  text-shadow: 0 0 5px rgba(6, 182, 212, 0.7), 0 0 10px rgba(168, 85, 247, 0.5), 0 0 20px rgba(168, 85, 247, 0.3);
+}
+.glowing-text-green {
+  text-shadow: 0 0 5px rgba(16, 185, 129, 0.7), 0 0 10px rgba(74, 222, 128, 0.5), 0 0 20px rgba(74, 222, 128, 0.3);
+}
+.glowing-text-sky {
+  text-shadow: 0 0 5px rgba(59, 130, 246, 0.7), 0 0 10px rgba(129, 140, 248, 0.5), 0 0 20px rgba(129, 140, 248, 0.3);
+}
+
+/* --- Form Field Styles --- */
+.form-field-container {
+    position: relative;
+    padding-top: 0.75rem;
+}
+.form-field-label {
+    position: absolute;
+    top: -0.25rem;
+    left: 0.75rem;
+    background-color: #000;
+    padding: 0 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #9ca3af;
+    z-index: 10;
+    transition: color 0.2s ease-in-out;
+}
+.form-field-input {
+    background-color: transparent !important;
+    border: 1px solid #4b5563 !important;
+    border-radius: 0 !important;
+    color: #E0E0E0 !important;
+    padding: 0.65rem 0.75rem !important;
+    transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+.form-field-input:focus {
+    outline: none !important;
+    border-color: #FFF !important;
+    box-shadow: none !important;
+}
+.form-field-input:focus + .form-field-label,
+.form-field-input:not(:placeholder-shown) + .form-field-label { 
+    color: #FFF;
+}
+.form-field-input:-webkit-autofill {
+    -webkit-box-shadow: 0 0 0 30px #020617 inset !important;
+    -webkit-text-fill-color: #E0E0E0 !important;
+}
+
+/* --- Custom Radio Buttons --- */
+.radio-group input[type="radio"] {
+    opacity: 0;
+    position: fixed;
+    width: 0;
+}
+.radio-group label {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    color: #9ca3af;
+    transition: color 0.2s ease-in-out;
+}
+.radio-group input[type="radio"]:checked + label {
+    color: #00ffff;
+}
+.radio-group label::before {
+    content: '';
+    width: 1em;
+    height: 1em;
+    border-radius: 50%;
+    border: 2px solid #6b7280;
+    margin-right: 0.5em;
+    background-color: transparent;
+    transition: all 0.2s ease-in-out;
+}
+.radio-group input[type="radio"]:checked + label::before {
+    border-color: #00ffff;
+    background-color: #00ffff;
+    box-shadow: 0 0 5px #00ffff;
+}
+.radio-group input[type="radio"]:focus-visible + label {
+    outline: 2px solid #38bdf8;
+    outline-offset: 2px;
+}
+
+.form-glow-cyan, .form-glow-green, .form-glow-sky {
+    /* Uses dynamic theme colors for the border/glow effect */
+    box-shadow: 0 0 0 2px var(--color-primary), 0 0 5px var(--color-primary), 0 0 15px var(--color-secondary);
+    border: 1px solid var(--color-primary); 
+}
+
+/* Add back the animation style you had */
 @keyframes pulse {
-  50% {
-    opacity: 0.85;
-    transform: scale(1.01);
-  }
+    50% {
+        opacity: 0.85;
+        transform: scale(1.01);
+    }
 }
 
 .animate-pulse-glow {
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
