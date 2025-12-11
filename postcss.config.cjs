@@ -1,8 +1,8 @@
-// postcss.config.cjs (COMPLETE, FINAL SCRIPT - Using the explicit plugin name via require)
+// postcss.config.cjs (COMPLETE, FINAL SCRIPT - Using the highly stable CommonJS syntax)
 module.exports = {
   plugins: [
-    // FIX: Using the exact package the error demands, loaded via require
-    require('@tailwindcss/postcss'), 
+    // Using require() and the default package names is the most stable method for Netlify CJS builds
+    require('tailwindcss'), 
     require('autoprefixer'),
   ],
 };

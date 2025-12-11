@@ -1,5 +1,16 @@
+# netlify.toml (Final Required Content)
+
 [build]
-  # Use a compatible Node.js version
   publish = "dist"
   command = "npm run build"
-  environment = { NODE_VERSION = "20" }
+
+[build.environment]
+  # CRITICAL FIXES FOR NETLIFY CSS PROCESSING:
+  NODE_VERSION = "18"
+  POSTCSS_VERSION = "8.4.35" 
+  NPM_CONFIG_FORCE = "true" 
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Cache-Control = "max-age=0, must-revalidate"
