@@ -1,18 +1,11 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
-    "./index.html",
-    "./{index,App,types,constants}.{ts,tsx}",
-    "./{assets,components,hooks,services}/**/*.{ts,tsx}",
+    "./index.html", 
+    "./src/**/*.{js,jsx,ts,tsx}", // CRITICAL: Must include all source file types
   ],
   theme: {
-    extend: {
-      fontFamily: {
-        // Define the custom fonts
-        orbitron: ['Orbitron', 'sans-serif'],
-        inter: ['Inter', 'sans-serif'],
-      }
-    },
+    extend: {},
   },
   plugins: [],
 }
