@@ -2,7 +2,7 @@
   "name": "document-uploader",
   "version": "1.0.0",
   "type": "module",
-  "description": "",
+  "description": "Final package definition for dispatch load uploader.",
   "main": "index.js",
   "scripts": {
     "dev": "vite",
@@ -10,7 +10,12 @@
     "preview": "vite preview",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
+  "keywords": [
+    "pwa",
+    "react",
+    "typescript",
+    "tailwindcss"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
