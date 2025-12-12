@@ -1,30 +1,32 @@
 // index.tsx
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-// Use the absolute alias import
-import App from '@/App.tsx'; 
-// Assuming style.css is correctly placed in src/ based on your structure
-import '@/./style.css'; 
+import App from './App.tsx';
+import './style.css'; // This was the last file we fixed
 
+// Find the container element
 const container = document.getElementById('root');
-if (container) {
-    const root = createRoot(container);
-    root.render(
-        <React.StrictMode>
-            <App />
-        </React.StrictMode>
-    );
+
+// If the container is not found, log an error and stop execution
+if (!container) {
+  throw new Error('Failed to find the root element #root in the document.');
 }
 
-// REMOVED: The block for manual Service Worker registration:
-/*
+// Create the root element and render the application
+const root = createRoot(container);
+root.render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
+
+// Optional: Service Worker registration for PWA functionality
 if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/service-worker.js').then(registration => {
-            console.log('SW registered: ', registration);
-        }).catch(registrationError => {
-            console.log('SW registration failed: ', registrationError);
-        });
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').then(registration => {
+      console.log('SW registered: ', registration);
+    }).catch(registrationError => {
+      console.log('SW registration failed: ', registrationError);
     });
+  });
 }
-*/
