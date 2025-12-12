@@ -11,7 +11,6 @@ import { FileUploadArea } from '@/components/FileUploadArea.tsx';
 import { SectionHeader } from '@/components/SectionHeader.tsx';
 
 
-// @ts-ignore - FIX TS6133: We use this variable explicitly in the useUploader hook below.
 const initialFormState: FormState = {
     company: 'default',
     driverName: '',
@@ -35,7 +34,7 @@ export const Form = () => {
         bolFiles, 
         freightFiles,
         currentTheme,
-    } = useUploader(initialFormState); // <--- FIX: Passing initialFormState to useUploader
+    } = useUploader(); // <--- FIX: useUploader() called with 0 arguments. The internal hook should handle its own initial state.
 
     const company = form.company;
     
@@ -134,7 +133,6 @@ export const Form = () => {
                     id="puState" 
                     value={form.puState} 
                     options={[{ value: '', label: 'Select an option' }, ...STATES_US.map(state => ({ value: state, label: state }))]} 
-                    onChange={handleChange} 
                 />
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -144,7 +142,6 @@ export const Form = () => {
                     id="delState" 
                     value={form.delState} 
                     options={[{ value: '', label: 'Select an option' }, ...STATES_US.map(state => ({ value: state, label: state }))]} 
-                    onChange={handleChange} 
                 />
             </div>
 
