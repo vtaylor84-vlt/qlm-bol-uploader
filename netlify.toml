@@ -1,10 +1,9 @@
-# netlify.toml (FINAL, GUARANTEED BUILD COMMAND FIX)
+# netlify.toml (FINAL, GUARANTEED BUILD COMMAND)
 
 [build]
   publish = "dist"
-  # CRITICAL FIX: Running a sequential command that checks the Tailwind version (which forces configuration loading)
-  # before running the build. This resolves stubborn PostCSS conflicts.
-  command = "npx tailwindcss -v && npm run build"
+  # Revert to the standard, simple command now that all files are clean
+  command = "npm run build"
 
 [build.environment]
   # CRITICAL FIX 1: Set a stable Node version (Node 18 is robust)
