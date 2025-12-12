@@ -1,4 +1,4 @@
-// src/hooks/useUploader.ts (COMPLETE, FINAL SCRIPT)
+// src/hooks/useUploader.ts (COMPLETE, FINAL SCRIPT - SYNTAX FIXED)
 import React, { useState, useCallback, useEffect, ChangeEvent, useMemo } from 'react';
 import type { FormState, FileState, UploadedFile, Status, ToastState, CompanyName, LoadSubmission, Theme } from '@/types.ts';
 import { generateCargoDescription } from '@/services/geminiService.ts'; 
