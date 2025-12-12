@@ -1,4 +1,4 @@
-# netlify.toml (FINAL, STABLE DEPLOYMENT CONFIG)
+# netlify.toml (Final Nudge)
 
 [build]
   publish = "dist"
@@ -10,6 +10,9 @@
   
   # CRITICAL FIX 2: Explicitly lock the PostCSS version to avoid conflicts with Tailwind
   POSTCSS_VERSION = "8.4.35" 
+
+  # TEMPORARY NUDGE: Adding a dummy variable to force a fresh build context
+  DUMMY_VERSION = "v1" 
   
   # Optional: Forces a clean install for better consistency
   NPM_CONFIG_FORCE = "true" 
