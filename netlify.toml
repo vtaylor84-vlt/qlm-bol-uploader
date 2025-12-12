@@ -1,15 +1,19 @@
-# netlify.toml (FINAL, MINIMAL DEPLOYMENT CONFIG)
+# netlify.toml (FINAL, STABLE DEPLOYMENT CONFIG)
 
 [build]
   publish = "dist"
   command = "npm run build"
 
 [build.environment]
-  # Remove NODE_VERSION here, as it's now set in .nvmrc
-  # Keep the POSTCSS version lock as a safeguard
-  POSTCSS_VERSION = "8.4.35" 
-  NPM_CONFIG_FORCE = "true" 
+  # CRITICAL FIX 1: Set a stable Node version (Node 18 is robust and stable)
+  NODE_VERSION = "18"
   
+  # CRITICAL FIX 2: Explicitly lock the PostCSS version to avoid conflicts with Tailwind
+  POSTCSS_VERSION = "8.4.35" 
+  
+  # Optional: Forces a clean install for better consistency
+  NPM_CONFIG_FORCE = "true" 
+
 [[headers]]
   for = "/*"
   [headers.values]

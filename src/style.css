@@ -8,6 +8,7 @@
 /* --- 2. CUSTOM AESTHETIC & FORM STYLES (Moved from index.html) --- */
 
 body {
+    /* ... rest of your body styles below this */
     font-family: 'Inter', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
