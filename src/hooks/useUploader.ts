@@ -5,8 +5,8 @@ import { generateCargoDescription } from '@/services/geminiService.ts'; 
 import { saveSubmissionToQueue as addToQueue, processQueue } from '@/services/queueService.ts'; 
 import { THEME_CONFIG } from '@/constants.ts'; 
 
-const initialState: FormState = {
-  company: 'default', 
+// Add a single space here
+const initialState: FormState = {  company: 'default', 
   driverName: '',
   loadNumber: '',
   bolNumber: '',
