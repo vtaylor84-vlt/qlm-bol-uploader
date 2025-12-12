@@ -1,18 +1,14 @@
-# netlify.toml (FINAL, GUARANTEED BUILD COMMAND)
+# netlify.toml (FINAL, SIMPLE, CLEAN BUILD COMMAND)
 
 [build]
   publish = "dist"
-  # Revert to the standard, simple command now that all files are clean
+  # Revert to the standard, simple command now that the environment is set
   command = "npm run build"
 
 [build.environment]
-  # CRITICAL FIX 1: Set a stable Node version (Node 18 is robust)
+  # (Keep these environment variables)
   NODE_VERSION = "18"
-  
-  # CRITICAL FIX 2: Explicitly ensure the POSTCSS version is defined.
   POSTCSS_VERSION = "8.4.35" 
-  
-  # Optional: Adds build flags for a clean install
   NPM_CONFIG_FORCE = "true" 
 
 [[headers]]
