@@ -1,9 +1,11 @@
-// src/hooks/useUploader.ts
+// src/hooks/useUploader.tsx
 import React, { useState, useCallback, useEffect, ChangeEvent, useMemo } from 'react';
 import type { FormState, FileState, UploadedFile, Status, ToastState, CompanyName, LoadSubmission, Theme } from '@/types.ts';
 import { generateCargoDescription } from '@/services/geminiService.ts';
 import { saveSubmissionToQueue as addToQueue, processQueue } from '@/services/queueService.ts';
 import { THEME_CONFIG } from '@/constants.ts';
+
+// --- Initial State and Configuration Setup ---
 
 const initialState: FormState = {
   company: 'default',
@@ -23,6 +25,7 @@ const initialFileState: FileState = {
   freightFiles: [],
 };
 
+// Create a map for quick theme lookup
 const THEME_MAP = THEME_CONFIG.reduce((acc, theme) => {
   acc[theme.name as CompanyName] = theme;
   return acc;
@@ -30,8 +33,12 @@ const THEME_MAP = THEME_CONFIG.reduce((acc, theme) => {
 
 const DEFAULT_THEME = THEME_MAP['default'];
 
+// --- Context and Custom Hook Export ---
+
+// Define the context type based on the return of useUploaderLogic
 const UploaderContext = React.createContext<ReturnType<typeof useUploaderLogic> | undefined>(undefined);
 
+// Hook to access the context values
 export const useUploader = () => {
   const context = React.useContext(UploaderContext);
   if (!context) {
@@ -40,6 +47,8 @@ export const useUploader = () => {
   return context;
 };
 
+// --- Main Logic Hook ---
+
 const useUploaderLogic = () => {
   const [formState, setFormState] = useState<FormState>(initialState);
   const [fileState, setFileState] = useState<FileState>(initialFileState);
@@ -47,40 +56,52 @@ const useUploaderLogic = () => {
   const [toast, setToast] = useState<ToastState>({ message: '', type: 'success' });
   const [validationError, setValidationError] = useState<string>('');
 
+  // Memoized current theme and logo based on selected company
   const currentTheme = useMemo(() => THEME_MAP[formState.company as CompanyName] || DEFAULT_THEME, [formState.company]);
   const DynamicLogo = useMemo(() => currentTheme.logo, [currentTheme]);
 
-  useEffect(() => {
-    processQueue();
-    window.addEventListener('online', processQueue);
-    const intervalId = setInterval(processQueue, 60000);
-
-    return () => {
-      window.removeEventListener('online', processQueue);
-      clearInterval(intervalId);
-      [...fileState.bolFiles, ...fileState.freightFiles].forEach(f => URL.revokeObjectURL(f.previewUrl));
-    };
+  // Handle Toast Notifications
+  const showToast = useCallback((message: string, type: ToastState['type'] = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(prev => (prev.message === message ? { message: '', type: 'success' } : prev)), 5500);
   }, []);
 
+  // Effect for Queue Processing and Cleanup
+  useEffect(() => {
+    // Initial and network-based queue processing
+    processQueue();
+    window.addEventListener('online', processQueue);
+    // Regular interval processing
+    const intervalId = setInterval(processQueue, 60000);
+    
+    return () => {
+      // Cleanup: remove listeners and clear interval
+      window.removeEventListener('online', processQueue);
+      clearInterval(intervalId);
+      // Cleanup: revoke Object URLs to prevent memory leaks
+      [...fileState.bolFiles, ...fileState.freightFiles].forEach(f => URL.revokeObjectURL(f.previewUrl));
+    };
+    // Dependencies included to ensure cleanup revokes ALL current URLs on unmount/re-run
+  }, [fileState.bolFiles, fileState.freightFiles]);
+
+  // Handle Form Input Changes
   const handleInputChange = useCallback((e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormState(prev => ({ ...prev, [name]: value }));
   }, []);
 
-  const showToast = (message: string, type: ToastState['type'] = 'success') => {
-    setToast({ message, type });
-    setTimeout(() => setToast(prev => (prev.message === message ? { message: '', type: 'success' } : prev)), 5500);
-  };
-
+  // Handle File Selection
   const handleFileChange = useCallback((e: ChangeEvent<HTMLInputElement>, fileType: keyof FileState) => {
     if (!e.target.files) return;
 
-    const allCurrentFiles = [...fileState.bolFiles, ...fileState.freightFiles];
-    const existing = new Set(allCurrentFiles.map(f => `${f.file.name}-${f.file.size}-${f.file.lastModified}`));
+    // Create a set of unique file signatures (name, size, lastModified) to check for duplicates
+    const existing = new Set([...fileState.bolFiles, ...fileState.freightFiles].map(f => `${f.file.name}-${f.file.size}-${f.file.lastModified}`));
     const newFiles: UploadedFile[] = [];
 
     for (const file of Array.from(e.target.files)) {
-      const sig = `${file.name}-${file.size}-${file.lastModified}`;
+      // Correct signature using file.lastModified
+      const sig = `${file.name}-${file.size}-${file.lastModified}`; 
+      
       if (existing.has(sig)) {
         showToast(`File already added: ${file.name}`, 'warning');
       } else {
@@ -89,35 +110,41 @@ const useUploaderLogic = () => {
           file,
           previewUrl: URL.createObjectURL(file),
           type: fileType === 'bolFiles' ? 'BOL' as const : 'FREIGHT' as const,
-          category: fileType === 'bolFiles' ? initialState.bolDocType as 'Pick Up' | 'Delivery' : undefined,
+          // Set category only for BOL files based on current form state
+          category: fileType === 'bolFiles' ? formState.bolDocType as 'Pick Up' | 'Delivery' : undefined,
         });
         existing.add(sig);
       }
     }
-
     setFileState(prev => ({ ...prev, [fileType]: [...prev[fileType], ...newFiles] }));
-  }, [fileState.bolFiles, fileState.freightFiles, initialState.bolDocType, showToast]);
+  }, [fileState.bolFiles, fileState.freightFiles, formState.bolDocType, showToast]);
 
+  // Handle File Removal
   const handleRemoveFile = useCallback((fileId: string, fileType: keyof FileState) => {
     setFileState(prev => {
       const fileToRemove = prev[fileType].find(f => f.id === fileId);
-      if (fileToRemove) URL.revokeObjectURL(fileToRemove.previewUrl);
+      if (fileToRemove) URL.revokeObjectURL(fileToRemove.previewUrl); // Clean up URL
       return { ...prev, [fileType]: prev[fileType].filter(f => f.id !== fileId) };
     });
   }, []);
 
+  // Handle File Reordering (Drag and Drop logic)
   const handleFileReorder = useCallback((draggedId: string, targetId: string, fileType: keyof FileState) => {
     setFileState(prev => {
       const files = [...prev[fileType]];
       const draggedIdx = files.findIndex(f => f.id === draggedId);
       const targetIdx = files.findIndex(f => f.id === targetId);
+      
       if (draggedIdx === -1 || targetIdx === -1) return prev;
+      
       const [moved] = files.splice(draggedIdx, 1);
-      files.splice(targetIdx, 0, moved);
+      files.splice(targetIdx, 0, moved); // Insert at target position
+      
       return { ...prev, [fileType]: files };
     });
   }, []);
 
+  // Validation Logic
   const validateForm = (): string => {
     if (formState.company === 'default' || !formState.company) return 'Please select a company.';
     if (!formState.driverName) return "Please enter the driver's name.";
@@ -125,23 +152,25 @@ const useUploaderLogic = () => {
     return '';
   };
 
+  // Reset Form to initial state (keeping selected company)
   const resetForm = () => {
-    const company = formState.company;
+    const company = formState.company; // Preserve the current company selection
     setFormState({ ...initialState, company });
-    [...fileState.bolFiles, ...fileState.freightFiles].forEach(f => URL.revokeObjectURL(f.previewUrl));
+    [...fileState.bolFiles, ...fileState.freightFiles].forEach(f => URL.revokeObjectURL(f.previewUrl)); // Clean up all URLs
     setFileState(initialFileState);
     setValidationError('');
   };
 
+  // Handle Submission
   const handleSubmit = async () => {
     const error = validateForm();
     if (error) {
       setValidationError(error);
       return;
     }
+
     setValidationError('');
     setStatus('submitting');
-
     try {
       const submissionId = crypto.randomUUID();
       const finalSubmission: LoadSubmission = {
@@ -151,9 +180,13 @@ const useUploaderLogic = () => {
         timestamp: Date.now(),
         submissionId,
       };
+
       await addToQueue(finalSubmission);
+      
+      // Generate a user-friendly load identifier for the toast
       const loadId = formState.loadNumber || formState.bolNumber || `Trip-${formState.puCity}-${formState.delCity}`;
       showToast(`${formState.company}: Load ${loadId} saved!`, 'success');
+
       setStatus('success');
       resetForm();
     } catch (err) {
@@ -161,22 +194,24 @@ const useUploaderLogic = () => {
       showToast('Failed to save to queue. Please try again.', 'error');
       setStatus('error');
     } finally {
-      setTimeout(() => setStatus('idle'), 1000);
+      setTimeout(() => setStatus('idle'), 1000); // Clear status after a brief moment
     }
   };
 
+  // AI-Powered Description Generation
   const generateDescription = async (files: UploadedFile[]) => {
     setStatus('loading');
     setFormState(prev => ({ ...prev, description: 'AI is thinking...' }));
-
     try {
       const imageFiles = files.filter(f => f.file.type.startsWith('image/')).map(f => f.file);
+      
       if (imageFiles.length === 0) {
         setFormState(prev => ({ ...prev, description: 'No images found to analyze.' }));
         setStatus('idle');
         return;
       }
-      const descriptionResult = await generateCargoDescription(imageFiles);
+
+      const descriptionResult = await generateCargoDescription(imageFiles as any);
       setFormState(prev => ({ ...prev, description: descriptionResult as string }));
       setStatus('success');
     } catch (err) {
@@ -203,12 +238,17 @@ const useUploaderLogic = () => {
     currentTheme,
     bolFiles: fileState.bolFiles,
     freightFiles: fileState.freightFiles,
-   };
-}
+  };
+};
 
-// Provider – THIS IS THE ONLY PART THAT WAS STILL BROKEN
-export const UploaderProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <UploaderContext.Provider value={useUploaderLogic()}>
-    {children}
-  </UploaderContext.Provider>
-);
+// --- Provider Component ---
+
+// FINAL WORKING PROVIDER — 100% correct syntax
+export const UploaderProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const value = useUploaderLogic();
+  return (
+    <UploaderContext.Provider value={value}>
+      {children}
+    </UploaderContext.Provider>
+  );
+};
