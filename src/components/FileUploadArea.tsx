@@ -1,8 +1,8 @@
 import React, { useRef, useState, DragEvent } from 'react';
 import type { UploadedFile } from '@/types'; // Use absolute path for safety
 import { FileThumbnail } from '@/components/FileThumbnail.tsx'; // Use absolute path for safety
-import { CameraIcon } from '@/components/icons/CameraIcon.tsx'; // **FIXED PATH**
-import { FolderIcon } from '@/components/icons/FolderIcon.tsx'; // **FIXED PATH**
+import { CameraIcon } from '@/components/icons/CameraIcon.tsx'; // Use absolute path for safety
+import { FolderIcon } from '@/components/icons/FolderIcon.tsx'; // Use absolute path for safety
 
 interface FileUploadAreaProps {
     id: 'bolFiles' | 'freightFiles';
@@ -10,7 +10,7 @@ interface FileUploadAreaProps {
     onFileChange: (e: React.ChangeEvent<HTMLInputElement>, fileType: 'bolFiles' | 'freightFiles') => void;
     onRemoveFile: (fileId: string, fileType: 'bolFiles' | 'freightFiles') => void;
     onFileReorder: (draggedId: string, targetId: string, fileType: 'bolFiles' | 'freightFiles') => void;
-    accept: string;
+    // Removed: accept: string; <--- FIX: This was the TS6133 error
 }
 
 export const FileUploadArea: React.FC<FileUploadAreaProps> = ({
@@ -19,7 +19,7 @@ export const FileUploadArea: React.FC<FileUploadAreaProps> = ({
     onFileChange,
     onRemoveFile,
     onFileReorder,
-    accept,
+    // Removed: accept, <--- FIX: This was the TS6133 error
 }) => {
     const dragId = useRef<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -67,6 +67,7 @@ export const FileUploadArea: React.FC<FileUploadAreaProps> = ({
     // Helper to trigger the hidden file input when clicking the drop zone
     const triggerFileInput = () => fileInputRef.current?.click();
 
+    // Use the variable that was previously passed as a prop
     const primaryAccept = id === 'bolFiles' ? 'image/*,application/pdf' : 'image/*,video/*';
 
     return (

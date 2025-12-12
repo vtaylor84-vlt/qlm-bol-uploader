@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react'; // Only import hooks
+import { useState, useMemo, useCallback } from 'react';
 import { LoadSubmission, FormState } from '@/types.ts';
 import { useUploader } from '@/hooks/useUploader.ts'; 
 import { useFormValidation } from '@/hooks/useFormValidation.ts';
@@ -11,7 +11,7 @@ import { FileUploadArea } from '@/components/FileUploadArea.tsx';
 import { SectionHeader } from '@/components/SectionHeader.tsx';
 
 
-const initialFormState: FormState = {
+const initialFormState: FormState = { // This variable is now used below
     company: 'default',
     driverName: '',
     loadNumber: '',
@@ -24,7 +24,7 @@ const initialFormState: FormState = {
     bolDocType: '',
 };
 
-export const Form = () => { // Removed : React.FC to prevent potential conflict
+export const Form = () => {
     const { 
         formState: form, 
         handleInputChange: handleChange, 
@@ -34,7 +34,7 @@ export const Form = () => { // Removed : React.FC to prevent potential conflict
         bolFiles, 
         freightFiles,
         currentTheme,
-    } = useUploader(); 
+    } = useUploader(initialFormState); // <--- FIX: Passing initialFormState to useUploader
 
     const company = form.company;
     
