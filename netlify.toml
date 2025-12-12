@@ -1,16 +1,15 @@
-# netlify.toml (FINAL, SIMPLE, CLEAN BUILD COMMAND)
+# netlify.toml (FINAL, MINIMAL DEPLOYMENT CONFIG)
 
 [build]
   publish = "dist"
-  # Revert to the standard, simple command now that the environment is set
   command = "npm run build"
 
 [build.environment]
-  # (Keep these environment variables)
-  NODE_VERSION = "18"
+  # Remove NODE_VERSION here, as it's now set in .nvmrc
+  # Keep the POSTCSS version lock as a safeguard
   POSTCSS_VERSION = "8.4.35" 
   NPM_CONFIG_FORCE = "true" 
-
+  
 [[headers]]
   for = "/*"
   [headers.values]
