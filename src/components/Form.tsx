@@ -1,7 +1,6 @@
-// components/Form.tsx (COMPLETE, FINAL SCRIPT)
 import React, { useState, useMemo, useCallback } from 'react';
-// FIX TS6133: Removed unused FormState import (only LoadSubmission is needed here)
-import { LoadSubmission } from '@/types.ts'; 
+// FIX TS6133: Removed unused SelectedFile import
+import { LoadSubmission, FormState } from '@/types.ts';
 import { useUploader } from '@/hooks/useUploader.ts'; 
 import { useFormValidation } from '@/hooks/useFormValidation.ts';
 import { useToast } from '@/components/Toast.tsx';
@@ -11,6 +10,21 @@ import { FormField } from '@/components/FormField.tsx';
 import { SelectField } from '@/components/SelectField.tsx';
 import { FileUploadArea } from '@/components/FileUploadArea.tsx';
 import { SectionHeader } from '@/components/SectionHeader.tsx';
+
+
+// FIX TS6133: This local const is now correctly typed as FormState
+const initialFormState: FormState = {
+    company: 'default',
+    driverName: '',
+    loadNumber: '',
+    bolNumber: '',
+    puCity: '',
+    puState: '',
+    delCity: '',
+    delState: '',
+    description: '',
+    bolDocType: '',
+};
 
 export const Form: React.FC = () => {
     const { 
@@ -24,14 +38,13 @@ export const Form: React.FC = () => {
         currentTheme,
     } = useUploader(); 
 
-    const company = form.company; 
+    const company = form.company;
     
     const showToast = useToast();
     const [status, setStatus] = useState<'idle' | 'submitting'>('idle');
     
     // FIX TS6133: Removed unused `setForm` and `newState` placeholders
     const allFiles = useMemo(() => [...bolFiles, ...freightFiles], [bolFiles, freightFiles]);
-    // Cast is needed here because form state from useUploader is likely partial/generic FormState
     const { isValid } = useFormValidation(form as LoadSubmission, allFiles);
 
 
@@ -48,8 +61,7 @@ export const Form: React.FC = () => {
         const submissionId = crypto.randomUUID();
         const finalSubmission: LoadSubmission = {
             ...form,
-            // NOTE: Ensure form state includes all LoadSubmission properties for a successful cast
-            company: company, 
+            company: company,
             files: allFiles,
             timestamp: Date.now(),
             submissionId: submissionId,
@@ -195,4 +207,112 @@ export const Form: React.FC = () => {
             </button>
         </form>
     );
+};
+
+import { useMemo } from 'react';
+import { LoadSubmission, SelectedFile } from '@/types'; // Fixed import path
+
+export const useFormValidation = (form: LoadSubmission, files: SelectedFile[]) => {
+    const isValid = useMemo(() => {
+        const hasCompanyAndDriver = form.company !== 'default' && form.driverName.trim().length > 0;
+        const hasIdentification = form.loadNumber.trim().length > 0 || 
+                                 form.bolNumber.trim().length > 0 || 
+                                 (form.puCity.trim().length > 0 && form.delCity.trim().length > 0); // Corrected property names to match Form.tsx
+        const hasFiles = files.length > 0;
+
+        return hasCompanyAndDriver && hasIdentification && hasFiles;
+    }, [form, files]);
+
+    return { isValid };
+};
+
+// components/GeminiAISection.tsx
+import React, { useState } from 'react';
+// FIX Imports: Use correct types from new types.ts
+import { FileData, Theme } from '@/types.ts';
+import { generateCargoDescription } from '@/services/geminiService.ts';
+import { useToast } from '@/components/Toast.tsx';
+// FIX: Changed import to FormField, assuming InputField.tsx is actually FormField.tsx
+import { FormField } from '@/components/FormField.tsx';
+
+interface GeminiAISectionProps {
+  freightFiles: FileData[];
+  description: string;
+  setDescription: (desc: string) => void;
+  theme: Theme;
+}
+
+export const GeminiAISection: React.FC<GeminiAISectionProps> = ({
+  freightFiles,
+  description,
+  setDescription,
+  theme,
+}) => {
+  const [isLoading, setIsLoading] = useState(false);
+  const addToast = useToast();
+
+  const handleGenerateDescription = async () => {
+    if (freightFiles.length === 0) {
+      addToast('Please attach freight photos/videos first.', 'warning');
+      return;
+    }
+
+    setIsLoading(true);
+    setDescription('Generating AI description...');
+    try {
+      const result = await generateCargoDescription(freightFiles); 
+      setDescription(result);
+      addToast('AI description generated successfully.', 'success');
+    } catch (error) {
+      console.error('Gemini AI Error:', error);
+      setDescription(`AI generation failed: ${(error as Error).message}`);
+      addToast('Failed to generate AI description.', 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  // FIX TS2551: Defined standard style object
+  const focusStyle = {
+    boxShadow: `0 0 0 2px ${theme.palette.glow}, 0 0 10px ${theme.palette.glow}`,
+  };
+
+  return (
+    <div className="mb-6 p-4 rounded-xl bg-gray-900 border-2 border-gray-700">
+      <h3 className={`text-xl font-orbitron mb-3 text-[--color-primary]`}>AI Cargo Analysis</h3>
+      
+      <button
+        type="button"
+        onClick={handleGenerateDescription}
+        disabled={isLoading}
+        className={`w-full p-3 rounded-lg text-white font-bold transition duration-300 border-2 border-gray-700 bg-gradient-to-r from-[--color-primary] to-[--color-secondary] mb-4 ${isLoading ? 'opacity-60 cursor-not-allowed' : 'hover:opacity-90'}`}
+        style={isLoading ? {} : { boxShadow: `0 0 8px var(--shadow-glow)` }}
+        onFocus={(e) => {
+// FIX TS2551: Use the correct style property name
+            if (!isLoading) e.currentTarget.style.boxShadow = focusStyle.boxShadow;
+        }}
+        onBlur={(e) => {
+// FIX TS2551: Use the correct style property name
+            if (!isLoading) e.currentTarget.style.boxShadow = `0 0 8px var(--shadow-glow)`;
+        }}
+      >
+        {isLoading ? '🧠 Analyzing Cargo...' : '✨ Generate Description (Gemini AI)'}
+      </button>
+
+      <textarea
+        id="description"
+        name="description"
+        rows={4}
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+        placeholder={isLoading ? 'AI is generating content...' : 'AI-generated or manual cargo description for BOL...'}
+        className={`w-full p-3 bg-gray-800 border-2 border-gray-700 rounded-lg text-white transition duration-300`}
+        style={{
+            boxShadow: isLoading ? `0 0 0 2px var(--color-primary)` : 'none',
+            minHeight: '100px'
+        }}
+        disabled={isLoading}
+      />
+    </div>
+  );
 };

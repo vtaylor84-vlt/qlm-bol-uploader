@@ -1,10 +1,9 @@
-// components/FilePreview.tsx (COMPLETE, FINAL SCRIPT)
 import React from 'react';
 // FIX TS6133: Only importing UploadedFile as that's the only type used in the component interface
-import { UploadedFile } from '@/types.ts'; 
+import { UploadedFile } from '@/types.ts';
 
 interface FilePreviewProps {
-    file: UploadedFile; 
+    file: UploadedFile;
     onRemove: (id: string) => void;
     index: number;
     dragHandleProps: any;
@@ -37,7 +36,7 @@ export const FilePreview: React.FC<FilePreviewProps> = ({ file, onRemove, index,
     };
 
     return (
-        <div 
+        <div
             className="group relative w-full h-full border-2 border-[--color-secondary] rounded-lg overflow-hidden shadow-lg hover:shadow-[0_0_15px_var(--color-secondary)] transition-all duration-200"
             data-index={index}
             {...dragHandleProps}
@@ -62,7 +61,6 @@ export const FilePreview: React.FC<FilePreviewProps> = ({ file, onRemove, index,
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                     </button>
                 </div>
-                
                 {/* File Details and Category (Uses file.category which must be present on UploadedFile) */}
                 <div className="text-xs text-white">
                     <p className="font-bold truncate">{file.file.name}</p>
