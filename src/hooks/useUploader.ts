@@ -203,10 +203,10 @@ const useUploaderLogic = () => {
     currentTheme,
     bolFiles: fileState.bolFiles,
     freightFiles: fileState.freightFiles,
-  };
-};
+   };
+}
 
-// Provider
+// Provider – THIS IS THE ONLY PART THAT WAS STILL BROKEN
 export const UploaderProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <UploaderContext.Provider value={useUploaderLogic()}>
     {children}
