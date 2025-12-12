@@ -31,7 +31,7 @@ const THEME_MAP = THEME_CONFIG.reduce((acc, theme) => {
 const DEFAULT_THEME = THEME_MAP['default'];
 
 // Create the context for the Uploader State
-const UploaderContext = React.createContext<ReturnType<typeof useUploader> | undefined>(undefined);
+const UploaderContext = React.createContext<ReturnType<typeof useUploaderLogic> | undefined>(undefined);
 
 export const useUploader = () => {
     // FIX TS2305: Ensure useUploader can be used by Form.tsx
