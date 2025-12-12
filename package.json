@@ -1,7 +1,6 @@
 {
   "name": "document-uploader",
   "version": "1.0.0",
-  "type": "module",
   "description": "Final package definition for dispatch load uploader.",
   "main": "index.js",
   "scripts": {
