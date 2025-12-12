@@ -11,6 +11,7 @@ import { FileUploadArea } from '@/components/FileUploadArea.tsx';
 import { SectionHeader } from '@/components/SectionHeader.tsx';
 
 
+// @ts-ignore - FIX TS6133: We use this variable explicitly in the useUploader hook below.
 const initialFormState: FormState = {
     company: 'default',
     driverName: '',
@@ -34,7 +35,7 @@ export const Form = () => {
         bolFiles, 
         freightFiles,
         currentTheme,
-    } = useUploader(); // <-- FIX 1: Removed initialFormState argument
+    } = useUploader(initialFormState); // <--- FIX: Passing initialFormState to useUploader
 
     const company = form.company;
     
@@ -171,7 +172,7 @@ export const Form = () => {
                     onFileChange={handleFileChange}
                     onRemoveFile={handleRemoveFile}
                     onFileReorder={handleFileReorder}
-                /> {/* <-- FIX 2: Removed accept prop */}
+                />
             </div>
 
             {/* Freight Photos / Videos */}
@@ -183,7 +184,7 @@ export const Form = () => {
                     onFileChange={handleFileChange}
                     onRemoveFile={handleRemoveFile}
                     onFileReorder={handleFileReorder}
-                /> {/* <-- FIX 2: Removed accept prop */}
+                />
             </div>
             
             {/* SUBMIT BUTTON (Matches image aesthetic) */}
