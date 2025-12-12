@@ -11,7 +11,7 @@ import { FileUploadArea } from '@/components/FileUploadArea.tsx';
 import { SectionHeader } from '@/components/SectionHeader.tsx';
 
 
-const initialFormState: FormState = { // This variable is now used below
+const initialFormState: FormState = {
     company: 'default',
     driverName: '',
     loadNumber: '',
@@ -34,7 +34,7 @@ export const Form = () => {
         bolFiles, 
         freightFiles,
         currentTheme,
-    } = useUploader(initialFormState); // <--- FIX: Passing initialFormState to useUploader
+    } = useUploader(); // <-- FIX 1: Removed initialFormState argument
 
     const company = form.company;
     
@@ -171,8 +171,7 @@ export const Form = () => {
                     onFileChange={handleFileChange}
                     onRemoveFile={handleRemoveFile}
                     onFileReorder={handleFileReorder}
-                    accept="image/*,application/pdf"
-                />
+                /> {/* <-- FIX 2: Removed accept prop */}
             </div>
 
             {/* Freight Photos / Videos */}
@@ -184,8 +183,7 @@ export const Form = () => {
                     onFileChange={handleFileChange}
                     onRemoveFile={handleRemoveFile}
                     onFileReorder={handleFileReorder}
-                    accept="image/*,video/*"
-                />
+                /> {/* <-- FIX 2: Removed accept prop */}
             </div>
             
             {/* SUBMIT BUTTON (Matches image aesthetic) */}
