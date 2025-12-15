@@ -34,7 +34,7 @@ const fileToGenerativePart = async (file: File) => {
  */
 // Renamed to match usage in GeminiAISection.tsx
 export const generateCargoDescription = async (files: SelectedFile[]): Promise<string> => { 
-    if (!GEMINI_API_KEY || GEMINI_API_KEY === "YOUR_GEMINI_API_KEY_HERE") {
+    if (!GEMINI_API_KEY || GEMINI_API_KEY === "AIzaSyDqTnsURlWECYt-nC3Muhox__UFlg0YhWg") {
         console.warn("Gemini API Key not set. Returning mock response.");
         await new Promise(r => setTimeout(r, 1500)); // Simulate delay
         return "AI Description: 12 standard-sized pallets containing mixed consumer electronics, shrink-wrapped and stacked 5 high. Visible warning labels for 'Fragile: Handle with Care'. No overt damage observed.";
