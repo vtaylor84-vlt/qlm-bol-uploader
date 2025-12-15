@@ -24,7 +24,7 @@ export default function App() {
     handleFileReorder,
     handleSubmit,
     generateDescription,
-    DynamicLogo, // Assuming this is the Logo component now exposed by the hook
+    DynamicLogo,
   } = useUploader();
 
   const isFormValid =
@@ -78,11 +78,10 @@ export default function App() {
 
             <SectionHeader title="Load Data" />
 
-            {/* --- Load Data (3x2 Grid Layout) --- */}
+            {/* --- Load Data (FIXED FLOW: Load/BOL, PU Pair, DEL Pair) --- */}
             <div className="space-y-4">
-              {/* Row 1: Load # & BOL # */}
+              {/* Row 1: Load # & BOL # (Identifiers) */}
               <div className="grid grid-cols-2 gap-4">
-                {/* Wrapped FormField in mb-4 for vertical alignment consistency */}
                 <div className="mb-4">
                   <FormField id="loadNumber" label="Load #" value={formState.loadNumber} onChange={handleInputChange} placeholder="e.g., 123456" />
                 </div>
@@ -91,21 +90,19 @@ export default function App() {
                 </div>
               </div>
               
-              {/* Row 2: Pickup City & State */}
+              {/* Row 2: Pickup City & State (Location 1) */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="mb-4">
                   <FormField id="puCity" label="Pickup City" value={formState.puCity} onChange={handleInputChange} placeholder="City" />
                 </div>
-                {/* SelectField handles its own margin (mb-4) */}
                 <SelectField id="puState" label="Pickup State" value={formState.puState} onChange={handleInputChange} options={STATES_US.map(s => ({ value: s, label: s || 'Select...' }))} />
               </div>
 
-              {/* Row 3: Delivery City & State */}
+              {/* Row 3: Delivery City & State (Location 2) */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="mb-4">
                   <FormField id="delCity" label="Delivery City" value={formState.delCity} onChange={handleInputChange} placeholder="City" />
                 </div>
-                {/* SelectField handles its own margin (mb-4) */}
                 <SelectField id="delState" label="Delivery State" value={formState.delState} onChange={handleInputChange} options={STATES_US.map(s => ({ value: s, label: s || 'Select...' }))} />
               </div>
             </div>
