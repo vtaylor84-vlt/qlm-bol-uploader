@@ -53,7 +53,7 @@ export default function App() {
             {/* --- Company & Driver --- */}
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* SelectField now manages its own spacing */}
+                {/* SelectField handles its own margin (mb-4) */}
                 <SelectField
                   id="company"
                   label="Company"
@@ -62,7 +62,7 @@ export default function App() {
                   options={COMPANY_OPTIONS.map(c => ({ value: c, label: c === '' ? 'Select a Company...' : c }))}
                   required
                 />
-                {/* Added margin-bottom to align with SelectField spacing, assuming FormField will also be simplified soon */}
+                {/* Wrapped FormField in mb-4 for vertical alignment consistency */}
                 <div className="mb-4">
                   <FormField
                     id="driverName"
@@ -82,7 +82,7 @@ export default function App() {
             <div className="space-y-4">
               {/* Row 1: Load # & BOL # */}
               <div className="grid grid-cols-2 gap-4">
-                {/* Added margin-bottom to align with SelectField spacing */}
+                {/* Wrapped FormField in mb-4 for vertical alignment consistency */}
                 <div className="mb-4">
                   <FormField id="loadNumber" label="Load #" value={formState.loadNumber} onChange={handleInputChange} placeholder="e.g., 123456" />
                 </div>
@@ -96,7 +96,7 @@ export default function App() {
                 <div className="mb-4">
                   <FormField id="puCity" label="Pickup City" value={formState.puCity} onChange={handleInputChange} placeholder="City" />
                 </div>
-                {/* SelectField now manages its own spacing */}
+                {/* SelectField handles its own margin (mb-4) */}
                 <SelectField id="puState" label="Pickup State" value={formState.puState} onChange={handleInputChange} options={STATES_US.map(s => ({ value: s, label: s || 'Select...' }))} />
               </div>
 
@@ -105,7 +105,7 @@ export default function App() {
                 <div className="mb-4">
                   <FormField id="delCity" label="Delivery City" value={formState.delCity} onChange={handleInputChange} placeholder="City" />
                 </div>
-                {/* SelectField now manages its own spacing */}
+                {/* SelectField handles its own margin (mb-4) */}
                 <SelectField id="delState" label="Delivery State" value={formState.delState} onChange={handleInputChange} options={STATES_US.map(s => ({ value: s, label: s || 'Select...' }))} />
               </div>
             </div>
