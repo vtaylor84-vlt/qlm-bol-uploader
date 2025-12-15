@@ -1,9 +1,8 @@
 // src/components/ThumbnailGallery.tsx
-import React, { useCallback, useMemo } from 'react';
-import { UploadedFile, FileType } from '../types';
+import React, { useCallback } from 'react';
+import { UploadedFile, FileState } from '../types'; 
 import { useDropzone } from 'react-dropzone';
-import { Image, Video, FileText, X } from 'lucide-react';
-import { useUploader } from '../hooks/useUploader'; 
+import { Image, Video, FileText, X, Camera } from 'lucide-react'; 
 
 interface ThumbnailGalleryProps {
   fileType: keyof FileState;
@@ -47,9 +46,15 @@ export const ThumbnailGallery: React.FC<ThumbnailGalleryProps> = ({
     onFileDrop(acceptedFiles, fileType);
   }, [onFileDrop, fileType]);
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop, accept });
+  // Use useDropzone only for drag/drop detection and input management
+  const { getRootProps, getInputProps, isDragActive, open } = useDropzone({ 
+      onDrop, 
+      accept,
+      noClick: true, // Crucial: Prevent file dialog from opening on container click
+      multiple: true 
+  });
   
-  // Drag and Drop Logic
+  // Drag and Drop Logic (No change here)
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>, fileId: string) => {
     e.dataTransfer.setData('fileId', fileId);
     e.dataTransfer.setData('fileType', fileType);
@@ -69,10 +74,19 @@ export const ThumbnailGallery: React.FC<ThumbnailGalleryProps> = ({
     const draggedId = e.dataTransfer.getData('fileId');
     const draggedFileType = e.dataTransfer.getData('fileType');
     
-    // Only allow reordering within the same container
     if (draggedFileType === fileType && draggedId !== targetId) {
         onFileReorder(draggedId, targetId, fileType);
     }
+  };
+
+  // Hidden input for camera usage 
+  const cameraInputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleCameraChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (e.target.files) {
+          onFileDrop(Array.from(e.target.files), fileType);
+          e.target.value = ''; 
+      }
   };
 
 
@@ -109,18 +123,61 @@ export const ThumbnailGallery: React.FC<ThumbnailGalleryProps> = ({
         </div>
       )}
 
-      {/* Dropzone Area for desktop */}
-      <div 
-        {...getRootProps()} 
-        className={`w-full p-6 border-2 border-dashed ${theme.border} rounded-lg text-center cursor-pointer transition-all duration-300
-                    ${isDragActive ? `bg-${theme.primary}-900/20` : 'bg-gray-900/50'}`}
-      >
-        <input {...getInputProps()} />
-        <p className="text-gray-400">
+      {/* Dropzone Area and Buttons */}
+      <div {...getRootProps()} className="pt-2"> 
+        {/* Hidden input for select files -- REMOVED getInputProps() from container, placed here: */}
+        <input {...getInputProps()} className="hidden" /> 
+
+        <div className="grid grid-cols-2 gap-4">
+            {/* Select Files Button */}
+            <button
+                type="button"
+                onClick={open}
+                className={`flex flex-col items-center justify-center h-28 p-4 rounded-lg text-lg font-bold transition-all duration-300
+                            bg-gray-800 border ${theme.border} hover:bg-gray-700 hover:shadow-lg hover:shadow-${theme.primary}-500/20`}
+                aria-label={`Select ${fileType === 'bolFiles' ? 'BOL' : 'Freight'} files`}
+            >
+                <Image size={32} className={`${theme.text}`} />
+                <span>Select Files</span>
+                <span className="text-xs text-gray-500 font-normal">
+                    {fileType === 'bolFiles' ? 'Images & PDF' : 'Images & Video'}
+                </span>
+            </button>
+
+            {/* Use Camera Button */}
+            <button
+                type="button"
+                onClick={() => cameraInputRef.current?.click()}
+                className={`flex flex-col items-center justify-center h-28 p-4 rounded-lg text-lg font-bold transition-all duration-300
+                            bg-gray-800 border ${theme.border} hover:bg-gray-700 hover:shadow-lg hover:shadow-${theme.primary}-500/20`}
+                aria-label={`Use camera for ${fileType === 'bolFiles' ? 'BOL' : 'Freight'} capture`}
+            >
+                <Camera size={32} className={`${theme.text}`} />
+                <span>Use Camera</span>
+                <input
+                    ref={cameraInputRef}
+                    type="file"
+                    accept={fileType === 'bolFiles' ? 'image/*' : 'image/*,video/*'}
+                    capture="environment" // Forces use of device camera
+                    multiple={true}
+                    onChange={handleCameraChange}
+                    className="hidden"
+                />
+                <span className="text-xs text-gray-500 font-normal">
+                    Supported: Images & Video (Max 50MB)
+                </span>
+            </button>
+        </div>
+
+        {/* Dropzone Hint */}
+        <div 
+          className={`w-full text-center p-2 mt-2 text-sm text-gray-500 border border-dashed rounded
+                      ${isDragActive ? `border-${theme.primary}-500 bg-${theme.primary}-900/10` : 'border-gray-800'}`}
+        >
           {isDragActive 
-            ? `Drop files here for ${fileType}...` 
-            : `Or drag and drop files here.`}
-        </p>
+            ? `Drop files here for ${fileType.replace('Files', '')}...` 
+            : `(Or drag and drop files anywhere over the buttons)`}
+        </div>
       </div>
     </div>
   );

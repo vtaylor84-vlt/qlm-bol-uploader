@@ -9,8 +9,8 @@ import { GeminiAISection } from './components/GeminiAISection';
 import { useUploader } from './hooks/useUploader';
 import { COMPANY_OPTIONS, STATES_US } from './constants.ts'; 
 import { CombinedLocationField } from './components/CombinedLocationField'; 
-import { ThumbnailGallery } from './components/ThumbnailGallery'; // FIX 1: Import ThumbnailGallery
-import { QueueStatusBadge } from './components/QueueStatusBadge'; // FIX 2: Import QueueStatusBadge
+import { ThumbnailGallery } from './components/ThumbnailGallery'; 
+import { QueueStatusBadge } from './components/QueueStatusBadge'; 
 
 export default function App() {
   const {
@@ -29,6 +29,7 @@ export default function App() {
     currentTheme, 
     loadIdentifierValue,
     handleFileDrop, 
+    showToast, // Added showToast to call in App.tsx
   } = useUploader();
 
   
@@ -49,6 +50,7 @@ export default function App() {
   // --- End Placeholder Logic ---
 
   return (
+    // Check for status !== 'loading' as a safety margin against black screen
     <div className="min-h-screen text-gray-100 flex flex-col items-center p-4 selection:bg-cyan-400 selection:text-black relative z-10">
       <div className="w-full max-w-2xl mx-auto">
         <Header DynamicHeaderContent={DynamicHeaderContent} />
@@ -116,7 +118,6 @@ export default function App() {
                     stateValue={formState.puState}
                     handleInputChange={handleInputChange}
                     stateOptions={stateOptions}
-                    required 
                     theme={currentTheme}
                 />
                 
@@ -127,7 +128,6 @@ export default function App() {
                     stateValue={formState.delState}
                     handleInputChange={handleInputChange}
                     stateOptions={stateOptions}
-                    required 
                     theme={currentTheme}
                 />
             </div>
@@ -151,7 +151,6 @@ export default function App() {
                     <h3 className={`font-bold ${currentTheme.text} uppercase tracking-wider text-sm`}>UPLOAD BOL IMAGE(S)</h3>
                 </div>
                 
-                {/* FIX 3: Thumbnail Gallery for BOLs */}
                 <ThumbnailGallery
                   fileType="bolFiles"
                   files={fileState.bolFiles}
@@ -167,7 +166,6 @@ export default function App() {
             <div className="space-y-4 mb-4">
               <h3 className={`font-bold ${currentTheme.text} uppercase tracking-wider text-sm`}>UPLOAD IMAGES OF FREIGHT LOADED ON THE TRAILER</h3>
               
-              {/* FIX 4: Thumbnail Gallery for Freight */}
               <ThumbnailGallery
                 fileType="freightFiles"
                 files={fileState.freightFiles}
@@ -179,7 +177,7 @@ export default function App() {
               />
             </div>
 
-            {/* --- AI Section (Conditional visibility remains) --- */}
+            {/* --- AI Section --- */}
             {fileState.freightFiles.length > 0 && (
               <div className={`border ${currentTheme.border} bg-gray-900/50 p-4 rounded`}>
                 <GeminiAISection
@@ -196,12 +194,10 @@ export default function App() {
               {validationError && <p className="text-red-400 text-center mb-4 bg-red-900/20 py-2 rounded border border-red-900">{validationError}</p>}
               <button
                 type="submit"
-                // FIX 5: Button has glow/pulse classes and is disabled if invalid/submitting
                 disabled={!isFormValid || status === 'submitting'}
                 className={`w-full text-lg font-orbitron font-bold text-black disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed py-4 rounded transition-all duration-200 
-                            ${currentTheme.buttonBg} ${currentTheme.buttonHover} ${currentTheme.glow} ${isFormValid ? 'animate-pulse' : ''}`}
+                            ${currentTheme.buttonBg} ${currentTheme.buttonHover} ${currentTheme.glow} ${isFormValid && status === 'idle' ? 'animate-pulse' : ''}`}
               >
-                {/* FIX 6: Conditional button text with Load ID */}
                 {status === 'submitting' 
                   ? 'QUEUING...' 
                   : isFormValid 
@@ -213,16 +209,14 @@ export default function App() {
         </main>
       </div>
 
-      {/* FIX 7: Corrected Toast rendering condition to prevent blank popup */}
       {toast.message && toast.message.trim().length > 0 && (
         <Toast
           message={toast.message}
           type={toast.type}
-          onClose={() => showToast('', 'success')} // Need to pass a function to clear the toast
+          onClose={() => showToast('', 'success')} 
         />
       )}
       
-      {/* FIX 8: Add Queue Status Indicator */}
       <QueueStatusBadge /> 
     </div>
   );

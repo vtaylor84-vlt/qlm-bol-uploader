@@ -1,10 +1,11 @@
 // src/hooks/useUploader.ts (REPLACE ALL)
 
-import { useState, useCallback, useEffect, ChangeEvent, useMemo } from 'react';
+import { useState, useCallback, useEffect, useMemo, ChangeEvent } from 'react';
 import type { FormState, FileState, UploadedFile, Status, ToastState } from '../types';
-import { generateDescription } from '../services/geminiService';
+// NOTE: Ensure your geminiService uses process.env.GEMINI_API_KEY
+import { generateDescription as callGeminiService } from '../services/geminiService'; 
 import { THEMES, defaultTheme } from '../themes'; 
-import { useQueue, QueuedJob } from './useQueue'; // FIX 1: Import useQueue and QueuedJob
+import { useQueue, QueuedJob } from './useQueue'; 
 
 // Import logos (you must ensure these paths are correct in your project structure)
 import GREENLEAF_LOGO from '../assets/Greenleaf Xpress logo.png'; 
@@ -38,7 +39,7 @@ export const useUploader = () => {
   const [toast, setToast] = useState<ToastState>({ message: '', type: 'success' });
   const [validationError, setValidationError] = useState<string>('');
   
-  const { saveJob } = useQueue(); // FIX 2: Destructure saveJob from useQueue
+  const { saveJob } = useQueue(); 
 
   // --- Dynamic Theme Logic ---
   const currentTheme = useMemo(() => { 
@@ -115,7 +116,7 @@ export const useUploader = () => {
     setTimeout(() => setToast(prev => (prev.message === message ? { message: '', type: 'success' } : prev)), 5500);
   }, []);
 
-  // FIX 3: Centralized file drop/change handler
+  // Centralized file drop/change handler
   const handleFileDrop = useCallback((files: File[], fileType: keyof FileState) => {
       const allCurrentFiles = [...fileState.bolFiles, ...fileState.freightFiles];
       const existingFileSignatures = new Set(
@@ -186,7 +187,7 @@ export const useUploader = () => {
     setValidationError('');
   };
 
-  // FIX 4: Update handleSubmit for IndexedDB Queueing
+  // Update handleSubmit for IndexedDB Queueing
   const handleSubmit = async () => {
     const error = validateForm();
     if (error) {
@@ -194,26 +195,24 @@ export const useUploader = () => {
       return;
     }
     setValidationError('');
-    setStatus('submitting'); // Reflects the start of the queueing process
+    setStatus('submitting'); 
     
     try {
-      // 1. Prepare job data: separate files into metadata and blobs
       const allFiles = [...fileState.bolFiles, ...fileState.freightFiles];
       
       const jobFiles = allFiles.map(f => ({
         name: f.file.name,
-        blob: f.file, // Blob/File objects are saved directly
+        blob: f.file, 
         type: f.file.type,
       }));
       
       const jobData = {
-          data: formState, // all form metadata
+          data: formState,
           files: jobFiles,
           timestamp: Date.now(),
           id: Date.now()
       } as QueuedJob;
 
-      // 2. Save job to IndexedDB via useQueue hook
       await saveJob(jobData);
       
       const loadId = loadIdentifierValue.split(': ')[1] || 'Submission';
@@ -231,7 +230,7 @@ export const useUploader = () => {
     }
   };
 
-  // FIX 5: Update generateDescription to use the correct API key source
+  // Update generateDescription to use the correct API key source
   const generateDescription = async (files: UploadedFile[]) => {
     setStatus('loading');
     setFormState(prev => ({ ...prev, description: 'AI is thinking...' }));
@@ -243,8 +242,8 @@ export const useUploader = () => {
         return;
       }
       
-      // NOTE: Your Gemini service implementation must now use the GEMINI_API_KEY environment variable
-      const description = await generateDescription(imageFiles); 
+      // Call the external service function
+      const description = await callGeminiService(imageFiles); 
       
       setFormState(prev => ({ ...prev, description }));
       setStatus('success');
@@ -272,6 +271,7 @@ export const useUploader = () => {
     currentTheme, 
     isFormValid, 
     loadIdentifierValue, 
-    handleFileDrop, // FIX 6: Export file drop handler
+    handleFileDrop, 
+    showToast,
   };
 };
