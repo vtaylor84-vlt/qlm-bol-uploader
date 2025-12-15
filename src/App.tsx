@@ -53,23 +53,26 @@ export default function App() {
             {/* --- Company & Driver --- */}
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* SelectField now manages its own spacing */}
                 <SelectField
                   id="company"
                   label="Company"
                   value={formState.company}
                   onChange={handleInputChange}
-                  // CORRECT: Use COMPANY_OPTIONS
                   options={COMPANY_OPTIONS.map(c => ({ value: c, label: c === '' ? 'Select a Company...' : c }))}
                   required
                 />
-                <FormField
-                  id="driverName"
-                  label="Driver Name"
-                  value={formState.driverName}
-                  onChange={handleInputChange}
-                  placeholder="e.g., John Doe"
-                  required
-                />
+                {/* Added margin-bottom to align with SelectField spacing, assuming FormField will also be simplified soon */}
+                <div className="mb-4">
+                  <FormField
+                    id="driverName"
+                    label="Driver Name"
+                    value={formState.driverName}
+                    onChange={handleInputChange}
+                    placeholder="e.g., John Doe"
+                    required
+                  />
+                </div>
               </div>
             </div>
 
@@ -79,22 +82,31 @@ export default function App() {
             <div className="space-y-4">
               {/* Row 1: Load # & BOL # */}
               <div className="grid grid-cols-2 gap-4">
+                {/* Added margin-bottom to align with SelectField spacing */}
+                <div className="mb-4">
                   <FormField id="loadNumber" label="Load #" value={formState.loadNumber} onChange={handleInputChange} placeholder="e.g., 123456" />
+                </div>
+                <div className="mb-4">
                   <FormField id="bolNumber" label="BOL #" value={formState.bolNumber} onChange={handleInputChange} placeholder="e.g., 7891011" />
+                </div>
               </div>
               
               {/* Row 2: Pickup City & State */}
               <div className="grid grid-cols-2 gap-4">
+                <div className="mb-4">
                   <FormField id="puCity" label="Pickup City" value={formState.puCity} onChange={handleInputChange} placeholder="City" />
-                  {/* CORRECT: Use STATES_US */}
-                  <SelectField id="puState" label="Pickup State" value={formState.puState} onChange={handleInputChange} options={STATES_US.map(s => ({ value: s, label: s || 'Select...' }))} />
+                </div>
+                {/* SelectField now manages its own spacing */}
+                <SelectField id="puState" label="Pickup State" value={formState.puState} onChange={handleInputChange} options={STATES_US.map(s => ({ value: s, label: s || 'Select...' }))} />
               </div>
 
               {/* Row 3: Delivery City & State */}
               <div className="grid grid-cols-2 gap-4">
+                <div className="mb-4">
                   <FormField id="delCity" label="Delivery City" value={formState.delCity} onChange={handleInputChange} placeholder="City" />
-                  {/* CORRECT: Use STATES_US */}
-                  <SelectField id="delState" label="Delivery State" value={formState.delState} onChange={handleInputChange} options={STATES_US.map(s => ({ value: s, label: s || 'Select...' }))} />
+                </div>
+                {/* SelectField now manages its own spacing */}
+                <SelectField id="delState" label="Delivery State" value={formState.delState} onChange={handleInputChange} options={STATES_US.map(s => ({ value: s, label: s || 'Select...' }))} />
               </div>
             </div>
 

@@ -11,7 +11,8 @@ interface SelectFieldProps {
 
 export const SelectField: React.FC<SelectFieldProps> = ({ id, label, value, onChange, options, required = false }) => {
   return (
-    <div className="relative form-field-container mb-2">
+    // Removed the form-field-container class
+    <div className="relative mb-4"> 
       <label htmlFor={id} className="block text-xs font-bold text-cyan-400 mb-1 uppercase tracking-wider">
         {label} {required && <span className="text-red-400">*</span>}
       </label>
@@ -22,17 +23,16 @@ export const SelectField: React.FC<SelectFieldProps> = ({ id, label, value, onCh
           value={value}
           onChange={onChange}
           required={required}
-          className="block w-full bg-gray-900 border border-cyan-900 text-cyan-100 py-3 px-4 appearance-none focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all duration-200"
+          // Simplified classes for a standard dark input
+          className="block w-full bg-gray-900 border border-gray-700 text-cyan-100 py-3 px-4 appearance-none focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all duration-200"
         >
           {options.map((option) => (
             <option 
               key={option.value} 
               value={option.value} 
               disabled={option.value === ""} 
-              // The primary fix: Ensure the background and text color are explicitly dark
-              // Some browsers need 'bg-gray-800' or similar darker colors instead of 'bg-gray-900' 
-              // for the options, and may need text-white or text-gray-100 instead of text-cyan-100.
-              className="bg-gray-900 text-cyan-100" 
+              // Using a darker gray that is more consistently themed by browsers
+              className="bg-gray-800 text-cyan-100" 
             >
               {option.label}
             </option>
