@@ -1,16 +1,13 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import * as path from 'path'; // ⚠️ CRITICAL: Import path module
+
+// You no longer need 'path' or the 'resolve' block if you use relative imports.
 
 export default defineConfig({
   plugins: [react()],
-  // ⚠️ CRITICAL: Add the resolve block to define the alias
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './'), 
-    },
-  },
+  // ⚠️ CRITICAL: Tell Vite that the source root is the 'src' folder
+  root: 'src', 
   build: {
-    outDir: 'dist', // The required output folder name for Netlify
+    outDir: '../dist', // Output must be outside the 'src' folder
   },
 });
