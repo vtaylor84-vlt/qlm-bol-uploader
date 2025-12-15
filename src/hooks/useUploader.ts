@@ -41,6 +41,19 @@ export const useUploader = () => {
     return THEMES[formState.company] || defaultTheme;
   }, [formState.company]);
 
+  // --- Load Identifier Logic (FIX 1) ---
+  const loadIdentifierValue = useMemo(() => {
+      if (formState.loadNumber) return `Load #: ${formState.loadNumber}`;
+      if (formState.bolNumber) return `BOL #: ${formState.bolNumber}`;
+      if (formState.puCity && formState.delCity) {
+          const puCity = formState.puCity.toUpperCase();
+          const delCity = formState.delCity.toUpperCase();
+          return `Trip: ${puCity} -> ${delCity}`;
+      }
+      return '';
+  }, [formState.loadNumber, formState.bolNumber, formState.puCity, formState.delCity]);
+
+
   // --- Dynamic Header Logic ---
   const DynamicHeaderContent = useMemo(() => {
     switch (formState.company) {
@@ -68,15 +81,16 @@ export const useUploader = () => {
   }, [formState.company, currentTheme.text]);
   // --- End Dynamic Logo Logic ---
 
-  // FIX 1: Define isFormValid based on all required fields, including BOL Type
+  // FIX 2: isFormValid now relies on loadIdentifierValue being present
   const isFormValid = useMemo(() => {
     return (
       formState.company !== '' &&
       formState.driverName !== '' &&
-      formState.bolDocType !== '' && // NEW REQUIRED FIELD CHECK
+      formState.bolDocType !== '' &&
+      loadIdentifierValue !== '' && // NEW REQUIRED FIELD CHECK (Load ID OR BOL OR Trip)
       (fileState.bolFiles.length > 0 || fileState.freightFiles.length > 0)
     );
-  }, [formState, fileState]);
+  }, [formState, fileState, loadIdentifierValue]);
 
 
   // Effect to process the queue on app load and when network status changes
@@ -157,8 +171,9 @@ export const useUploader = () => {
   const validateForm = () => {
     if (!formState.company) return "Please select a company.";
     if (!formState.driverName) return "Please enter the driver's name.";
-    // FIX 2: Check if bolDocType is selected
     if (!formState.bolDocType) return "Please select a BOL Type (Pickup or Delivery)."; 
+    // FIX 3: Complex validation check using the memoized identifier
+    if (!loadIdentifierValue) return "Please enter a Load #, BOL #, or both Pickup and Delivery Cities/States."; 
     if (fileState.bolFiles.length === 0 && fileState.freightFiles.length === 0) return "Please upload at least one file.";
     return "";
   };
@@ -235,6 +250,7 @@ export const useUploader = () => {
     generateDescription: generateDescription,
     DynamicHeaderContent, 
     currentTheme, 
-    isFormValid, // FIX 3: Return isFormValid
+    isFormValid, 
+    loadIdentifierValue, // FIX 4: Export the dynamic identifier for the submit button text
   };
 };
