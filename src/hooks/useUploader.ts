@@ -1,8 +1,9 @@
 import { useState, useCallback, useEffect, ChangeEvent } from 'react';
-import type { FormState, FileState, UploadedFile, Status, ToastState, CompanyName } from '@/types.ts';
-import { generateCargoDescription as generateDescriptionFromImages } from '@/services/geminiService.ts'; // ⚠️ FINAL FIX: Corrected export name to generateCargoDescription
-import { saveSubmissionToQueue as addToQueue, processQueue } from '@/services/queueService.ts'; 
-import { THEME_CONFIG } from '@/constants.ts'; // Import THEME_CONFIG for logo access
+// Corrected Imports: Use relative path (../) to move from 'hooks' to 'src'
+import type { FormState, FileState, UploadedFile, Status, ToastState, CompanyName } from '../types';
+import { generateCargoDescription as generateDescriptionFromImages } from '../services/geminiService.ts'; 
+import { saveSubmissionToQueue as addToQueue, processQueue } from '../services/queueService.ts'; 
+import { THEME_CONFIG } from '../constants.ts'; 
 
 // ⚠️ FIX 1 & 2: Set default values to blank/placeholder strings
 const initialState: FormState = {
@@ -63,10 +64,7 @@ export const useUploader = () => {
     setTimeout(() => setToast(prev => (prev.message === message ? { message: '', type: 'success' } : prev)), 5500);
   };
 
-  // ⚠️ FIX 4: Thumbnail/Preview Fix
-  // The logic for URL.createObjectURL is correct here, but ensure it's used.
-  // The 'FilePreview.tsx' code you provided earlier didn't use the theme, so we assume
-  // that the 'FileThumbnail.tsx' is now responsible for displaying the preview URL.
+  // ⚠️ FIX 4: Thumbnail/Preview Fix (Original logic maintained)
   const handleFileChange = useCallback((e: ChangeEvent<HTMLInputElement>, fileType: keyof FileState) => {
     if (e.target.files) {
       const allCurrentFiles = [...fileState.bolFiles, ...fileState.freightFiles];
