@@ -4,11 +4,10 @@ import { generateDescription } from '../services/geminiService';
 import { saveSubmissionToQueue, processQueue } from '../services/queueService';
 import { THEMES, defaultTheme } from '../themes'; 
 
-// FIX 1: Import the actual assets (ASSUME PATH IS CORRECT)
+// Import logos (you must ensure these paths are correct in your project structure)
 import GREENLEAF_LOGO from '../assets/Greenleaf Xpress logo.png'; 
 import BST_EXPEDITE_LOGO from '../assets/BST Expedite.png'; 
 
-// FIX 2: Use the imported variables
 const GREENLEAF_LOGO_URL = GREENLEAF_LOGO;
 const BST_EXPEDITE_LOGO_URL = BST_EXPEDITE_LOGO;
 
@@ -50,14 +49,16 @@ export const useUploader = () => {
           type: 'logo', 
           src: GREENLEAF_LOGO_URL, 
           alt: 'Greenleaf Xpress Logo',
-          className: 'h-16 md:h-20 w-auto mx-auto' 
+          // FIX: Increased height for better visibility
+          className: 'h-40 w-auto mx-auto' 
         };
       case 'BST Expedite': 
         return { 
           type: 'logo', 
           src: BST_EXPEDITE_LOGO_URL, 
           alt: 'BST Expedite Logo',
-          className: 'h-16 md:h-20 w-auto mx-auto' 
+          // FIX: Increased height for better visibility
+          className: 'h-40 w-auto mx-auto' 
         };
       default:
         return { 
