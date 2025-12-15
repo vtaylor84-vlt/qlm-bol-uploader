@@ -91,7 +91,7 @@ export default function App() {
               </div>
             </div>
               
-            {/* --- Load Data: Pickup Location --- */}
+            {/* --- Load Data: Pickup Location (FIXED COMPACT LAYOUT) --- */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <CombinedLocationField
                     prefix="pu"
@@ -103,9 +103,33 @@ export default function App() {
                 />
             </div>
             
-            {/* --- BOL / POD (MOVED HERE) --- */}
-            {/* FIX 1: Moved the entire BOL/POD Uploads section to immediately after Pickup Location */}
-            <div className="space-y-4 mb-4 pt-4 border-t border-gray-800">
+            {/* --- BOL TYPE RADIO BUTTONS (MOVED HERE) --- */}
+            <div className="radio-group flex items-center space-x-6 text-gray-300 bg-gray-900 p-3 border border-cyan-900/50 rounded">
+                <span className="font-semibold text-sm text-gray-400">BOL Type:</span>
+                <div className="flex items-center space-x-2">
+                    <input type="radio" id="pickup" name="bolDocType" value="Pickup" checked={formState.bolDocType === 'Pickup'} onChange={handleInputChange} />
+                    <label htmlFor="pickup" className="text-sm">Pickup</label>
+                </div>
+                <div className="flex items-center space-x-2">
+                    <input type="radio" id="delivery" name="bolDocType" value="Delivery" checked={formState.bolDocType === 'Delivery'} onChange={handleInputChange} />
+                    <label htmlFor="delivery" className="text-sm">Delivery</label>
+                </div>
+            </div>
+
+            {/* --- Load Data: Delivery Location (FIXED COMPACT LAYOUT) --- */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <CombinedLocationField
+                    prefix="del"
+                    label="DELIVERY CITY/STATE" 
+                    cityValue={formState.delCity}
+                    stateValue={formState.delState}
+                    handleInputChange={handleInputChange}
+                    stateOptions={stateOptions}
+                />
+            </div>
+            
+            {/* --- BOL / POD UPLOADS (REMAINS) --- */}
+            <div className="space-y-4">
                 <div className="flex items-center justify-between">
                     <h3 className="font-bold text-cyan-400 uppercase tracking-wider text-sm">BOL / POD Uploads</h3>
                 </div>
@@ -119,34 +143,10 @@ export default function App() {
                   onFileReorder={handleFileReorder}
                   accept="image/*,application/pdf"
                 />
-
-                <div className="radio-group flex items-center space-x-6 text-gray-300 bg-gray-900 p-3 border border-cyan-900/50 rounded">
-                    <span className="font-semibold text-sm text-gray-400">BOL Type:</span>
-                    <div className="flex items-center space-x-2">
-                        <input type="radio" id="pickup" name="bolDocType" value="Pickup" checked={formState.bolDocType === 'Pickup'} onChange={handleInputChange} />
-                        <label htmlFor="pickup" className="text-sm">Pickup</label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                        <input type="radio" id="delivery" name="bolDocType" value="Delivery" checked={formState.bolDocType === 'Delivery'} onChange={handleInputChange} />
-                        <label htmlFor="delivery" className="text-sm">Delivery</label>
-                    </div>
-                </div>
             </div>
             
-            {/* --- Load Data: Delivery Location --- */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <CombinedLocationField
-                    prefix="del"
-                    label="DELIVERY CITY/STATE" 
-                    cityValue={formState.delCity}
-                    stateValue={formState.delState}
-                    handleInputChange={handleInputChange}
-                    stateOptions={stateOptions}
-                />
-            </div>
-
-            {/* --- Freight (Original section that was below BOL/POD) --- */}
-            <div className="space-y-4 pt-4 border-t border-gray-800">
+            {/* --- Freight --- */}
+            <div className="space-y-4 mb-4">
               <h3 className="font-bold text-cyan-400 uppercase tracking-wider text-sm">Freight Photos/Videos</h3>
               <FileUploadArea
                 id="freightFiles"
