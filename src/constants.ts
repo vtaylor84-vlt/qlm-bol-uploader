@@ -1,10 +1,11 @@
-import { CompanyName, CompanyTheme } from './types'; // Removed .ts extension as per convention
+// File: src/constants.ts
+import { CompanyName, CompanyTheme } from './types'; 
 // FIX 1: Simplify imports to use named exports, as the complex module import failed
 import { GreenleafLogo } from './assets/GreenleafLogo.tsx'; 
 import { BstLogo } from './assets/BstLogo.tsx'; 
 
-// FIX 2: Export variables using the names expected by App.tsx (COMPANIES and US_STATES)
-export const COMPANIES: CompanyName[] = ['Greenleaf Xpress', 'BST Expedite'];
+// FIX: EXPORT variable using the name expected by App.tsx (COMPANY_OPTIONS)
+export const COMPANY_OPTIONS: CompanyName[] = ['Greenleaf Xpress', 'BST Expedite'];
 
 export const THEME_CONFIG: Record<CompanyName, CompanyTheme> = {
     default: {
@@ -41,7 +42,7 @@ export const THEME_CONFIG: Record<CompanyName, CompanyTheme> = {
     },
 };
 
-// FIX 2: Export variable using the name expected by App.tsx (US_STATES)
-export const US_STATES = [
+// FIX: EXPORT variable using the name expected by App.tsx (STATES_US)
+export const STATES_US = [
     'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'
 ];
