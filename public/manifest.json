@@ -1,0 +1,21 @@
+{
+  "name": "BOL Uploader",
+  "short_name": "BOL Upload",
+  "description": "Offline-first Load and Document Uploader for Drivers.",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#111827",
+  "theme_color": "#06b6d4",
+  "icons": [
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
