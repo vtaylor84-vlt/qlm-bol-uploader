@@ -7,7 +7,7 @@ import Toast from './components/Toast';
 import { GeminiAISection } from './components/GeminiAISection';
 import { useUploader } from './hooks/useUploader';
 import { COMPANY_OPTIONS, STATES_US } from './constants.ts'; 
-// import { SectionHeader } from './components/SectionHeader'; // Removed SectionHeader
+// import { SectionHeader } from './components/SectionHeader'; 
 
 export default function App() {
   const {
@@ -37,12 +37,12 @@ export default function App() {
 
   // --- Placeholder Logic ---
   const companyOptions = [
-    { value: '', label: 'Select a Company...' }, // FIX: Prepend the default option
+    { value: '', label: 'Select a Company...' }, 
     ...COMPANY_OPTIONS.map(c => ({ value: c, label: c }))
   ];
   
   const stateOptions = [
-    { value: '', label: 'Select a state' }, // FIX: Prepend the default option
+    { value: '', label: 'Select a state' }, 
     ...STATES_US.map(s => ({ value: s, label: s }))
   ];
   // --- End Placeholder Logic ---
@@ -61,14 +61,15 @@ export default function App() {
             className="p-6 bg-black/80 border border-gray-800 shadow-2xl shadow-cyan-900/20 backdrop-blur-sm rounded-xl"
           >
             {/* --- Company & Driver (Top Block) --- */}
-            <div className="mb-8"> 
+            {/* FIX 1: Reduced gap from mb-8 to mb-4 */}
+            <div className="mb-4"> 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <SelectField
                   id="company"
                   label="Company"
                   value={formState.company}
                   onChange={handleInputChange}
-                  options={companyOptions} // Use the new array
+                  options={companyOptions} 
                   required
                 />
                 <div className="mb-4">
@@ -85,7 +86,8 @@ export default function App() {
             </div>
 
             {/* --- Load Data --- */}
-            <div className="mb-8"> 
+            {/* FIX 2: Reduced gap from mb-8 to mb-4 */}
+            <div className="mb-4"> 
               {/* Row 1: Load # & BOL # (Identifiers) */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="mb-4">
@@ -106,7 +108,7 @@ export default function App() {
                   label="Pickup State" 
                   value={formState.puState} 
                   onChange={handleInputChange} 
-                  options={stateOptions} // Use the new array
+                  options={stateOptions} 
                 />
               </div>
 
@@ -120,12 +122,14 @@ export default function App() {
                   label="Delivery State" 
                   value={formState.delState} 
                   onChange={handleInputChange} 
-                  options={stateOptions} // Use the new array
+                  options={stateOptions} 
                 />
               </div>
             </div>
 
-            <div className="space-y-4">
+            {/* --- BOL / POD --- */}
+            {/* Removed redundant mb-8/mb-4 wrapper here, using pt-4 border-t instead */}
+            <div className="space-y-4 pt-4 border-t border-gray-800">
                 <div className="flex items-center justify-between">
                     <h3 className="font-bold text-cyan-400 uppercase tracking-wider text-sm">BOL / POD Uploads</h3>
                 </div>
@@ -152,6 +156,7 @@ export default function App() {
                 />
             </div>
             
+            {/* --- Freight --- */}
             <div className="space-y-4 pt-4 border-t border-gray-800">
               <h3 className="font-bold text-cyan-400 uppercase tracking-wider text-sm">Freight Photos/Videos</h3>
               <FileUploadArea
@@ -164,6 +169,7 @@ export default function App() {
               />
             </div>
 
+            {/* --- AI Section --- */}
             {fileState.freightFiles.length > 0 && (
               <div className="border border-gray-800 bg-gray-900/50 p-4 rounded">
                 <GeminiAISection
@@ -175,6 +181,7 @@ export default function App() {
               </div>
             )}
 
+            {/* --- Submit --- */}
             <div className="pt-6">
               {validationError && <p className="text-red-400 text-center mb-4 bg-red-900/20 py-2 rounded border border-red-900">{validationError}</p>}
               <button
