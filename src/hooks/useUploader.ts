@@ -1,17 +1,18 @@
 import { useState, useCallback, useEffect, ChangeEvent } from 'react';
 import type { FormState, FileState, UploadedFile, Status, ToastState } from '../types';
 import { generateDescriptionFromImages } from '../services/geminiService';
-import { addToQueue, processQueue } from '../services/queueService';
+// FIX 1: Rename the imported function from addToQueue to saveSubmissionToQueue
+import { saveSubmissionToQueue, processQueue } from '../services/queueService';
 
 const initialState: FormState = {
-  company: '', // FIX: Set to empty string so 'Select a Company...' option is shown
+  company: '', 
   driverName: '',
   loadNumber: '',
   bolNumber: '',
   puCity: '',
-  puState: '', // FIX: Set to empty string so 'Select a state' option is shown
+  puState: '', 
   delCity: '',
-  delState: '', // FIX: Set to empty string so 'Select a state' option is shown
+  delState: '', 
   description: '',
   bolDocType: 'Pick Up'
 };
@@ -129,7 +130,8 @@ export const useUploader = () => {
     setStatus('submitting');
     
     try {
-      await addToQueue({ formState, fileState });
+      // FIX 2: Correctly call the exported function name
+      await saveSubmissionToQueue({ formState, fileState });
       
       const loadId = formState.loadNumber || formState.bolNumber || `Trip-${formState.puCity}-${formState.delCity}`;
       showToast(`${formState.company}: Load ${loadId} saved!`, 'success');
