@@ -10,14 +10,16 @@ interface SelectFieldProps {
 }
 
 export const SelectField: React.FC<SelectFieldProps> = ({ id, label, value, onChange, options, required = false }) => {
-  const hasValue = value !== ''; // Check if a real value is selected
+  const hasValue = value !== ''; 
   
+  // FIX 3: Removed mb-4 spacing from component wrapper, allowing parent component to control spacing
   return (
-    // FIX 1: Removed redundant mb-4 margin
     <div className="relative"> 
-      <label htmlFor={id} className="block text-xs font-bold text-cyan-400 mb-1 uppercase tracking-wider">
-        {label} {required && <span className="text-red-400">*</span>}
-      </label>
+      {label && ( // Only render label if it exists (for non-combined fields)
+        <label htmlFor={id} className="block text-xs font-bold text-cyan-400 mb-1 uppercase tracking-wider">
+          {label} {required && <span className="text-red-400">*</span>}
+        </label>
+      )}
       <div className="relative">
         <select
           id={id}

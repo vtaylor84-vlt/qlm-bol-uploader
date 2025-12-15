@@ -7,7 +7,7 @@ import Toast from './components/Toast';
 import { GeminiAISection } from './components/GeminiAISection';
 import { useUploader } from './hooks/useUploader';
 import { COMPANY_OPTIONS, STATES_US } from './constants.ts'; 
-// import { SectionHeader } from './components/SectionHeader'; 
+import { CombinedLocationField } from './components/CombinedLocationField'; // FIX 4: Import new component
 
 export default function App() {
   const {
@@ -58,14 +58,16 @@ export default function App() {
               e.preventDefault();
               handleSubmit();
             }}
-            className="p-6 bg-black/80 border border-gray-800 shadow-2xl shadow-cyan-900/20 backdrop-blur-sm rounded-xl"
+            // FIX 5: Use space-y-4 at the form level to control consistent vertical gaps between groups
+            className="p-6 space-y-4 bg-black/80 border border-gray-800 shadow-2xl shadow-cyan-900/20 backdrop-blur-sm rounded-xl"
           >
             {/* --- Company & Driver (Top Block) --- */}
-            <div className="mb-4"> 
+            <div> 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Individual components no longer have mb-4, spacing is controlled by parent space-y-4 and grid gap-4 */}
                 <SelectField
                   id="company"
-                  label="Company"
+                  label="COMPANY *"
                   value={formState.company}
                   onChange={handleInputChange}
                   options={companyOptions} 
@@ -73,7 +75,7 @@ export default function App() {
                 />
                 <FormField
                   id="driverName"
-                  label="Driver Name"
+                  label="DRIVER NAME (REQUIRED)"
                   value={formState.driverName}
                   onChange={handleInputChange}
                   placeholder="e.g., John Doe"
@@ -82,42 +84,39 @@ export default function App() {
               </div>
             </div>
 
-            {/* --- Load Data --- */}
-            <div className="mb-4"> 
+            {/* --- Load Data (Identical Spacing to Company Block) --- */}
+            <div> 
               
               {/* Row 1: Load # & BOL # (Identifiers) */}
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                <FormField id="loadNumber" label="Load #" value={formState.loadNumber} onChange={handleInputChange} placeholder="e.g., 123456" />
+              <div className="grid grid-cols-2 gap-4">
+                <FormField id="loadNumber" label="LOAD #" value={formState.loadNumber} onChange={handleInputChange} placeholder="e.g., 123456" />
                 <FormField id="bolNumber" label="BOL #" value={formState.bolNumber} onChange={handleInputChange} placeholder="e.g., 7891011" />
               </div>
-              
-              {/* Row 2: Pickup City & State (Location 1) */}
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                <FormField id="puCity" label="Pickup City" value={formState.puCity} onChange={handleInputChange} placeholder="City" />
-                <SelectField 
-                  id="puState" 
-                  label="Pickup State" 
-                  value={formState.puState} 
-                  onChange={handleInputChange} 
-                  options={stateOptions} 
-                />
-              </div>
-
-              {/* Row 3: Delivery City & State (Location 2) */}
-              <div className="grid grid-cols-2 gap-4">
-                <FormField id="delCity" label="Delivery City" value={formState.delCity} onChange={handleInputChange} placeholder="City" />
-                <SelectField 
-                  id="delState" 
-                  label="Delivery State" 
-                  value={formState.delState} 
-                  onChange={handleInputChange} 
-                  options={stateOptions} 
-                />
-              </div>
             </div>
-
+              
+            {/* Row 2 & 3: Pickup and Delivery Location (Now using CombinedLocationField) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* FIX 6: Combined Location Fields */}
+                <CombinedLocationField
+                    prefix="pu"
+                    label="PICKUP CITY/STATE" // Combined Header
+                    cityValue={formState.puCity}
+                    stateValue={formState.puState}
+                    handleInputChange={handleInputChange}
+                    stateOptions={stateOptions}
+                />
+                <CombinedLocationField
+                    prefix="del"
+                    label="DELIVERY CITY/STATE" // Combined Header
+                    cityValue={formState.delCity}
+                    stateValue={formState.delState}
+                    handleInputChange={handleInputChange}
+                    stateOptions={stateOptions}
+                />
+            </div>
+            
             {/* --- BOL / POD --- */}
-            <div className="space-y-4">
+            <div className="space-y-4 pt-4 border-t border-gray-800"> {/* Added top border for clear separation */}
                 <div className="flex items-center justify-between">
                     <h3 className="font-bold text-cyan-400 uppercase tracking-wider text-sm">BOL / POD Uploads</h3>
                 </div>
@@ -125,7 +124,6 @@ export default function App() {
                 <div className="radio-group flex items-center space-x-6 text-gray-300 bg-gray-900 p-3 border border-cyan-900/50 rounded">
                     <span className="font-semibold text-sm text-gray-400">BOL Type:</span>
                     <div className="flex items-center space-x-2">
-                        {/* FIX 2: Value and checked state use "Pickup". No default checked attribute */}
                         <input type="radio" id="pickup" name="bolDocType" value="Pickup" checked={formState.bolDocType === 'Pickup'} onChange={handleInputChange} />
                         <label htmlFor="pickup" className="text-sm">Pickup</label>
                     </div>

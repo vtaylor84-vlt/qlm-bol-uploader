@@ -19,24 +19,24 @@ export const FormField: React.FC<FormFieldProps> = ({
   type = 'text', 
   required = false 
 }) => {
+  // FIX 2: Removed mb-4 spacing from component wrapper, allowing parent component to control spacing
   return (
-    // Standard label-on-top layout, including mb-4 for consistent spacing
-    <div className="relative mb-4">
-      <label htmlFor={id} className="block text-xs font-bold text-cyan-400 mb-1 uppercase tracking-wider">
-        {label} {required && <span className="text-red-400">*</span>}
-      </label>
+    <div className="relative">
+      {label && ( // Only render label if it exists (for non-combined fields)
+        <label htmlFor={id} className="block text-xs font-bold text-cyan-400 mb-1 uppercase tracking-wider">
+          {label} {required && <span className="text-red-400">*</span>}
+        </label>
+      )}
       <input
         type={type}
         id={id}
         name={id}
         value={value}
-        // Use the actual placeholder text here
         onChange={onChange as (e: React.ChangeEvent<HTMLInputElement>) => void}
         placeholder={placeholder} 
         required={required}
-        // Standard dark input field styling
         className="block w-full bg-gray-900 border border-gray-700 text-cyan-100 py-3 px-4 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all duration-200"
-        aria-label={label}
+        aria-label={label || id}
       />
     </div>
   );
