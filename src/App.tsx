@@ -91,13 +91,27 @@ export default function App() {
               </div>
             </div>
               
-            {/* --- Load Data: Pickup Location (FIXED COMPACT LAYOUT) --- */}
+            {/* --- Load Data: Pickup AND Delivery Location (FIXED ONE-LINE LAYOUT) --- */}
+            {/* FIX 1: Restore the single, two-column grid wrapper for both location fields */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Pickup Location */}
                 <CombinedLocationField
                     prefix="pu"
-                    label="PICKUP CITY/STATE" 
+                    // FIX 2: Change casing
+                    label="Pickup City/State" 
                     cityValue={formState.puCity}
                     stateValue={formState.puState}
+                    handleInputChange={handleInputChange}
+                    stateOptions={stateOptions}
+                />
+                
+                {/* Delivery Location (Moved back into this grid column) */}
+                <CombinedLocationField
+                    prefix="del"
+                    // FIX 3: Change casing
+                    label="Delivery City/State" 
+                    cityValue={formState.delCity}
+                    stateValue={formState.delState}
                     handleInputChange={handleInputChange}
                     stateOptions={stateOptions}
                 />
@@ -116,18 +130,6 @@ export default function App() {
                 </div>
             </div>
 
-            {/* --- Load Data: Delivery Location (FIXED COMPACT LAYOUT) --- */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <CombinedLocationField
-                    prefix="del"
-                    label="DELIVERY CITY/STATE" 
-                    cityValue={formState.delCity}
-                    stateValue={formState.delState}
-                    handleInputChange={handleInputChange}
-                    stateOptions={stateOptions}
-                />
-            </div>
-            
             {/* --- BOL / POD UPLOADS (REMAINS) --- */}
             <div className="space-y-4">
                 <div className="flex items-center justify-between">
