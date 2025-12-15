@@ -19,10 +19,12 @@ export const CombinedLocationField: React.FC<CombinedLocationFieldProps> = ({
   handleInputChange,
   stateOptions,
 }) => {
+    // Determine the specific city placeholder text based on the prefix
+    const cityPlaceholder = prefix === 'pu' ? 'enter the pickup city' : 'enter the delivery city';
+
   return (
     // This div handles the consistent vertical spacing between the two location fields in App.tsx
     <div className="mb-4"> 
-      {/* FIX 1: Set explicit header label (e.g., PICKUP CITY) */}
       <h3 className="font-bold text-cyan-400 uppercase tracking-wider text-sm mb-1">{label}</h3>
       <div className="grid grid-cols-2 gap-4">
         {/* City Input */}
@@ -31,7 +33,8 @@ export const CombinedLocationField: React.FC<CombinedLocationFieldProps> = ({
           label="" // Label is hidden, using the h3 above
           value={cityValue}
           onChange={handleInputChange}
-          placeholder="City"
+          // FIX 4/5: Use the dynamic placeholder
+          placeholder={cityPlaceholder}
         />
         
         {/* State Dropdown */}

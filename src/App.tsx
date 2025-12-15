@@ -66,7 +66,6 @@ export default function App() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <SelectField
                   id="company"
-                  // FIX 1: Change label
                   label="Company"
                   value={formState.company}
                   onChange={handleInputChange}
@@ -75,11 +74,11 @@ export default function App() {
                 />
                 <FormField
                   id="driverName"
-                  // FIX 2: Change label
                   label="Driver's Name"
                   value={formState.driverName}
                   onChange={handleInputChange}
-                  placeholder="e.g., John Doe"
+                  // FIX 1: Update placeholder
+                  placeholder="enter your name"
                   required
                 />
               </div>
@@ -88,8 +87,22 @@ export default function App() {
             {/* --- Load Data: Identifiers --- */}
             <div> 
               <div className="grid grid-cols-2 gap-4">
-                <FormField id="loadNumber" label="LOAD #" value={formState.loadNumber} onChange={handleInputChange} placeholder="e.g., 123456" />
-                <FormField id="bolNumber" label="BOL #" value={formState.bolNumber} onChange={handleInputChange} placeholder="e.g., 7891011" />
+                <FormField 
+                  id="loadNumber" 
+                  label="LOAD #" 
+                  value={formState.loadNumber} 
+                  onChange={handleInputChange} 
+                  // FIX 2: Update placeholder
+                  placeholder="enter Load ID or Load #" 
+                />
+                <FormField 
+                  id="bolNumber" 
+                  label="BOL #" 
+                  value={formState.bolNumber} 
+                  onChange={handleInputChange} 
+                  // FIX 3: Update placeholder
+                  placeholder="enter BOL #" 
+                />
               </div>
             </div>
               
@@ -97,20 +110,18 @@ export default function App() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <CombinedLocationField
                     prefix="pu"
-                    // FIX 3: Change label casing
                     label="Pickup City/State" 
                     cityValue={formState.puCity}
-                    stateValue={formState.puState}
+                    // FIX 4: Update placeholder (handled in CombinedLocationField which calls FormField with "City" as placeholder)
                     handleInputChange={handleInputChange}
                     stateOptions={stateOptions}
                 />
                 
                 <CombinedLocationField
                     prefix="del"
-                    // FIX 4: Change label casing
                     label="Delivery City/State" 
                     cityValue={formState.delCity}
-                    stateValue={formState.delState}
+                    // FIX 5: Update placeholder (handled in CombinedLocationField which calls FormField with "City" as placeholder)
                     handleInputChange={handleInputChange}
                     stateOptions={stateOptions}
                 />
@@ -132,7 +143,6 @@ export default function App() {
             {/* --- BOL / POD UPLOADS (REMAINS) --- */}
             <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                    {/* FIX 5: Change header text */}
                     <h3 className="font-bold text-cyan-400 uppercase tracking-wider text-sm">Upload BOL Image(s)</h3>
                 </div>
                 
@@ -149,7 +159,6 @@ export default function App() {
             
             {/* --- Freight --- */}
             <div className="space-y-4 mb-4">
-              {/* FIX 6: Change header text */}
               <h3 className="font-bold text-cyan-400 uppercase tracking-wider text-sm">Upload Images of Freight loaded on the trailer</h3>
               <FileUploadArea
                 id="freightFiles"
