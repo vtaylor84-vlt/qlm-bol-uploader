@@ -1,6 +1,6 @@
 // src/hooks/useQueue.ts
 import { useState, useEffect, useCallback } from 'react';
-import { get, set, del, keys as getAllKeys, createStore } from 'idb-keyval';
+import { get, set, keys as getAllKeys, createStore } from 'idb-keyval';
 
 // Custom store for submissions
 const submissionStore = createStore('bol-uploader-db', 'submissions');
@@ -36,20 +36,21 @@ export const useQueue = () => {
       updateQueueCount();
       setIsSyncing(false);
     };
+    // Attach listener to the window object where the Service Worker posts a message
     window.addEventListener('syncComplete', handleSyncComplete);
 
-    // Initial check and cleanup
-    self.addEventListener('message', event => {
-        if (event.data && event.data.type === 'SYNC_COMPLETE') {
-            handleSyncComplete();
-        }
-    });
-
+    // Listen for direct messages from the service worker
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.addEventListener('message', event => {
+            if (event.data && event.data.type === 'SYNC_COMPLETE') {
+                handleSyncComplete();
+            }
+        });
+    }
 
     return () => {
       clearInterval(intervalId);
       window.removeEventListener('syncComplete', handleSyncComplete);
-      // Clean up the message listener if needed, though less critical here
     };
   }, [updateQueueCount]);
 

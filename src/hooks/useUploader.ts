@@ -1,8 +1,10 @@
+// src/hooks/useUploader.ts (REPLACE ALL)
+
 import { useState, useCallback, useEffect, ChangeEvent, useMemo } from 'react';
 import type { FormState, FileState, UploadedFile, Status, ToastState } from '../types';
 import { generateDescription } from '../services/geminiService';
-import { saveSubmissionToQueue, processQueue } from '../services/queueService';
 import { THEMES, defaultTheme } from '../themes'; 
+import { useQueue, QueuedJob } from './useQueue'; // FIX 1: Import useQueue and QueuedJob
 
 // Import logos (you must ensure these paths are correct in your project structure)
 import GREENLEAF_LOGO from '../assets/Greenleaf Xpress logo.png'; 
@@ -35,13 +37,15 @@ export const useUploader = () => {
   const [status, setStatus] = useState<Status>('idle');
   const [toast, setToast] = useState<ToastState>({ message: '', type: 'success' });
   const [validationError, setValidationError] = useState<string>('');
+  
+  const { saveJob } = useQueue(); // FIX 2: Destructure saveJob from useQueue
 
   // --- Dynamic Theme Logic ---
   const currentTheme = useMemo(() => { 
     return THEMES[formState.company] || defaultTheme;
   }, [formState.company]);
 
-  // --- Load Identifier Logic (FIX 1) ---
+  // --- Load Identifier Logic ---
   const loadIdentifierValue = useMemo(() => {
       if (formState.loadNumber) return `Load #: ${formState.loadNumber}`;
       if (formState.bolNumber) return `BOL #: ${formState.bolNumber}`;
@@ -54,7 +58,7 @@ export const useUploader = () => {
   }, [formState.loadNumber, formState.bolNumber, formState.puCity, formState.delCity]);
 
 
-  // --- Dynamic Header Logic ---
+  // --- Dynamic Header Logic (unchanged) ---
   const DynamicHeaderContent = useMemo(() => {
     switch (formState.company) {
       case 'Greenleaf Xpress':
@@ -81,50 +85,45 @@ export const useUploader = () => {
   }, [formState.company, currentTheme.text]);
   // --- End Dynamic Logo Logic ---
 
-  // FIX 2: isFormValid now relies on loadIdentifierValue being present
+  // --- Form Validation Logic ---
   const isFormValid = useMemo(() => {
     return (
       formState.company !== '' &&
       formState.driverName !== '' &&
       formState.bolDocType !== '' &&
-      loadIdentifierValue !== '' && // NEW REQUIRED FIELD CHECK (Load ID OR BOL OR Trip)
+      loadIdentifierValue !== '' && 
       (fileState.bolFiles.length > 0 || fileState.freightFiles.length > 0)
     );
   }, [formState, fileState, loadIdentifierValue]);
 
 
-  // Effect to process the queue on app load and when network status changes
+  // Effect to clean up object URLs
   useEffect(() => {
-    processQueue();
-    window.addEventListener('online', processQueue);
-    const intervalId = setInterval(processQueue, 60000);
-
     return () => {
-      window.removeEventListener('online', processQueue);
-      clearInterval(intervalId);
       [...fileState.bolFiles, ...fileState.freightFiles].forEach(f => URL.revokeObjectURL(f.previewUrl));
     };
-  }, []); 
+  }, [fileState.bolFiles, fileState.freightFiles]); 
+
 
   const handleInputChange = useCallback((e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormState(prevState => ({ ...prevState, [name]: value }));
   }, []);
 
-  const showToast = (message: string, type: ToastState['type'] = 'success') => {
+  const showToast = useCallback((message: string, type: ToastState['type'] = 'success') => {
     setToast({ message, type });
     setTimeout(() => setToast(prev => (prev.message === message ? { message: '', type: 'success' } : prev)), 5500);
-  };
+  }, []);
 
-  const handleFileChange = useCallback((e: ChangeEvent<HTMLInputElement>, fileType: keyof FileState) => {
-    if (e.target.files) {
+  // FIX 3: Centralized file drop/change handler
+  const handleFileDrop = useCallback((files: File[], fileType: keyof FileState) => {
       const allCurrentFiles = [...fileState.bolFiles, ...fileState.freightFiles];
       const existingFileSignatures = new Set(
         allCurrentFiles.map(f => `${f.file.name}-${f.file.size}-${f.file.lastModified}`)
       );
 
       const newFiles: UploadedFile[] = [];
-      for (const file of Array.from(e.target.files) as File[]) {
+      for (const file of files as File[]) {
         const signature = `${file.name}-${file.size}-${file.lastModified}`;
         if (existingFileSignatures.has(signature)) {
           showToast(`File already added: ${file.name}`, 'warning');
@@ -139,9 +138,10 @@ export const useUploader = () => {
       }
       
       setFileState(prevState => ({ ...prevState, [fileType]: [...prevState[fileType], ...newFiles] }));
-    }
-  }, [fileState.bolFiles, fileState.freightFiles]);
+  }, [fileState.bolFiles, fileState.freightFiles, showToast]);
 
+
+  // --- File Management (unchanged logic) ---
   const handleRemoveFile = useCallback((fileId: string, fileType: keyof FileState) => {
     setFileState(prevState => {
       const fileToRemove = prevState[fileType].find(f => f.id === fileId);
@@ -167,12 +167,12 @@ export const useUploader = () => {
       return { ...prevState, [fileType]: files };
     });
   }, []);
-  
+  // --- End File Management ---
+
   const validateForm = () => {
     if (!formState.company) return "Please select a company.";
     if (!formState.driverName) return "Please enter the driver's name.";
     if (!formState.bolDocType) return "Please select a BOL Type (Pickup or Delivery)."; 
-    // FIX 3: Complex validation check using the memoized identifier
     if (!loadIdentifierValue) return "Please enter a Load #, BOL #, or both Pickup and Delivery Cities/States."; 
     if (fileState.bolFiles.length === 0 && fileState.freightFiles.length === 0) return "Please upload at least one file.";
     return "";
@@ -186,6 +186,7 @@ export const useUploader = () => {
     setValidationError('');
   };
 
+  // FIX 4: Update handleSubmit for IndexedDB Queueing
   const handleSubmit = async () => {
     const error = validateForm();
     if (error) {
@@ -193,27 +194,44 @@ export const useUploader = () => {
       return;
     }
     setValidationError('');
-    setStatus('submitting');
+    setStatus('submitting'); // Reflects the start of the queueing process
     
     try {
-      await saveSubmissionToQueue({ formState, fileState });
+      // 1. Prepare job data: separate files into metadata and blobs
+      const allFiles = [...fileState.bolFiles, ...fileState.freightFiles];
       
-      const loadId = formState.loadNumber || formState.bolNumber || `Trip-${formState.puCity}-${formState.delCity}`;
-      showToast(`${formState.company}: Load ${loadId} saved!`, 'success');
+      const jobFiles = allFiles.map(f => ({
+        name: f.file.name,
+        blob: f.file, // Blob/File objects are saved directly
+        type: f.file.type,
+      }));
       
-      processQueue();
+      const jobData = {
+          data: formState, // all form metadata
+          files: jobFiles,
+          timestamp: Date.now(),
+          id: Date.now()
+      } as QueuedJob;
+
+      // 2. Save job to IndexedDB via useQueue hook
+      await saveJob(jobData);
+      
+      const loadId = loadIdentifierValue.split(': ')[1] || 'Submission';
+
+      showToast(`Load ${loadId} queued for sync!`, 'success');
       
       setStatus('success');
-      resetForm();
+      resetForm(); 
     } catch (err) {
       console.error(err);
-      showToast('Failed to save to queue. Please try again.', 'error');
+      showToast('Local queueing failed. Check browser storage.', 'error');
       setStatus('error');
     } finally {
         setTimeout(() => setStatus('idle'), 1000);
     }
   };
 
+  // FIX 5: Update generateDescription to use the correct API key source
   const generateDescription = async (files: UploadedFile[]) => {
     setStatus('loading');
     setFormState(prev => ({ ...prev, description: 'AI is thinking...' }));
@@ -224,12 +242,15 @@ export const useUploader = () => {
         setStatus('idle');
         return;
       }
-      const description = await generateDescription(imageFiles);
+      
+      // NOTE: Your Gemini service implementation must now use the GEMINI_API_KEY environment variable
+      const description = await generateDescription(imageFiles); 
+      
       setFormState(prev => ({ ...prev, description }));
       setStatus('success');
     } catch (err) {
       console.error(err);
-      setFormState(prev => ({ ...prev, description: 'Failed to generate description.' }));
+      setFormState(prev => ({ ...prev, description: 'Failed to generate description. Check API key and network.' }));
       setStatus('error');
     } finally {
       setTimeout(() => setStatus('idle'), 1000);
@@ -243,7 +264,6 @@ export const useUploader = () => {
     toast,
     validationError,
     handleInputChange,
-    handleFileChange,
     handleRemoveFile,
     handleFileReorder,
     handleSubmit,
@@ -251,6 +271,7 @@ export const useUploader = () => {
     DynamicHeaderContent, 
     currentTheme, 
     isFormValid, 
-    loadIdentifierValue, // FIX 4: Export the dynamic identifier for the submit button text
+    loadIdentifierValue, 
+    handleFileDrop, // FIX 6: Export file drop handler
   };
 };

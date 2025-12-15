@@ -1,17 +1,19 @@
+// src/App.tsx (REPLACE ALL)
+
 import React from 'react';
 import { Header } from './components/Header';
 import { FormField } from './components/FormField';
 import { SelectField } from './components/SelectField';
-import { FileUploadArea } from './components/FileUploadArea';
 import Toast from './components/Toast';
 import { GeminiAISection } from './components/GeminiAISection';
 import { useUploader } from './hooks/useUploader';
 import { COMPANY_OPTIONS, STATES_US } from './constants.ts'; 
 import { CombinedLocationField } from './components/CombinedLocationField'; 
+import { ThumbnailGallery } from './components/ThumbnailGallery'; // FIX 1: Import ThumbnailGallery
+import { QueueStatusBadge } from './components/QueueStatusBadge'; // FIX 2: Import QueueStatusBadge
 
 export default function App() {
   const {
-    // FIX 1: Destructure the new isFormValid flag
     isFormValid,
     formState,
     fileState,
@@ -19,19 +21,19 @@ export default function App() {
     toast,
     validationError,
     handleInputChange,
-    handleFileChange,
     handleRemoveFile,
     handleFileReorder,
     handleSubmit,
     generateDescription,
     DynamicHeaderContent, 
     currentTheme, 
+    loadIdentifierValue,
+    handleFileDrop, 
   } = useUploader();
 
   
   const getLoadIdentifier = () => {
-    if (!isFormValid) return '';
-    return formState.loadNumber || formState.bolNumber || `Trip-${formState.puCity.toUpperCase()}-${formState.delCity.toUpperCase()}`;
+    return loadIdentifierValue;
   };
 
   // --- Placeholder Logic ---
@@ -130,9 +132,9 @@ export default function App() {
                 />
             </div>
             
-            {/* --- BOL TYPE RADIO BUTTONS (MOVED HERE) --- */}
+            {/* --- BOL TYPE RADIO BUTTONS --- */}
             <div className="radio-group flex items-center space-x-6 text-gray-300 bg-gray-900 p-3 border border-cyan-900/50 rounded">
-                <span className="font-semibold text-sm text-gray-400">BOL Type:<span className="text-red-400 pl-1">*</span></span>
+                <span className={`font-semibold text-sm ${currentTheme.text}`}>BOL Type:<span className="text-red-400 pl-1">*</span></span>
                 <div className="flex items-center space-x-2">
                     <input type="radio" id="pickup" name="bolDocType" value="Pickup" checked={formState.bolDocType === 'Pickup'} onChange={handleInputChange} />
                     <label htmlFor="pickup" className="text-sm">Pickup</label>
@@ -143,37 +145,41 @@ export default function App() {
                 </div>
             </div>
 
-            {/* --- BOL / POD UPLOADS (REMAINS) --- */}
+            {/* --- BOL / POD UPLOADS --- */}
             <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                    <h3 className={`font-bold ${currentTheme.text} uppercase tracking-wider text-sm`}>Upload BOL Image(s)</h3>
+                    <h3 className={`font-bold ${currentTheme.text} uppercase tracking-wider text-sm`}>UPLOAD BOL IMAGE(S)</h3>
                 </div>
                 
-                {/* File Upload Area is first */}
-                <FileUploadArea
-                  id="bolFiles"
+                {/* FIX 3: Thumbnail Gallery for BOLs */}
+                <ThumbnailGallery
+                  fileType="bolFiles"
                   files={fileState.bolFiles}
-                  onFileChange={handleFileChange}
                   onRemoveFile={handleRemoveFile}
                   onFileReorder={handleFileReorder}
-                  accept="image/*,application/pdf"
+                  onFileDrop={handleFileDrop}
+                  theme={currentTheme}
+                  accept={{'image/*': ['.jpeg', '.png'], 'application/pdf': ['.pdf']}}
                 />
             </div>
             
             {/* --- Freight --- */}
             <div className="space-y-4 mb-4">
-              <h3 className={`font-bold ${currentTheme.text} uppercase tracking-wider text-sm`}>Upload Images of Freight loaded on the trailer</h3>
-              <FileUploadArea
-                id="freightFiles"
+              <h3 className={`font-bold ${currentTheme.text} uppercase tracking-wider text-sm`}>UPLOAD IMAGES OF FREIGHT LOADED ON THE TRAILER</h3>
+              
+              {/* FIX 4: Thumbnail Gallery for Freight */}
+              <ThumbnailGallery
+                fileType="freightFiles"
                 files={fileState.freightFiles}
-                onFileChange={handleFileChange}
                 onRemoveFile={handleRemoveFile}
                 onFileReorder={handleFileReorder}
-                accept="image/*,video/*"
+                onFileDrop={handleFileDrop}
+                theme={currentTheme}
+                accept={{'image/*': ['.jpeg', '.png'], 'video/*': ['.mp4', '.mov']}}
               />
             </div>
 
-            {/* --- AI Section --- */}
+            {/* --- AI Section (Conditional visibility remains) --- */}
             {fileState.freightFiles.length > 0 && (
               <div className={`border ${currentTheme.border} bg-gray-900/50 p-4 rounded`}>
                 <GeminiAISection
@@ -190,15 +196,16 @@ export default function App() {
               {validationError && <p className="text-red-400 text-center mb-4 bg-red-900/20 py-2 rounded border border-red-900">{validationError}</p>}
               <button
                 type="submit"
-                // FIX 2: Disabled if NOT isFormValid OR submitting
+                // FIX 5: Button has glow/pulse classes and is disabled if invalid/submitting
                 disabled={!isFormValid || status === 'submitting'}
-                className={`w-full text-lg font-orbitron font-bold text-black ${currentTheme.buttonBg} ${currentTheme.buttonHover} disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed py-4 rounded transition-all duration-200 ${currentTheme.glow}`}
+                className={`w-full text-lg font-orbitron font-bold text-black disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed py-4 rounded transition-all duration-200 
+                            ${currentTheme.buttonBg} ${currentTheme.buttonHover} ${currentTheme.glow} ${isFormValid ? 'animate-pulse' : ''}`}
               >
-                {/* FIX 3: Conditional button text */}
+                {/* FIX 6: Conditional button text with Load ID */}
                 {status === 'submitting' 
-                  ? 'SAVING...' 
+                  ? 'QUEUING...' 
                   : isFormValid 
-                  ? 'SUBMIT DOCUMENTS FOR LOAD' 
+                  ? `SUBMIT DOCUMENTS FOR ${loadIdentifierValue.split(': ')[1]}` 
                   : 'COMPLETE REQUIRED FIELDS'}
               </button>
             </div>
@@ -206,13 +213,17 @@ export default function App() {
         </main>
       </div>
 
-      {toast.message && (
+      {/* FIX 7: Corrected Toast rendering condition to prevent blank popup */}
+      {toast.message && toast.message.trim().length > 0 && (
         <Toast
           message={toast.message}
           type={toast.type}
-          onClose={() => {}}
+          onClose={() => showToast('', 'success')} // Need to pass a function to clear the toast
         />
       )}
+      
+      {/* FIX 8: Add Queue Status Indicator */}
+      <QueueStatusBadge /> 
     </div>
   );
 }
