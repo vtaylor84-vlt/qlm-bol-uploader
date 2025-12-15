@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, ChangeEvent } from 'react';
 import type { FormState, FileState, UploadedFile, Status, ToastState } from '../types';
-// FIX 1: Change back to a named import, aliasing the likely exported name
-import { generateDescription as generateDescriptionFromImages } from '../services/geminiService';
+// FIX 1: Simplify the imported name, assuming the service exports 'generateDescription'
+import { generateDescription } from '../services/geminiService';
 // FIX 2 (Previous fix): Corrected the queue service function name
 import { saveSubmissionToQueue, processQueue } from '../services/queueService';
 
@@ -159,7 +159,8 @@ export const useUploader = () => {
         setStatus('idle');
         return;
       }
-      const description = await generateDescriptionFromImages(imageFiles);
+      // Function call now uses the base name: generateDescription
+      const description = await generateDescription(imageFiles);
       setFormState(prev => ({ ...prev, description }));
       setStatus('success');
     } catch (err) {
@@ -182,6 +183,6 @@ export const useUploader = () => {
     handleRemoveFile,
     handleFileReorder,
     handleSubmit,
-    generateDescription,
+    generateDescription: generateDescription,
   };
 };
