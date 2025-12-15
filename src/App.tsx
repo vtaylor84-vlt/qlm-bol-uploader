@@ -3,13 +3,11 @@ import { Header } from './components/Header';
 import { FormField } from './components/FormField';
 import { SelectField } from './components/SelectField';
 import { FileUploadArea } from './components/FileUploadArea';
-// FINAL FIX: Change to default import
 import Toast from './components/Toast';
 import { GeminiAISection } from './components/GeminiAISection';
 import { useUploader } from './hooks/useUploader';
-// Imported variable names now align with constants.ts
 import { COMPANY_OPTIONS, STATES_US } from './constants.ts'; 
-import { SectionHeader } from './components/SectionHeader';
+// import { SectionHeader } from './components/SectionHeader'; // Removed SectionHeader
 
 export default function App() {
   const {
@@ -48,21 +46,21 @@ export default function App() {
               e.preventDefault();
               handleSubmit();
             }}
-            className="space-y-6 p-6 bg-black/80 border border-gray-800 shadow-2xl shadow-cyan-900/20 backdrop-blur-sm rounded-xl"
+            // Reduced vertical space between form groups by removing space-y-6 and relying on mb-4 within fields
+            className="p-6 bg-black/80 border border-gray-800 shadow-2xl shadow-cyan-900/20 backdrop-blur-sm rounded-xl"
           >
-            {/* --- Company & Driver --- */}
-            <div className="space-y-4">
+            {/* --- Company & Driver (Top Block) --- */}
+            <div className="mb-8"> {/* Added larger bottom margin for separation */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* SelectField handles its own margin (mb-4) */}
                 <SelectField
                   id="company"
                   label="Company"
                   value={formState.company}
                   onChange={handleInputChange}
+                  // FIX: Option label changed to 'Select a Company...'
                   options={COMPANY_OPTIONS.map(c => ({ value: c, label: c === '' ? 'Select a Company...' : c }))}
                   required
                 />
-                {/* Wrapped FormField in mb-4 for vertical alignment consistency */}
                 <div className="mb-4">
                   <FormField
                     id="driverName"
@@ -76,10 +74,8 @@ export default function App() {
               </div>
             </div>
 
-            <SectionHeader title="Load Data" />
-
-            {/* --- Load Data (FIXED FLOW: Load/BOL, PU Pair, DEL Pair) --- */}
-            <div className="space-y-4">
+            {/* --- Load Data --- */}
+            <div className="mb-8"> {/* Added larger bottom margin for separation */}
               {/* Row 1: Load # & BOL # (Identifiers) */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="mb-4">
@@ -95,7 +91,14 @@ export default function App() {
                 <div className="mb-4">
                   <FormField id="puCity" label="Pickup City" value={formState.puCity} onChange={handleInputChange} placeholder="City" />
                 </div>
-                <SelectField id="puState" label="Pickup State" value={formState.puState} onChange={handleInputChange} options={STATES_US.map(s => ({ value: s, label: s || 'Select...' }))} />
+                <SelectField 
+                  id="puState" 
+                  label="Pickup State" 
+                  value={formState.puState} 
+                  onChange={handleInputChange} 
+                  // FIX: Placeholder option label changed to 'Select a state'
+                  options={STATES_US.map(s => ({ value: s, label: s || 'Select a state' }))} 
+                />
               </div>
 
               {/* Row 3: Delivery City & State (Location 2) */}
@@ -103,11 +106,16 @@ export default function App() {
                 <div className="mb-4">
                   <FormField id="delCity" label="Delivery City" value={formState.delCity} onChange={handleInputChange} placeholder="City" />
                 </div>
-                <SelectField id="delState" label="Delivery State" value={formState.delState} onChange={handleInputChange} options={STATES_US.map(s => ({ value: s, label: s || 'Select...' }))} />
+                <SelectField 
+                  id="delState" 
+                  label="Delivery State" 
+                  value={formState.delState} 
+                  onChange={handleInputChange} 
+                  // FIX: Placeholder option label changed to 'Select a state'
+                  options={STATES_US.map(s => ({ value: s, label: s || 'Select a state' }))} 
+                />
               </div>
             </div>
-
-            <SectionHeader title="Documents & Freight" />
 
             {/* --- BOL / POD --- */}
             <div className="space-y-4">

@@ -1,23 +1,21 @@
 import { useState, useCallback, useEffect, ChangeEvent } from 'react';
-// Corrected Imports: Use relative path (../) to move from 'hooks' to 'src'
-import type { FormState, FileState, UploadedFile, Status, ToastState, CompanyName } from '../types';
-import { generateCargoDescription as generateDescriptionFromImages } from '../services/geminiService.ts'; 
-import { saveSubmissionToQueue as addToQueue, processQueue } from '../services/queueService.ts'; 
-import { THEME_CONFIG } from '../constants.ts'; 
+import type { FormState, FileState, UploadedFile, Status, ToastState } from '../types';
+import { generateDescriptionFromImages } from '../services/geminiService';
+import { addToQueue, processQueue } from '../services/queueService';
 
-// ⚠️ FIX 1 & 2: Set default values to blank/placeholder strings
 const initialState: FormState = {
-  company: 'default', // Changed to 'default' to map to 'QLM Driver Upload' and trigger 'Select a Company'
+  company: '', // FIX: Set to empty string so 'Select a Company...' option is shown
   driverName: '',
   loadNumber: '',
   bolNumber: '',
   puCity: '',
-  puState: '',
+  puState: '', // FIX: Set to empty string so 'Select a state' option is shown
   delCity: '',
-  delState: '',
+  delState: '', // FIX: Set to empty string so 'Select a state' option is shown
   description: '',
-  bolDocType: '', // Changed to empty string to trigger 'Select Type...'
+  bolDocType: 'Pick Up'
 };
+
 const initialFileState: FileState = {
   bolFiles: [],
   freightFiles: [],
@@ -30,10 +28,6 @@ export const useUploader = () => {
   const [toast, setToast] = useState<ToastState>({ message: '', type: 'success' });
   const [validationError, setValidationError] = useState<string>('');
 
-  // ⚠️ FIX 3: Dynamic Logo Component Access (Based on THEME_CONFIG in constants.ts)
-  const currentTheme = THEME_CONFIG[formState.company as CompanyName] || THEME_CONFIG.default;
-  const DynamicLogo = currentTheme.logo;
-
   // Effect to process the queue on app load and when network status changes
   useEffect(() => {
     processQueue();
@@ -43,19 +37,13 @@ export const useUploader = () => {
     return () => {
       window.removeEventListener('online', processQueue);
       clearInterval(intervalId);
-      // Clean up object URLs when component unmounts
       [...fileState.bolFiles, ...fileState.freightFiles].forEach(f => URL.revokeObjectURL(f.previewUrl));
     };
   }, []); // Run only once on mount
 
   const handleInputChange = useCallback((e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    // Special handling for radio buttons (bolDocType) which might use the 'name' prop instead of 'id'
-    if (e.target instanceof HTMLInputElement && e.target.type === 'radio') {
-      setFormState(prevState => ({ ...prevState, [name]: value }));
-    } else {
-      setFormState(prevState => ({ ...prevState, [name]: value }));
-    }
+    setFormState(prevState => ({ ...prevState, [name]: value }));
   }, []);
 
   const showToast = (message: string, type: ToastState['type'] = 'success') => {
@@ -64,7 +52,6 @@ export const useUploader = () => {
     setTimeout(() => setToast(prev => (prev.message === message ? { message: '', type: 'success' } : prev)), 5500);
   };
 
-  // ⚠️ FIX 4: Thumbnail/Preview Fix (Original logic maintained)
   const handleFileChange = useCallback((e: ChangeEvent<HTMLInputElement>, fileType: keyof FileState) => {
     if (e.target.files) {
       const allCurrentFiles = [...fileState.bolFiles, ...fileState.freightFiles];
@@ -81,8 +68,7 @@ export const useUploader = () => {
           newFiles.push({
             id: `${file.name}-${file.lastModified}-${Math.random()}`,
             file,
-            // Create the preview URL here. This is necessary for display.
-            previewUrl: URL.createObjectURL(file), 
+            previewUrl: URL.createObjectURL(file),
           });
           existingFileSignatures.add(signature);
         }
@@ -119,7 +105,7 @@ export const useUploader = () => {
   }, []);
   
   const validateForm = () => {
-    if (formState.company === 'default' || !formState.company) return "Please select a company.";
+    if (!formState.company) return "Please select a company.";
     if (!formState.driverName) return "Please enter the driver's name.";
     if (fileState.bolFiles.length === 0 && fileState.freightFiles.length === 0) return "Please upload at least one file.";
     return "";
@@ -195,7 +181,5 @@ export const useUploader = () => {
     handleFileReorder,
     handleSubmit,
     generateDescription,
-    // Expose the logo for App.tsx to use
-    DynamicLogo,
   };
 };
