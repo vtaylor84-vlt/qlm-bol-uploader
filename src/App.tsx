@@ -7,7 +7,7 @@ import Toast from './components/Toast';
 import { GeminiAISection } from './components/GeminiAISection';
 import { useUploader } from './hooks/useUploader';
 import { COMPANY_OPTIONS, STATES_US } from './constants.ts'; 
-import { CombinedLocationField } from './components/CombinedLocationField'; // FIX 2: Import CombinedLocationField
+import { CombinedLocationField } from './components/CombinedLocationField'; 
 
 export default function App() {
   const {
@@ -91,9 +91,8 @@ export default function App() {
               </div>
             </div>
               
-            {/* --- Load Data: Pickup and Delivery Location (FIXED ONE-LINE LAYOUT WITH COMBINED FIELD) --- */}
+            {/* --- Load Data: Pickup and Delivery Location --- */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* FIX 3: Revert to Combined Location Fields with the correct single header */}
                 <CombinedLocationField
                     prefix="pu"
                     label="PICKUP CITY/STATE" 
@@ -113,12 +112,13 @@ export default function App() {
             </div>
             
             {/* --- BOL / POD --- */}
-            <div className="space-y-4 pt-4 border-t border-gray-800">
+            {/* FIX 1: Removed border-t and pt-4, added mb-4 for separation */}
+            <div className="space-y-4 mb-4">
                 <div className="flex items-center justify-between">
                     <h3 className="font-bold text-cyan-400 uppercase tracking-wider text-sm">BOL / POD Uploads</h3>
                 </div>
                 
-                {/* FIX 4: Swapped order: File Upload Area is now first */}
+                {/* File Upload Area is first */}
                 <FileUploadArea
                   id="bolFiles"
                   files={fileState.bolFiles}
@@ -142,7 +142,8 @@ export default function App() {
             </div>
             
             {/* --- Freight --- */}
-            <div className="space-y-4 pt-4 border-t border-gray-800">
+            {/* FIX 2: Removed border-t and pt-4, added mb-4 for separation */}
+            <div className="space-y-4 mb-4">
               <h3 className="font-bold text-cyan-400 uppercase tracking-wider text-sm">Freight Photos/Videos</h3>
               <FileUploadArea
                 id="freightFiles"
