@@ -13,7 +13,8 @@ export const SelectField: React.FC<SelectFieldProps> = ({ id, label, value, onCh
   const hasValue = value !== ''; // Check if a real value is selected
   
   return (
-    <div className="relative mb-4"> 
+    // FIX 1: Removed redundant mb-4 margin
+    <div className="relative"> 
       <label htmlFor={id} className="block text-xs font-bold text-cyan-400 mb-1 uppercase tracking-wider">
         {label} {required && <span className="text-red-400">*</span>}
       </label>
@@ -24,7 +25,6 @@ export const SelectField: React.FC<SelectFieldProps> = ({ id, label, value, onCh
           value={value}
           onChange={onChange}
           required={required}
-          // FIX: Conditionally apply text color. If no value, use the placeholder shade (text-gray-500). If a value is selected, use the active color (text-cyan-100).
           className={`block w-full bg-gray-900 border border-gray-700 py-3 px-4 appearance-none focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all duration-200 ${hasValue ? 'text-cyan-100' : 'text-gray-500'}`}
         >
           {options.map((option) => (

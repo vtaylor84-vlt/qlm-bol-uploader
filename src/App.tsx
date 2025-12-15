@@ -61,7 +61,7 @@ export default function App() {
             className="p-6 bg-black/80 border border-gray-800 shadow-2xl shadow-cyan-900/20 backdrop-blur-sm rounded-xl"
           >
             {/* --- Company & Driver (Top Block) --- */}
-            {/* FIX 1: Reduced gap from mb-8 to mb-4 */}
+            {/* FIX 2: Reduced gap from mb-8 to mb-4 (Consistent Row Spacing) */}
             <div className="mb-4"> 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <SelectField
@@ -72,37 +72,35 @@ export default function App() {
                   options={companyOptions} 
                   required
                 />
-                <div className="mb-4">
-                  <FormField
-                    id="driverName"
-                    label="Driver Name"
-                    value={formState.driverName}
-                    onChange={handleInputChange}
-                    placeholder="e.g., John Doe"
-                    required
-                  />
-                </div>
+                {/* FIX 3: Removed individual mb-4 wrapper from FormField */}
+                <FormField
+                  id="driverName"
+                  label="Driver Name"
+                  value={formState.driverName}
+                  onChange={handleInputChange}
+                  placeholder="e.g., John Doe"
+                  required
+                />
               </div>
             </div>
 
             {/* --- Load Data --- */}
-            {/* FIX 2: Reduced gap from mb-8 to mb-4 */}
+            {/* FIX 2: Reduced gap from mb-8 to mb-4 (Consistent Row Spacing) */}
             <div className="mb-4"> 
+              
               {/* Row 1: Load # & BOL # (Identifiers) */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="mb-4">
-                  <FormField id="loadNumber" label="Load #" value={formState.loadNumber} onChange={handleInputChange} placeholder="e.g., 123456" />
-                </div>
-                <div className="mb-4">
-                  <FormField id="bolNumber" label="BOL #" value={formState.bolNumber} onChange={handleInputChange} placeholder="e.g., 7891011" />
-                </div>
+              {/* FIX 4: Removed space-y-4 and let parent mb-4 handle row spacing */}
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                {/* FIX 3: Removed individual mb-4 wrappers from FormFields */}
+                <FormField id="loadNumber" label="Load #" value={formState.loadNumber} onChange={handleInputChange} placeholder="e.g., 123456" />
+                <FormField id="bolNumber" label="BOL #" value={formState.bolNumber} onChange={handleInputChange} placeholder="e.g., 7891011" />
               </div>
               
               {/* Row 2: Pickup City & State (Location 1) */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="mb-4">
-                  <FormField id="puCity" label="Pickup City" value={formState.puCity} onChange={handleInputChange} placeholder="City" />
-                </div>
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                {/* FIX 3: Removed individual mb-4 wrappers from FormFields */}
+                <FormField id="puCity" label="Pickup City" value={formState.puCity} onChange={handleInputChange} placeholder="City" />
+                {/* SelectField no longer has internal margin */}
                 <SelectField 
                   id="puState" 
                   label="Pickup State" 
@@ -114,9 +112,9 @@ export default function App() {
 
               {/* Row 3: Delivery City & State (Location 2) */}
               <div className="grid grid-cols-2 gap-4">
-                <div className="mb-4">
-                  <FormField id="delCity" label="Delivery City" value={formState.delCity} onChange={handleInputChange} placeholder="City" />
-                </div>
+                {/* FIX 3: Removed individual mb-4 wrappers from FormFields */}
+                <FormField id="delCity" label="Delivery City" value={formState.delCity} onChange={handleInputChange} placeholder="City" />
+                {/* SelectField no longer has internal margin */}
                 <SelectField 
                   id="delState" 
                   label="Delivery State" 
@@ -128,7 +126,7 @@ export default function App() {
             </div>
 
             {/* --- BOL / POD --- */}
-            {/* Removed redundant mb-8/mb-4 wrapper here, using pt-4 border-t instead */}
+            {/* FIX 5: Simplified outer div for spacing */}
             <div className="space-y-4 pt-4 border-t border-gray-800">
                 <div className="flex items-center justify-between">
                     <h3 className="font-bold text-cyan-400 uppercase tracking-wider text-sm">BOL / POD Uploads</h3>
