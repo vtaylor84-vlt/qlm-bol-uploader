@@ -66,7 +66,8 @@ export default function App() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <SelectField
                   id="company"
-                  label="COMPANY *"
+                  // FIX 1: Change label
+                  label="Company"
                   value={formState.company}
                   onChange={handleInputChange}
                   options={companyOptions} 
@@ -74,7 +75,8 @@ export default function App() {
                 />
                 <FormField
                   id="driverName"
-                  label="DRIVER NAME (REQUIRED)"
+                  // FIX 2: Change label
+                  label="Driver's Name"
                   value={formState.driverName}
                   onChange={handleInputChange}
                   placeholder="e.g., John Doe"
@@ -91,13 +93,11 @@ export default function App() {
               </div>
             </div>
               
-            {/* --- Load Data: Pickup AND Delivery Location (FIXED ONE-LINE LAYOUT) --- */}
-            {/* FIX 1: Restore the single, two-column grid wrapper for both location fields */}
+            {/* --- Load Data: Pickup AND Delivery Location --- */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Pickup Location */}
                 <CombinedLocationField
                     prefix="pu"
-                    // FIX 2: Change casing
+                    // FIX 3: Change label casing
                     label="Pickup City/State" 
                     cityValue={formState.puCity}
                     stateValue={formState.puState}
@@ -105,10 +105,9 @@ export default function App() {
                     stateOptions={stateOptions}
                 />
                 
-                {/* Delivery Location (Moved back into this grid column) */}
                 <CombinedLocationField
                     prefix="del"
-                    // FIX 3: Change casing
+                    // FIX 4: Change label casing
                     label="Delivery City/State" 
                     cityValue={formState.delCity}
                     stateValue={formState.delState}
@@ -117,7 +116,7 @@ export default function App() {
                 />
             </div>
             
-            {/* --- BOL TYPE RADIO BUTTONS (MOVED HERE) --- */}
+            {/* --- BOL TYPE RADIO BUTTONS --- */}
             <div className="radio-group flex items-center space-x-6 text-gray-300 bg-gray-900 p-3 border border-cyan-900/50 rounded">
                 <span className="font-semibold text-sm text-gray-400">BOL Type:</span>
                 <div className="flex items-center space-x-2">
@@ -133,7 +132,8 @@ export default function App() {
             {/* --- BOL / POD UPLOADS (REMAINS) --- */}
             <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                    <h3 className="font-bold text-cyan-400 uppercase tracking-wider text-sm">BOL / POD Uploads</h3>
+                    {/* FIX 5: Change header text */}
+                    <h3 className="font-bold text-cyan-400 uppercase tracking-wider text-sm">Upload BOL Image(s)</h3>
                 </div>
                 
                 {/* File Upload Area is first */}
@@ -149,7 +149,8 @@ export default function App() {
             
             {/* --- Freight --- */}
             <div className="space-y-4 mb-4">
-              <h3 className="font-bold text-cyan-400 uppercase tracking-wider text-sm">Freight Photos/Videos</h3>
+              {/* FIX 6: Change header text */}
+              <h3 className="font-bold text-cyan-400 uppercase tracking-wider text-sm">Upload Images of Freight loaded on the trailer</h3>
               <FileUploadArea
                 id="freightFiles"
                 files={fileState.freightFiles}
