@@ -90,28 +90,28 @@ export default function App() {
               </div>
             </div>
               
-            {/* --- Load Data: Pickup City & State (FIELDS REVERTED, HEADERS UPDATED) --- */}
+            {/* --- Load Data: Pickup City & State (FIXED ONE-LINE LAYOUT) --- */}
             <div className="grid grid-cols-2 gap-4">
-              {/* FIX: Explicit Pickup City label */}
+              {/* City label acts as the header for the pair */}
               <FormField id="puCity" label="PICKUP CITY" value={formState.puCity} onChange={handleInputChange} placeholder="City" />
-              {/* FIX: Explicit Pickup State label */}
+              {/* FIX: Set label to empty string to keep the State input aligned on the same line */}
               <SelectField 
                 id="puState" 
-                label="PICKUP STATE" 
+                label="" 
                 value={formState.puState} 
                 onChange={handleInputChange} 
                 options={stateOptions} 
               />
             </div>
 
-            {/* --- Load Data: Delivery City & State (FIELDS REVERTED, HEADERS UPDATED) --- */}
+            {/* --- Load Data: Delivery City & State (FIXED ONE-LINE LAYOUT) --- */}
             <div className="grid grid-cols-2 gap-4">
-              {/* FIX: Explicit Delivery City label */}
+              {/* City label acts as the header for the pair */}
               <FormField id="delCity" label="DELIVERY CITY" value={formState.delCity} onChange={handleInputChange} placeholder="City" />
-              {/* FIX: Explicit Delivery State label */}
+              {/* FIX: Set label to empty string to keep the State input aligned on the same line */}
               <SelectField 
                 id="delState" 
-                label="DELIVERY STATE" 
+                label="" 
                 value={formState.delState} 
                 onChange={handleInputChange} 
                 options={stateOptions} 
@@ -124,7 +124,7 @@ export default function App() {
                     <h3 className="font-bold text-cyan-400 uppercase tracking-wider text-sm">BOL / POD Uploads</h3>
                 </div>
                 
-                {/* FIX: Swapped order: File Upload Area is now first */}
+                {/* File Upload Area is first */}
                 <FileUploadArea
                   id="bolFiles"
                   files={fileState.bolFiles}
