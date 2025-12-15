@@ -25,7 +25,15 @@ export const SelectField: React.FC<SelectFieldProps> = ({ id, label, value, onCh
           className="block w-full bg-gray-900 border border-cyan-900 text-cyan-100 py-3 px-4 appearance-none focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all duration-200"
         >
           {options.map((option) => (
-            <option key={option.value} value={option.value} disabled={option.value === ""} className="bg-gray-900 text-cyan-100">
+            <option 
+              key={option.value} 
+              value={option.value} 
+              disabled={option.value === ""} 
+              // The primary fix: Ensure the background and text color are explicitly dark
+              // Some browsers need 'bg-gray-800' or similar darker colors instead of 'bg-gray-900' 
+              // for the options, and may need text-white or text-gray-100 instead of text-cyan-100.
+              className="bg-gray-900 text-cyan-100" 
+            >
               {option.label}
             </option>
           ))}
