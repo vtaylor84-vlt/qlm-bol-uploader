@@ -9,6 +9,7 @@ interface CombinedLocationFieldProps {
   stateValue: string;
   handleInputChange: (e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => void;
   stateOptions: { value: string; label: string }[];
+  required?: boolean;
 }
 
 export const CombinedLocationField: React.FC<CombinedLocationFieldProps> = ({
@@ -18,29 +19,32 @@ export const CombinedLocationField: React.FC<CombinedLocationFieldProps> = ({
   stateValue,
   handleInputChange,
   stateOptions,
+  required = false,
 }) => {
-    // Determine the specific city placeholder text based on the prefix
-    const cityPlaceholder = prefix === 'pu' ? 'enter the pickup city' : 'enter the delivery city';
+    // FIX 1/2: Update City placeholder text
+    const cityPlaceholder = prefix === 'pu' ? 'PU City' : 'Del City';
 
   return (
-    // This div handles the consistent vertical spacing between the two location fields in App.tsx
     <div className="mb-4"> 
-      <h3 className="font-bold text-cyan-400 uppercase tracking-wider text-sm mb-1">{label}</h3>
+      {/* FIX 4/5: Add required indicator to the combined header */}
+      <h3 className="font-bold text-cyan-400 uppercase tracking-wider text-sm mb-1">
+          {label} {required && <span className="text-red-400">*</span>}
+      </h3>
       <div className="grid grid-cols-2 gap-4">
         {/* City Input */}
         <FormField
           id={`${prefix}City`}
-          label="" // Label is hidden, using the h3 above
+          label="" 
           value={cityValue}
           onChange={handleInputChange}
-          // FIX 4/5: Use the dynamic placeholder
           placeholder={cityPlaceholder}
+          required={required}
         />
         
         {/* State Dropdown */}
         <SelectField
           id={`${prefix}State`}
-          label="" // Label is hidden, using the h3 above
+          label="" 
           value={stateValue}
           onChange={handleInputChange}
           options={stateOptions}

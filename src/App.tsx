@@ -23,7 +23,8 @@ export default function App() {
     handleSubmit,
     generateDescription,
     DynamicLogo,
-  } = useUploader();
+  }
+ = useUploader();
 
   const isFormValid =
     formState.company &&
@@ -77,8 +78,7 @@ export default function App() {
                   label="Driver's Name"
                   value={formState.driverName}
                   onChange={handleInputChange}
-                  // FIX 1: Update placeholder
-                  placeholder="enter your name"
+                  placeholder="Enter your name" 
                   required
                 />
               </div>
@@ -92,16 +92,14 @@ export default function App() {
                   label="LOAD #" 
                   value={formState.loadNumber} 
                   onChange={handleInputChange} 
-                  // FIX 2: Update placeholder
-                  placeholder="enter Load ID or Load #" 
+                  placeholder="Enter Load ID or Load #" 
                 />
                 <FormField 
                   id="bolNumber" 
                   label="BOL #" 
                   value={formState.bolNumber} 
                   onChange={handleInputChange} 
-                  // FIX 3: Update placeholder
-                  placeholder="enter BOL #" 
+                  placeholder="Enter BOL #" 
                 />
               </div>
             </div>
@@ -112,24 +110,26 @@ export default function App() {
                     prefix="pu"
                     label="Pickup City/State" 
                     cityValue={formState.puCity}
-                    // FIX 4: Update placeholder (handled in CombinedLocationField which calls FormField with "City" as placeholder)
+                    stateValue={formState.puState}
                     handleInputChange={handleInputChange}
                     stateOptions={stateOptions}
+                    required 
                 />
                 
                 <CombinedLocationField
                     prefix="del"
                     label="Delivery City/State" 
                     cityValue={formState.delCity}
-                    // FIX 5: Update placeholder (handled in CombinedLocationField which calls FormField with "City" as placeholder)
+                    stateValue={formState.delState}
                     handleInputChange={handleInputChange}
                     stateOptions={stateOptions}
+                    required 
                 />
             </div>
             
-            {/* --- BOL TYPE RADIO BUTTONS --- */}
+            {/* --- BOL TYPE RADIO BUTTONS (MOVED HERE) --- */}
             <div className="radio-group flex items-center space-x-6 text-gray-300 bg-gray-900 p-3 border border-cyan-900/50 rounded">
-                <span className="font-semibold text-sm text-gray-400">BOL Type:</span>
+                <span className="font-semibold text-sm text-gray-400">BOL Type:<span className="text-red-400 pl-1">*</span></span>
                 <div className="flex items-center space-x-2">
                     <input type="radio" id="pickup" name="bolDocType" value="Pickup" checked={formState.bolDocType === 'Pickup'} onChange={handleInputChange} />
                     <label htmlFor="pickup" className="text-sm">Pickup</label>
