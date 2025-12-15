@@ -1,12 +1,12 @@
 import React from 'react';
-import { Header } from './components/Header';
-import { FormField } from './components/FormField';
-import { SelectField } from './components/SelectField';
-import { FileUploadArea } from './components/FileUploadArea';
-import { Toast } from './components/Toast';
-import { GeminiAISection } from './components/GeminiAISection';
-import { useUploader } from './hooks/useUploader';
-import { COMPANIES, US_STATES } from './constants';
+import { Header } from './src/components/Header';
+import { FormField } from './src/components/FormField';
+import { SelectField } from './src/components/SelectField';
+import { FileUploadArea } from './src/components/FileUploadArea';
+import { Toast } from './src/components/Toast';
+import { GeminiAISection } from './src/components/GeminiAISection';
+import { useUploader } from './src/hooks/useUploader';
+import { COMPANIES, US_STATES } from './src/constants';
 import { SectionHeader } from './components/SectionHeader';
 
 export default function App() {
