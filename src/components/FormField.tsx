@@ -19,10 +19,9 @@ export const FormField: React.FC<FormFieldProps> = ({
   type = 'text', 
   required = false 
 }) => {
-  // FIX: Ensure no internal margin is present, rely on parent component for spacing.
   return (
     <div className="relative">
-      {label && ( 
+      {label && ( // Only render label if it exists
         <label htmlFor={id} className="block text-xs font-bold text-cyan-400 mb-1 uppercase tracking-wider">
           {label} {required && <span className="text-red-400">*</span>}
         </label>

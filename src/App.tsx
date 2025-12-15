@@ -7,6 +7,7 @@ import Toast from './components/Toast';
 import { GeminiAISection } from './components/GeminiAISection';
 import { useUploader } from './hooks/useUploader';
 import { COMPANY_OPTIONS, STATES_US } from './constants.ts'; 
+import { CombinedLocationField } from './components/CombinedLocationField'; // FIX 2: Import CombinedLocationField
 
 export default function App() {
   const {
@@ -90,32 +91,25 @@ export default function App() {
               </div>
             </div>
               
-            {/* --- Load Data: Pickup City & State (FIXED ONE-LINE LAYOUT) --- */}
-            <div className="grid grid-cols-2 gap-4">
-              {/* City label acts as the header for the pair */}
-              <FormField id="puCity" label="PICKUP CITY" value={formState.puCity} onChange={handleInputChange} placeholder="City" />
-              {/* FIX: Set label to empty string to keep the State input aligned on the same line */}
-              <SelectField 
-                id="puState" 
-                label="" 
-                value={formState.puState} 
-                onChange={handleInputChange} 
-                options={stateOptions} 
-              />
-            </div>
-
-            {/* --- Load Data: Delivery City & State (FIXED ONE-LINE LAYOUT) --- */}
-            <div className="grid grid-cols-2 gap-4">
-              {/* City label acts as the header for the pair */}
-              <FormField id="delCity" label="DELIVERY CITY" value={formState.delCity} onChange={handleInputChange} placeholder="City" />
-              {/* FIX: Set label to empty string to keep the State input aligned on the same line */}
-              <SelectField 
-                id="delState" 
-                label="" 
-                value={formState.delState} 
-                onChange={handleInputChange} 
-                options={stateOptions} 
-              />
+            {/* --- Load Data: Pickup and Delivery Location (FIXED ONE-LINE LAYOUT WITH COMBINED FIELD) --- */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* FIX 3: Revert to Combined Location Fields with the correct single header */}
+                <CombinedLocationField
+                    prefix="pu"
+                    label="PICKUP CITY/STATE" 
+                    cityValue={formState.puCity}
+                    stateValue={formState.puState}
+                    handleInputChange={handleInputChange}
+                    stateOptions={stateOptions}
+                />
+                <CombinedLocationField
+                    prefix="del"
+                    label="DELIVERY CITY/STATE" 
+                    cityValue={formState.delCity}
+                    stateValue={formState.delState}
+                    handleInputChange={handleInputChange}
+                    stateOptions={stateOptions}
+                />
             </div>
             
             {/* --- BOL / POD --- */}
@@ -124,7 +118,7 @@ export default function App() {
                     <h3 className="font-bold text-cyan-400 uppercase tracking-wider text-sm">BOL / POD Uploads</h3>
                 </div>
                 
-                {/* File Upload Area is first */}
+                {/* FIX 4: Swapped order: File Upload Area is now first */}
                 <FileUploadArea
                   id="bolFiles"
                   files={fileState.bolFiles}
