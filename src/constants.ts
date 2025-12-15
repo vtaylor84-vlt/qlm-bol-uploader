@@ -1,13 +1,10 @@
-import { CompanyName, CompanyTheme } from '@/types.ts';
-// ⚠️ FINAL FIX: Use * as Module to handle both default and named exports.
-import * as GreenleafLogoModule from '@/assets/GreenleafLogo.tsx';
-import * as BstLogoModule from '@/assets/BstLogo.tsx';
+// File: src/constants.ts
+import { CompanyName, CompanyTheme } from './types'; 
+// FIX 1: Simplify imports to use named exports, as the complex module import failed
+import { GreenleafLogo } from './assets/GreenleafLogo.tsx'; 
+import { BstLogo } from './assets/BstLogo.tsx'; 
 
-// We defensively extract the component, assuming the export is either named 'GreenleafLogo' 
-// or is the 'default' export. The 'as any' is required to bypass TypeScript restrictions on module structure.
-const GreenleafLogoComponent = (GreenleafLogoModule as any).GreenleafLogo || GreenleafLogoModule.default;
-const BstLogoComponent = (BstLogoModule as any).BstLogo || BstLogoModule.default;
-
+// FIX: EXPORT variable using the name expected by App.tsx (COMPANY_OPTIONS)
 export const COMPANY_OPTIONS: CompanyName[] = ['Greenleaf Xpress', 'BST Expedite'];
 
 export const THEME_CONFIG: Record<CompanyName, CompanyTheme> = {
@@ -23,8 +20,8 @@ export const THEME_CONFIG: Record<CompanyName, CompanyTheme> = {
     },
     'Greenleaf Xpress': {
         name: 'Greenleaf Xpress',
-        // ⚠️ Assign the extracted, guaranteed component function
-        logo: GreenleafLogoComponent, 
+        // FIX 3: Assign the directly imported named component
+        logo: GreenleafLogo, 
         palette: {
             primary: '#10b981', // Emerald-500
             secondary: '#4ade80', // Green-400
@@ -34,8 +31,8 @@ export const THEME_CONFIG: Record<CompanyName, CompanyTheme> = {
     },
     'BST Expedite': {
         name: 'BST Expedite',
-        // ⚠️ Assign the extracted, guaranteed component function
-        logo: BstLogoComponent, 
+        // FIX 3: Assign the directly imported named component
+        logo: BstLogo, 
         palette: {
             primary: '#3b82f6', // Blue-500
             secondary: '#818cf8', // Indigo-400
@@ -45,6 +42,7 @@ export const THEME_CONFIG: Record<CompanyName, CompanyTheme> = {
     },
 };
 
+// FIX: EXPORT variable using the name expected by App.tsx (STATES_US)
 export const STATES_US = [
-    'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'
+    'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'
 ];

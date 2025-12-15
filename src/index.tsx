@@ -1,11 +1,7 @@
-// index.tsx
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-// ⚠️ FINAL FIX: Absolute import using the new alias (@/). 
-// This bypasses the old, failing relative path ("./App.") entirely.
-import App from '@/App.tsx'; 
-// Assuming style.css is correctly placed in src/ based on your structure
-import '@/src/style.css'; 
+import App from './App'; // App.tsx is a peer file in the same directory
+import './style.css'; // Assuming your stylesheet is now at src/style.css
 
 const container = document.getElementById('root');
 if (container) {

@@ -18,7 +18,8 @@ const getColors = (type: ToastType) => {
     }
 };
 
-const ToastComponent: React.FC<{ message: ToastMessage }> = ({ message }) => {
+// RENAMED TOASTCOMPONENT TO TOAST
+const Toast: React.FC<{ message: ToastMessage }> = ({ message }) => {
     const { bg, border, icon } = getColors(message.type);
 
     return (
@@ -85,3 +86,6 @@ export const ToastContainer: React.FC = () => {
         document.body
     );
 };
+
+// CRITICAL FIX: Export the component as the default export for App.tsx
+export default Toast;
