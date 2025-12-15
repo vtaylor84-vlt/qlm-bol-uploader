@@ -1,7 +1,6 @@
-import { CompanyName, CompanyTheme } from '@/types.ts';
-// ⚠️ FINAL FIX: Use * as Module to handle both default and named exports.
-import * as GreenleafLogoModule from '@/assets/GreenleafLogo.tsx';
-import * as BstLogoModule from '@/assets/BstLogo.tsx';
+import { CompanyName, CompanyTheme } from './types'; // Removed .ts extension as per convention
+import * as GreenleafLogoModule from './assets/GreenleafLogo.tsx'; // Use relative path
+import * as BstLogoModule from './assets/BstLogo.tsx'; // Use relative path
 
 // We defensively extract the component, assuming the export is either named 'GreenleafLogo' 
 // or is the 'default' export. The 'as any' is required to bypass TypeScript restrictions on module structure.
@@ -46,5 +45,5 @@ export const THEME_CONFIG: Record<CompanyName, CompanyTheme> = {
 };
 
 export const STATES_US = [
-    'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'
+    'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'
 ];
