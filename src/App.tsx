@@ -7,7 +7,6 @@ import Toast from './components/Toast';
 import { GeminiAISection } from './components/GeminiAISection';
 import { useUploader } from './hooks/useUploader';
 import { COMPANY_OPTIONS, STATES_US } from './constants.ts'; 
-// FIX: CombinedLocationField removed (not imported)
 
 export default function App() {
   const {
@@ -83,17 +82,15 @@ export default function App() {
               </div>
             </div>
 
-            {/* --- Load Data --- */}
+            {/* --- Load Data: Identifiers --- */}
             <div> 
-              
-              {/* Row 1: Load # & BOL # (Identifiers) */}
               <div className="grid grid-cols-2 gap-4">
                 <FormField id="loadNumber" label="LOAD #" value={formState.loadNumber} onChange={handleInputChange} placeholder="e.g., 123456" />
                 <FormField id="bolNumber" label="BOL #" value={formState.bolNumber} onChange={handleInputChange} placeholder="e.g., 7891011" />
               </div>
             </div>
               
-            {/* Row 2: Pickup City & State (Separated fields) */}
+            {/* --- Load Data: Pickup City & State (FIELDS REVERTED, HEADERS UPDATED) --- */}
             <div className="grid grid-cols-2 gap-4">
               {/* FIX: Explicit Pickup City label */}
               <FormField id="puCity" label="PICKUP CITY" value={formState.puCity} onChange={handleInputChange} placeholder="City" />
@@ -107,7 +104,7 @@ export default function App() {
               />
             </div>
 
-            {/* Row 3: Delivery City & State (Separated fields) */}
+            {/* --- Load Data: Delivery City & State (FIELDS REVERTED, HEADERS UPDATED) --- */}
             <div className="grid grid-cols-2 gap-4">
               {/* FIX: Explicit Delivery City label */}
               <FormField id="delCity" label="DELIVERY CITY" value={formState.delCity} onChange={handleInputChange} placeholder="City" />
@@ -127,7 +124,7 @@ export default function App() {
                     <h3 className="font-bold text-cyan-400 uppercase tracking-wider text-sm">BOL / POD Uploads</h3>
                 </div>
                 
-                {/* FIX: Swapping BOL Type Radio buttons (formState.bolDocType logic) and the Upload Area */}
+                {/* FIX: Swapped order: File Upload Area is now first */}
                 <FileUploadArea
                   id="bolFiles"
                   files={fileState.bolFiles}
@@ -136,7 +133,7 @@ export default function App() {
                   onFileReorder={handleFileReorder}
                   accept="image/*,application/pdf"
                 />
-                
+
                 <div className="radio-group flex items-center space-x-6 text-gray-300 bg-gray-900 p-3 border border-cyan-900/50 rounded">
                     <span className="font-semibold text-sm text-gray-400">BOL Type:</span>
                     <div className="flex items-center space-x-2">

@@ -19,12 +19,10 @@ export const FormField: React.FC<FormFieldProps> = ({
   type = 'text', 
   required = false 
 }) => {
-  // FIX: Restore mb-4 if a label is provided, for correct spacing when used standalone.
-  const wrapperClass = label ? 'relative mb-4' : 'relative'; 
-
+  // FIX: Ensure no internal margin is present, rely on parent component for spacing.
   return (
-    <div className={wrapperClass}>
-      {label && ( // Only render label if it exists
+    <div className="relative">
+      {label && ( 
         <label htmlFor={id} className="block text-xs font-bold text-cyan-400 mb-1 uppercase tracking-wider">
           {label} {required && <span className="text-red-400">*</span>}
         </label>
