@@ -91,7 +91,7 @@ export default function App() {
               </div>
             </div>
               
-            {/* --- Load Data: Pickup and Delivery Location --- */}
+            {/* --- Load Data: Pickup Location --- */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <CombinedLocationField
                     prefix="pu"
@@ -101,19 +101,11 @@ export default function App() {
                     handleInputChange={handleInputChange}
                     stateOptions={stateOptions}
                 />
-                <CombinedLocationField
-                    prefix="del"
-                    label="DELIVERY CITY/STATE" 
-                    cityValue={formState.delCity}
-                    stateValue={formState.delState}
-                    handleInputChange={handleInputChange}
-                    stateOptions={stateOptions}
-                />
             </div>
             
-            {/* --- BOL / POD --- */}
-            {/* FIX 1: Removed border-t and pt-4, added mb-4 for separation */}
-            <div className="space-y-4 mb-4">
+            {/* --- BOL / POD (MOVED HERE) --- */}
+            {/* FIX 1: Moved the entire BOL/POD Uploads section to immediately after Pickup Location */}
+            <div className="space-y-4 mb-4 pt-4 border-t border-gray-800">
                 <div className="flex items-center justify-between">
                     <h3 className="font-bold text-cyan-400 uppercase tracking-wider text-sm">BOL / POD Uploads</h3>
                 </div>
@@ -141,9 +133,20 @@ export default function App() {
                 </div>
             </div>
             
-            {/* --- Freight --- */}
-            {/* FIX 2: Removed border-t and pt-4, added mb-4 for separation */}
-            <div className="space-y-4 mb-4">
+            {/* --- Load Data: Delivery Location --- */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <CombinedLocationField
+                    prefix="del"
+                    label="DELIVERY CITY/STATE" 
+                    cityValue={formState.delCity}
+                    stateValue={formState.delState}
+                    handleInputChange={handleInputChange}
+                    stateOptions={stateOptions}
+                />
+            </div>
+
+            {/* --- Freight (Original section that was below BOL/POD) --- */}
+            <div className="space-y-4 pt-4 border-t border-gray-800">
               <h3 className="font-bold text-cyan-400 uppercase tracking-wider text-sm">Freight Photos/Videos</h3>
               <FileUploadArea
                 id="freightFiles"
