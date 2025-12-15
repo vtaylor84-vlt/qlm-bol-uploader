@@ -49,7 +49,6 @@ export const useUploader = () => {
           type: 'logo', 
           src: GREENLEAF_LOGO_URL, 
           alt: 'Greenleaf Xpress Logo',
-          // FIX: Increased height for better visibility
           className: 'h-40 w-auto mx-auto' 
         };
       case 'BST Expedite': 
@@ -57,19 +56,27 @@ export const useUploader = () => {
           type: 'logo', 
           src: BST_EXPEDITE_LOGO_URL, 
           alt: 'BST Expedite Logo',
-          // FIX: Increased height for better visibility
           className: 'h-40 w-auto mx-auto' 
         };
       default:
         return { 
           type: 'title', 
           text: 'BOL / PHOTO UPLOAD',
-          // Use dynamic text color for the title fallback
           className: `text-3xl sm:text-4xl font-orbitron font-extrabold ${currentTheme.text} tracking-widest leading-snug` 
         };
     }
   }, [formState.company, currentTheme.text]);
   // --- End Dynamic Logo Logic ---
+
+  // FIX 1: Define isFormValid based on all required fields, including BOL Type
+  const isFormValid = useMemo(() => {
+    return (
+      formState.company !== '' &&
+      formState.driverName !== '' &&
+      formState.bolDocType !== '' && // NEW REQUIRED FIELD CHECK
+      (fileState.bolFiles.length > 0 || fileState.freightFiles.length > 0)
+    );
+  }, [formState, fileState]);
 
 
   // Effect to process the queue on app load and when network status changes
@@ -150,6 +157,8 @@ export const useUploader = () => {
   const validateForm = () => {
     if (!formState.company) return "Please select a company.";
     if (!formState.driverName) return "Please enter the driver's name.";
+    // FIX 2: Check if bolDocType is selected
+    if (!formState.bolDocType) return "Please select a BOL Type (Pickup or Delivery)."; 
     if (fileState.bolFiles.length === 0 && fileState.freightFiles.length === 0) return "Please upload at least one file.";
     return "";
   };
@@ -226,5 +235,6 @@ export const useUploader = () => {
     generateDescription: generateDescription,
     DynamicHeaderContent, 
     currentTheme, 
+    isFormValid, // FIX 3: Return isFormValid
   };
 };
