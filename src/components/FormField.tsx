@@ -10,24 +10,34 @@ interface FormFieldProps {
   required?: boolean;
 }
 
-export const FormField: React.FC<FormFieldProps> = ({ id, label, value, onChange, placeholder, type = 'text', required = false }) => {
+export const FormField: React.FC<FormFieldProps> = ({ 
+  id, 
+  label, 
+  value, 
+  onChange, 
+  placeholder, 
+  type = 'text', 
+  required = false 
+}) => {
   return (
-    <div className="relative form-field-container">
+    // Standard label-on-top layout, including mb-4 for consistent spacing
+    <div className="relative mb-4">
+      <label htmlFor={id} className="block text-xs font-bold text-cyan-400 mb-1 uppercase tracking-wider">
+        {label} {required && <span className="text-red-400">*</span>}
+      </label>
       <input
         type={type}
         id={id}
         name={id}
         value={value}
-        onChange={onChange as (e: React.ChangeEvent<HTMLInputElement>) => void} // Cast for input element only
-        placeholder=" " // Note: A single space is used to trigger :placeholder-shown
+        // Use the actual placeholder text here
+        onChange={onChange as (e: React.ChangeEvent<HTMLInputElement>) => void}
+        placeholder={placeholder} 
         required={required}
-        className="block w-full form-field-input"
+        // Standard dark input field styling
+        className="block w-full bg-gray-900 border border-gray-700 text-cyan-100 py-3 px-4 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all duration-200"
         aria-label={label}
       />
-      <label htmlFor={id} className="form-field-label">
-        {label} {required && '(REQUIRED)'}
-      </label>
-      {placeholder && !value && <span className="absolute left-3 bottom-2 text-gray-500 text-sm pointer-events-none">{placeholder}</span>}
     </div>
   );
 };
