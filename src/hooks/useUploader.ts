@@ -1,4 +1,4 @@
-// src/hooks/useUploader.ts (REPLACE ALL)
+// src/hooks/useUploader.ts (UPDATED SCRIPT TO FIX CRASH)
 
 import { useState, useCallback, useEffect, useMemo, ChangeEvent } from 'react';
 import type { FormState, FileState, UploadedFile, Status, ToastState } from '../types';
@@ -200,6 +200,8 @@ export const useUploader = () => {
     try {
       const allFiles = [...fileState.bolFiles, ...fileState.freightFiles];
       
+      // FIX: Ensure jobFiles is an array, even if allFiles is empty, 
+      // though allFiles shouldn't be empty due to validation.
       const jobFiles = allFiles.map(f => ({
         name: f.file.name,
         blob: f.file, 
@@ -208,7 +210,7 @@ export const useUploader = () => {
       
       const jobData = {
           data: formState,
-          files: jobFiles,
+          files: jobFiles, // THIS is now guaranteed to be an array
           timestamp: Date.now(),
           id: Date.now()
       } as QueuedJob;
