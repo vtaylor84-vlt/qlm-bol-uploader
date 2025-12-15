@@ -1,10 +1,9 @@
-import { useState, useCallback, useEffect, ChangeEvent } from 'react';
+import { useState, useCallback, useEffect, ChangeEvent, useMemo } from 'react'; // FIX: Import useMemo
 import type { FormState, FileState, UploadedFile, Status, ToastState } from '../types';
 import { generateDescription } from '../services/geminiService';
 import { saveSubmissionToQueue, processQueue } from '../services/queueService';
 
 // Import logos (you must ensure these paths are correct in your project structure)
-// NOTE: I am using placeholders for the import path. Replace with actual path (e.g., ../assets/Greenleaf.png)
 const GREENLEAF_LOGO_URL = 'path/to/Greenleaf_Xpress_logo.png';
 const BST_EXPEDITE_LOGO_URL = 'path/to/BST_Expedite.png';
 
@@ -34,7 +33,7 @@ export const useUploader = () => {
   const [validationError, setValidationError] = useState<string>('');
 
   // --- Dynamic Logo Logic ---
-  const DynamicHeaderContent = useCallback(() => {
+  const DynamicHeaderContent = useMemo(() => { // FIX: Use useMemo instead of useCallback
     switch (formState.company) {
       case 'Greenleaf Xpress':
         return { 
@@ -43,7 +42,7 @@ export const useUploader = () => {
           alt: 'Greenleaf Xpress Logo',
           className: 'h-16 md:h-20 w-auto mx-auto' 
         };
-      case 'BST Expedite': // FIX: Add BST Expedite logic
+      case 'BST Expedite': 
         return { 
           type: 'logo', 
           src: BST_EXPEDITE_LOGO_URL, 
@@ -139,7 +138,6 @@ export const useUploader = () => {
   const validateForm = () => {
     if (!formState.company) return "Please select a company.";
     if (!formState.driverName) return "Please enter the driver's name.";
-    // Ensure at least one file is uploaded OR BOL Type is selected if no files are uploaded (complex logic removed for simplicity)
     if (fileState.bolFiles.length === 0 && fileState.freightFiles.length === 0) return "Please upload at least one file.";
     return "";
   };
@@ -214,6 +212,6 @@ export const useUploader = () => {
     handleFileReorder,
     handleSubmit,
     generateDescription: generateDescription,
-    DynamicHeaderContent, // FIX: Export the dynamic content function
+    DynamicHeaderContent, // Return the memoized object directly
   };
 };
