@@ -3,3 +3,19 @@
   publish = "dist"
   command = "npm run build"
   environment = { NODE_VERSION = "20" }
+
+# --- Header Rules for Caching ---
+
+[[headers]]
+  # Match the main entry file (index.html)
+  for = "/index.html"
+  [headers.values]
+    # Set a short cache time (5 minutes) and force the browser to check for new versions on every visit.
+    Cache-Control = "public, max-age=300, must-revalidate"
+
+[[headers]]
+  # Match files with a unique hash in the assets directory (JS, CSS, images)
+  for = "/assets/*"
+  [headers.values]
+    # Cache these files forever because the filename changes on every deployment (max-age=1 year).
+    Cache-Control = "public, max-age=31536000, immutable"
