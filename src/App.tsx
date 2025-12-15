@@ -3,10 +3,11 @@ import { Header } from './components/Header';
 import { FormField } from './components/FormField';
 import { SelectField } from './components/SelectField';
 import { FileUploadArea } from './components/FileUploadArea';
-import { Toast } from './components/Toast';
+// FINAL FIX: Change to default import
+import Toast from './components/Toast';
 import { GeminiAISection } from './components/GeminiAISection';
 import { useUploader } from './hooks/useUploader';
-// CORRECT: Imported variable names now align with constants.ts
+// Imported variable names now align with constants.ts
 import { COMPANY_OPTIONS, STATES_US } from './constants.ts'; 
 import { SectionHeader } from './components/SectionHeader';
 
@@ -23,6 +24,7 @@ export default function App() {
     handleFileReorder,
     handleSubmit,
     generateDescription,
+    DynamicLogo, // Assuming this is the Logo component now exposed by the hook
   } = useUploader();
 
   const isFormValid =
@@ -38,7 +40,7 @@ export default function App() {
   return (
     <div className="min-h-screen text-gray-100 flex flex-col items-center p-4 selection:bg-cyan-400 selection:text-black relative z-10">
       <div className="w-full max-w-2xl mx-auto">
-        <Header />
+        <Header LogoComponent={DynamicLogo} />
         
         <main className="mt-4">
           <form
@@ -56,8 +58,8 @@ export default function App() {
                   label="Company"
                   value={formState.company}
                   onChange={handleInputChange}
-                  // CORRECTION 1: Use COMPANY_OPTIONS
-                  options={COMPANY_OPTIONS.map(c => ({ value: c, label: c === '' ? 'Select a Company...' : c }))} 
+                  // CORRECT: Use COMPANY_OPTIONS
+                  options={COMPANY_OPTIONS.map(c => ({ value: c, label: c === '' ? 'Select a Company...' : c }))}
                   required
                 />
                 <FormField
@@ -84,15 +86,15 @@ export default function App() {
               {/* Row 2: Pickup City & State */}
               <div className="grid grid-cols-2 gap-4">
                   <FormField id="puCity" label="Pickup City" value={formState.puCity} onChange={handleInputChange} placeholder="City" />
-                  {/* CORRECTION 2: Use STATES_US */}
-                  <SelectField id="puState" label="Pickup State" value={formState.puState} onChange={handleInputChange} options={STATES_US.map(s => ({ value: s, label: s || 'Select...' }))} /> 
+                  {/* CORRECT: Use STATES_US */}
+                  <SelectField id="puState" label="Pickup State" value={formState.puState} onChange={handleInputChange} options={STATES_US.map(s => ({ value: s, label: s || 'Select...' }))} />
               </div>
 
               {/* Row 3: Delivery City & State */}
               <div className="grid grid-cols-2 gap-4">
                   <FormField id="delCity" label="Delivery City" value={formState.delCity} onChange={handleInputChange} placeholder="City" />
-                  {/* CORRECTION 3: Use STATES_US */}
-                  <SelectField id="delState" label="Delivery State" value={formState.delState} onChange={handleInputChange} options={STATES_US.map(s => ({ value: s, label: s || 'Select...' }))} /> 
+                  {/* CORRECT: Use STATES_US */}
+                  <SelectField id="delState" label="Delivery State" value={formState.delState} onChange={handleInputChange} options={STATES_US.map(s => ({ value: s, label: s || 'Select...' }))} />
               </div>
             </div>
 
