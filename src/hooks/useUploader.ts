@@ -1,13 +1,16 @@
-// src/hooks/useUploader.ts
 import { useState, useCallback, useEffect, ChangeEvent, useMemo } from 'react';
 import type { FormState, FileState, UploadedFile, Status, ToastState } from '../types';
 import { generateDescription } from '../services/geminiService';
 import { saveSubmissionToQueue, processQueue } from '../services/queueService';
-import { THEMES, defaultTheme } from '../themes'; // Import THEMES
+import { THEMES, defaultTheme } from '../themes'; 
 
-// Import logos (you must ensure these paths are correct in your project structure)
-const GREENLEAF_LOGO_URL = 'path/to/Greenleaf_Xpress_logo.png';
-const BST_EXPEDITE_LOGO_URL = 'path/to/BST_Expedite.png';
+// FIX 1: Import the actual assets (ASSUME PATH IS CORRECT)
+import GREENLEAF_LOGO from '../assets/Greenleaf Xpress logo.png'; 
+import BST_EXPEDITE_LOGO from '../assets/BST Expedite.png'; 
+
+// FIX 2: Use the imported variables
+const GREENLEAF_LOGO_URL = GREENLEAF_LOGO;
+const BST_EXPEDITE_LOGO_URL = BST_EXPEDITE_LOGO;
 
 const initialState: FormState = {
   company: '', 
@@ -221,6 +224,6 @@ export const useUploader = () => {
     handleSubmit,
     generateDescription: generateDescription,
     DynamicHeaderContent, 
-    currentTheme, // Export currentTheme for dynamic styling
+    currentTheme, 
   };
 };
