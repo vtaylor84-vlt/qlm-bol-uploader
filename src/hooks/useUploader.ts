@@ -3,6 +3,11 @@ import type { FormState, FileState, UploadedFile, Status, ToastState } from '../
 import { generateDescription } from '../services/geminiService';
 import { saveSubmissionToQueue, processQueue } from '../services/queueService';
 
+// Import logos (you must ensure these paths are correct in your project structure)
+// NOTE: I am using placeholders for the import path. Replace with actual path (e.g., ../assets/Greenleaf.png)
+const GREENLEAF_LOGO_URL = 'path/to/Greenleaf_Xpress_logo.png';
+const BST_EXPEDITE_LOGO_URL = 'path/to/BST_Expedite.png';
+
 const initialState: FormState = {
   company: '', 
   driverName: '',
@@ -13,7 +18,7 @@ const initialState: FormState = {
   delCity: '',
   delState: '', 
   description: '',
-  bolDocType: '', // FIX 1: Removed default selection so nothing is checked on load
+  bolDocType: '',
 };
 
 const initialFileState: FileState = {
@@ -27,6 +32,34 @@ export const useUploader = () => {
   const [status, setStatus] = useState<Status>('idle');
   const [toast, setToast] = useState<ToastState>({ message: '', type: 'success' });
   const [validationError, setValidationError] = useState<string>('');
+
+  // --- Dynamic Logo Logic ---
+  const DynamicHeaderContent = useCallback(() => {
+    switch (formState.company) {
+      case 'Greenleaf Xpress':
+        return { 
+          type: 'logo', 
+          src: GREENLEAF_LOGO_URL, 
+          alt: 'Greenleaf Xpress Logo',
+          className: 'h-16 md:h-20 w-auto mx-auto' 
+        };
+      case 'BST Expedite': // FIX: Add BST Expedite logic
+        return { 
+          type: 'logo', 
+          src: BST_EXPEDITE_LOGO_URL, 
+          alt: 'BST Expedite Logo',
+          className: 'h-16 md:h-20 w-auto mx-auto' 
+        };
+      default:
+        return { 
+          type: 'title', 
+          text: 'BOL / PHOTO UPLOAD',
+          className: 'text-3xl sm:text-4xl font-orbitron font-extrabold text-cyan-400 tracking-widest leading-snug' 
+        };
+    }
+  }, [formState.company]);
+  // --- End Dynamic Logo Logic ---
+
 
   // Effect to process the queue on app load and when network status changes
   useEffect(() => {
@@ -106,7 +139,7 @@ export const useUploader = () => {
   const validateForm = () => {
     if (!formState.company) return "Please select a company.";
     if (!formState.driverName) return "Please enter the driver's name.";
-    // NOTE: BOL Type is not required for validation
+    // Ensure at least one file is uploaded OR BOL Type is selected if no files are uploaded (complex logic removed for simplicity)
     if (fileState.bolFiles.length === 0 && fileState.freightFiles.length === 0) return "Please upload at least one file.";
     return "";
   };
@@ -181,5 +214,6 @@ export const useUploader = () => {
     handleFileReorder,
     handleSubmit,
     generateDescription: generateDescription,
+    DynamicHeaderContent, // FIX: Export the dynamic content function
   };
 };

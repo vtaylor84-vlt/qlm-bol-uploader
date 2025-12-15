@@ -51,7 +51,7 @@ export default function App() {
   return (
     <div className="min-h-screen text-gray-100 flex flex-col items-center p-4 selection:bg-cyan-400 selection:text-black relative z-10">
       <div className="w-full max-w-2xl mx-auto">
-        <Header LogoComponent={DynamicLogo} />
+        <Header DynamicHeaderContent={DynamicHeaderContent()} />
         
         <main className="mt-4">
           <form
