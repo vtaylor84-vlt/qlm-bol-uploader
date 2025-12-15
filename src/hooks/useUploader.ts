@@ -1,7 +1,8 @@
 import { useState, useCallback, useEffect, ChangeEvent } from 'react';
 import type { FormState, FileState, UploadedFile, Status, ToastState } from '../types';
-import { generateDescriptionFromImages } from '../services/geminiService';
-// FIX 1: Rename the imported function from addToQueue to saveSubmissionToQueue
+// FIX 1: Change to a default import, assuming it's not a named export
+import generateDescriptionFromImages from '../services/geminiService';
+// FIX 2 (Previous fix): Corrected the queue service function name
 import { saveSubmissionToQueue, processQueue } from '../services/queueService';
 
 const initialState: FormState = {
@@ -130,7 +131,6 @@ export const useUploader = () => {
     setStatus('submitting');
     
     try {
-      // FIX 2: Correctly call the exported function name
       await saveSubmissionToQueue({ formState, fileState });
       
       const loadId = formState.loadNumber || formState.bolNumber || `Trip-${formState.puCity}-${formState.delCity}`;
@@ -159,6 +159,7 @@ export const useUploader = () => {
         setStatus('idle');
         return;
       }
+      // Function call remains the same name
       const description = await generateDescriptionFromImages(imageFiles);
       setFormState(prev => ({ ...prev, description }));
       setStatus('success');
