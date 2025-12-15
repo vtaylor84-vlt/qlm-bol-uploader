@@ -32,7 +32,6 @@ export const SelectField: React.FC<SelectFieldProps> = ({ id, label, value, onCh
               key={option.value} 
               value={option.value} 
               disabled={option.value === ""} 
-              // Options should always be dark background and active text color
               className="bg-gray-800 text-cyan-100" 
             >
               {option.label}

@@ -35,6 +35,18 @@ export default function App() {
     return formState.loadNumber || formState.bolNumber || `Trip-${formState.puCity.toUpperCase()}-${formState.delCity.toUpperCase()}`;
   };
 
+  // --- Placeholder Logic ---
+  const companyOptions = [
+    { value: '', label: 'Select a Company...' }, // FIX: Prepend the default option
+    ...COMPANY_OPTIONS.map(c => ({ value: c, label: c }))
+  ];
+  
+  const stateOptions = [
+    { value: '', label: 'Select a state' }, // FIX: Prepend the default option
+    ...STATES_US.map(s => ({ value: s, label: s }))
+  ];
+  // --- End Placeholder Logic ---
+
   return (
     <div className="min-h-screen text-gray-100 flex flex-col items-center p-4 selection:bg-cyan-400 selection:text-black relative z-10">
       <div className="w-full max-w-2xl mx-auto">
@@ -46,19 +58,17 @@ export default function App() {
               e.preventDefault();
               handleSubmit();
             }}
-            // Reduced vertical space between form groups by removing space-y-6 and relying on mb-4 within fields
             className="p-6 bg-black/80 border border-gray-800 shadow-2xl shadow-cyan-900/20 backdrop-blur-sm rounded-xl"
           >
             {/* --- Company & Driver (Top Block) --- */}
-            <div className="mb-8"> {/* Added larger bottom margin for separation */}
+            <div className="mb-8"> 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <SelectField
                   id="company"
                   label="Company"
                   value={formState.company}
                   onChange={handleInputChange}
-                  // FIX: Option label changed to 'Select a Company...'
-                  options={COMPANY_OPTIONS.map(c => ({ value: c, label: c === '' ? 'Select a Company...' : c }))}
+                  options={companyOptions} // Use the new array
                   required
                 />
                 <div className="mb-4">
@@ -75,7 +85,7 @@ export default function App() {
             </div>
 
             {/* --- Load Data --- */}
-            <div className="mb-8"> {/* Added larger bottom margin for separation */}
+            <div className="mb-8"> 
               {/* Row 1: Load # & BOL # (Identifiers) */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="mb-4">
@@ -96,8 +106,7 @@ export default function App() {
                   label="Pickup State" 
                   value={formState.puState} 
                   onChange={handleInputChange} 
-                  // FIX: Placeholder option label changed to 'Select a state'
-                  options={STATES_US.map(s => ({ value: s, label: s || 'Select a state' }))} 
+                  options={stateOptions} // Use the new array
                 />
               </div>
 
@@ -111,19 +120,16 @@ export default function App() {
                   label="Delivery State" 
                   value={formState.delState} 
                   onChange={handleInputChange} 
-                  // FIX: Placeholder option label changed to 'Select a state'
-                  options={STATES_US.map(s => ({ value: s, label: s || 'Select a state' }))} 
+                  options={stateOptions} // Use the new array
                 />
               </div>
             </div>
 
-            {/* --- BOL / POD --- */}
             <div className="space-y-4">
                 <div className="flex items-center justify-between">
                     <h3 className="font-bold text-cyan-400 uppercase tracking-wider text-sm">BOL / POD Uploads</h3>
                 </div>
                 
-                {/* Radio Buttons (KEPT AS REQUESTED) */}
                 <div className="radio-group flex items-center space-x-6 text-gray-300 bg-gray-900 p-3 border border-cyan-900/50 rounded">
                     <span className="font-semibold text-sm text-gray-400">BOL Type:</span>
                     <div className="flex items-center space-x-2">
@@ -146,7 +152,6 @@ export default function App() {
                 />
             </div>
             
-            {/* --- Freight --- */}
             <div className="space-y-4 pt-4 border-t border-gray-800">
               <h3 className="font-bold text-cyan-400 uppercase tracking-wider text-sm">Freight Photos/Videos</h3>
               <FileUploadArea
@@ -159,7 +164,6 @@ export default function App() {
               />
             </div>
 
-            {/* --- AI Section --- */}
             {fileState.freightFiles.length > 0 && (
               <div className="border border-gray-800 bg-gray-900/50 p-4 rounded">
                 <GeminiAISection
@@ -171,7 +175,6 @@ export default function App() {
               </div>
             )}
 
-            {/* --- Submit --- */}
             <div className="pt-6">
               {validationError && <p className="text-red-400 text-center mb-4 bg-red-900/20 py-2 rounded border border-red-900">{validationError}</p>}
               <button
