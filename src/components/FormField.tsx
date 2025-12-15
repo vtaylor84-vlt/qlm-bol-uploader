@@ -1,5 +1,11 @@
 import React from 'react';
 
+interface Theme { // Define a simple Theme interface for props
+  text: string;
+  border: string;
+  focusRing: string;
+}
+
 interface FormFieldProps {
   id: string;
   label: string;
@@ -8,6 +14,7 @@ interface FormFieldProps {
   placeholder?: string;
   type?: string;
   required?: boolean;
+  theme: Theme; // FIX 1: Accept theme prop
 }
 
 export const FormField: React.FC<FormFieldProps> = ({ 
@@ -17,12 +24,13 @@ export const FormField: React.FC<FormFieldProps> = ({
   onChange, 
   placeholder, 
   type = 'text', 
-  required = false 
+  required = false,
+  theme // FIX 1
 }) => {
   return (
     <div className="relative">
-      {label && ( // Only render label if it exists
-        <label htmlFor={id} className="block text-xs font-bold text-cyan-400 mb-1 uppercase tracking-wider">
+      {label && ( 
+        <label htmlFor={id} className={`block text-xs font-bold ${theme.text} mb-1 uppercase tracking-wider`}> {/* FIX 2: Apply theme text color */}
           {label} {required && <span className="text-red-400">*</span>}
         </label>
       )}
@@ -34,7 +42,8 @@ export const FormField: React.FC<FormFieldProps> = ({
         onChange={onChange as (e: React.ChangeEvent<HTMLInputElement>) => void}
         placeholder={placeholder} 
         required={required}
-        className="block w-full bg-gray-900 border border-gray-700 text-cyan-100 py-3 px-4 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all duration-200"
+        // FIX 3: Apply dynamic border and focus ring classes
+        className={`block w-full bg-gray-900 border ${theme.border} text-cyan-100 py-3 px-4 focus:outline-none focus:ring-1 ${theme.focusRing} transition-all duration-200`}
         aria-label={label || id}
       />
     </div>

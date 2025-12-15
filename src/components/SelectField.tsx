@@ -1,5 +1,11 @@
 import React from 'react';
 
+interface Theme { // Define a simple Theme interface for props
+    text: string;
+    border: string;
+    focusRing: string;
+}
+
 interface SelectFieldProps {
   id: string;
   label: string;
@@ -7,15 +13,16 @@ interface SelectFieldProps {
   onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
   options: { value: string; label: string }[];
   required?: boolean;
+  theme: Theme; // FIX 1: Accept theme prop
 }
 
-export const SelectField: React.FC<SelectFieldProps> = ({ id, label, value, onChange, options, required = false }) => {
+export const SelectField: React.FC<SelectFieldProps> = ({ id, label, value, onChange, options, required = false, theme }) => {
   const hasValue = value !== ''; 
   
   return (
     <div className="relative"> 
-      {label && ( // Only render label if it exists
-        <label htmlFor={id} className="block text-xs font-bold text-cyan-400 mb-1 uppercase tracking-wider">
+      {label && ( 
+        <label htmlFor={id} className={`block text-xs font-bold ${theme.text} mb-1 uppercase tracking-wider`}> {/* FIX 2: Apply theme text color */}
           {label} {required && <span className="text-red-400">*</span>}
         </label>
       )}
@@ -26,7 +33,8 @@ export const SelectField: React.FC<SelectFieldProps> = ({ id, label, value, onCh
           value={value}
           onChange={onChange}
           required={required}
-          className={`block w-full bg-gray-900 border border-gray-700 py-3 px-4 appearance-none focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all duration-200 ${hasValue ? 'text-cyan-100' : 'text-gray-500'}`}
+          // FIX 3: Apply dynamic border and focus ring classes
+          className={`block w-full bg-gray-900 border ${theme.border} py-3 px-4 appearance-none focus:outline-none focus:ring-1 ${theme.focusRing} transition-all duration-200 ${hasValue ? 'text-cyan-100' : 'text-gray-500'}`}
         >
           {options.map((option) => (
             <option 

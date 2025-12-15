@@ -22,7 +22,8 @@ export default function App() {
     handleFileReorder,
     handleSubmit,
     generateDescription,
-    DynamicHeaderContent, // FIX: Destructure the object directly
+    DynamicHeaderContent, 
+    currentTheme, // FIX 1: Destructure currentTheme
   } = useUploader();
 
   const isFormValid =
@@ -50,7 +51,6 @@ export default function App() {
   return (
     <div className="min-h-screen text-gray-100 flex flex-col items-center p-4 selection:bg-cyan-400 selection:text-black relative z-10">
       <div className="w-full max-w-2xl mx-auto">
-        {/* FIX: Pass the memoized object directly */}
         <Header DynamicHeaderContent={DynamicHeaderContent} />
         
         <main className="mt-4">
@@ -59,8 +59,8 @@ export default function App() {
               e.preventDefault();
               handleSubmit();
             }}
-            // Using space-y-4 at the form level to control consistent vertical gaps between groups
-            className="p-6 space-y-4 bg-black/80 border border-gray-800 shadow-2xl shadow-cyan-900/20 backdrop-blur-sm rounded-xl"
+            // FIX 2: Apply dynamic border to the form wrapper
+            className={`p-6 space-y-4 bg-black/80 border ${currentTheme.border} shadow-2xl shadow-cyan-900/20 backdrop-blur-sm rounded-xl`}
           >
             {/* --- Company & Driver (Top Block) --- */}
             <div> 
@@ -72,6 +72,7 @@ export default function App() {
                   onChange={handleInputChange}
                   options={companyOptions} 
                   required
+                  theme={currentTheme} // FIX 3: Pass theme
                 />
                 <FormField
                   id="driverName"
@@ -80,6 +81,7 @@ export default function App() {
                   onChange={handleInputChange}
                   placeholder="Enter your name" 
                   required
+                  theme={currentTheme} // FIX 4: Pass theme
                 />
               </div>
             </div>
@@ -93,6 +95,7 @@ export default function App() {
                   value={formState.loadNumber} 
                   onChange={handleInputChange} 
                   placeholder="Enter Load ID or Load #" 
+                  theme={currentTheme} // FIX 5: Pass theme
                 />
                 <FormField 
                   id="bolNumber" 
@@ -100,6 +103,7 @@ export default function App() {
                   value={formState.bolNumber} 
                   onChange={handleInputChange} 
                   placeholder="Enter BOL #" 
+                  theme={currentTheme} // FIX 6: Pass theme
                 />
               </div>
             </div>
@@ -114,6 +118,7 @@ export default function App() {
                     handleInputChange={handleInputChange}
                     stateOptions={stateOptions}
                     required 
+                    theme={currentTheme} // FIX 7: Pass theme
                 />
                 
                 <CombinedLocationField
@@ -124,12 +129,14 @@ export default function App() {
                     handleInputChange={handleInputChange}
                     stateOptions={stateOptions}
                     required 
+                    theme={currentTheme} // FIX 8: Pass theme
                 />
             </div>
             
-            {/* --- BOL TYPE RADIO BUTTONS (MOVED HERE) --- */}
+            {/* --- BOL TYPE RADIO BUTTONS --- */}
             <div className="radio-group flex items-center space-x-6 text-gray-300 bg-gray-900 p-3 border border-cyan-900/50 rounded">
-                <span className="font-semibold text-sm text-gray-400">BOL Type:<span className="text-red-400 pl-1">*</span></span>
+                {/* FIX 9: Apply dynamic text color to span */}
+                <span className={`font-semibold text-sm ${currentTheme.text}`}>BOL Type:<span className="text-red-400 pl-1">*</span></span>
                 <div className="flex items-center space-x-2">
                     <input type="radio" id="pickup" name="bolDocType" value="Pickup" checked={formState.bolDocType === 'Pickup'} onChange={handleInputChange} />
                     <label htmlFor="pickup" className="text-sm">Pickup</label>
@@ -143,7 +150,8 @@ export default function App() {
             {/* --- BOL / POD UPLOADS (REMAINS) --- */}
             <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                    <h3 className="font-bold text-cyan-400 uppercase tracking-wider text-sm">Upload BOL Image(s)</h3>
+                    {/* FIX 10: Apply dynamic text color to header */}
+                    <h3 className={`font-bold ${currentTheme.text} uppercase tracking-wider text-sm`}>Upload BOL Image(s)</h3>
                 </div>
                 
                 {/* File Upload Area is first */}
@@ -159,7 +167,8 @@ export default function App() {
             
             {/* --- Freight --- */}
             <div className="space-y-4 mb-4">
-              <h3 className="font-bold text-cyan-400 uppercase tracking-wider text-sm">Upload Images of Freight loaded on the trailer</h3>
+                {/* FIX 11: Apply dynamic text color to header */}
+              <h3 className={`font-bold ${currentTheme.text} uppercase tracking-wider text-sm`}>Upload Images of Freight loaded on the trailer</h3>
               <FileUploadArea
                 id="freightFiles"
                 files={fileState.freightFiles}
@@ -172,7 +181,7 @@ export default function App() {
 
             {/* --- AI Section --- */}
             {fileState.freightFiles.length > 0 && (
-              <div className="border border-gray-800 bg-gray-900/50 p-4 rounded">
+              <div className={`border ${currentTheme.border} bg-gray-900/50 p-4 rounded`}> {/* FIX 12: Dynamic border */}
                 <GeminiAISection
                     onGenerate={() => generateDescription(fileState.freightFiles)}
                     description={formState.description}
@@ -188,7 +197,8 @@ export default function App() {
               <button
                 type="submit"
                 disabled={!isFormValid || status === 'submitting'}
-                className="w-full text-lg font-orbitron font-bold text-black bg-cyan-500 hover:bg-cyan-400 disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed py-4 rounded transition-all duration-200 shadow-[0_0_15px_rgba(6,182,212,0.5)] hover:shadow-[0_0_25px_rgba(6,182,212,0.7)]"
+                // FIX 13: Apply dynamic button classes and glow effect
+                className={`w-full text-lg font-orbitron font-bold text-black ${currentTheme.buttonBg} ${currentTheme.buttonHover} disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed py-4 rounded transition-all duration-200 ${currentTheme.glow}`}
               >
                 {status === 'submitting' ? 'SAVING...' : 'SUBMIT DOCUMENTS FOR LOAD'}
               </button>

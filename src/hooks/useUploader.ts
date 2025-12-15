@@ -1,7 +1,9 @@
-import { useState, useCallback, useEffect, ChangeEvent, useMemo } from 'react'; // FIX: Import useMemo
+// src/hooks/useUploader.ts
+import { useState, useCallback, useEffect, ChangeEvent, useMemo } from 'react';
 import type { FormState, FileState, UploadedFile, Status, ToastState } from '../types';
 import { generateDescription } from '../services/geminiService';
 import { saveSubmissionToQueue, processQueue } from '../services/queueService';
+import { THEMES, defaultTheme } from '../themes'; // Import THEMES
 
 // Import logos (you must ensure these paths are correct in your project structure)
 const GREENLEAF_LOGO_URL = 'path/to/Greenleaf_Xpress_logo.png';
@@ -32,8 +34,13 @@ export const useUploader = () => {
   const [toast, setToast] = useState<ToastState>({ message: '', type: 'success' });
   const [validationError, setValidationError] = useState<string>('');
 
-  // --- Dynamic Logo Logic ---
-  const DynamicHeaderContent = useMemo(() => { // FIX: Use useMemo instead of useCallback
+  // --- Dynamic Theme Logic ---
+  const currentTheme = useMemo(() => { 
+    return THEMES[formState.company] || defaultTheme;
+  }, [formState.company]);
+
+  // --- Dynamic Header Logic ---
+  const DynamicHeaderContent = useMemo(() => {
     switch (formState.company) {
       case 'Greenleaf Xpress':
         return { 
@@ -53,10 +60,11 @@ export const useUploader = () => {
         return { 
           type: 'title', 
           text: 'BOL / PHOTO UPLOAD',
-          className: 'text-3xl sm:text-4xl font-orbitron font-extrabold text-cyan-400 tracking-widest leading-snug' 
+          // Use dynamic text color for the title fallback
+          className: `text-3xl sm:text-4xl font-orbitron font-extrabold ${currentTheme.text} tracking-widest leading-snug` 
         };
     }
-  }, [formState.company]);
+  }, [formState.company, currentTheme.text]);
   // --- End Dynamic Logo Logic ---
 
 
@@ -212,6 +220,7 @@ export const useUploader = () => {
     handleFileReorder,
     handleSubmit,
     generateDescription: generateDescription,
-    DynamicHeaderContent, // Return the memoized object directly
+    DynamicHeaderContent, 
+    currentTheme, // Export currentTheme for dynamic styling
   };
 };
