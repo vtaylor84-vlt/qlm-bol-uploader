@@ -1,8 +1,6 @@
 import { useState, useCallback, useEffect, ChangeEvent } from 'react';
 import type { FormState, FileState, UploadedFile, Status, ToastState } from '../types';
-// FIX 1: Simplify the imported name, assuming the service exports 'generateDescription'
 import { generateDescription } from '../services/geminiService';
-// FIX 2 (Previous fix): Corrected the queue service function name
 import { saveSubmissionToQueue, processQueue } from '../services/queueService';
 
 const initialState: FormState = {
@@ -15,7 +13,7 @@ const initialState: FormState = {
   delCity: '',
   delState: '', 
   description: '',
-  bolDocType: 'Pick Up'
+  bolDocType: '', // FIX 1: Removed default selection so nothing is checked on load
 };
 
 const initialFileState: FileState = {
@@ -41,7 +39,7 @@ export const useUploader = () => {
       clearInterval(intervalId);
       [...fileState.bolFiles, ...fileState.freightFiles].forEach(f => URL.revokeObjectURL(f.previewUrl));
     };
-  }, []); // Run only once on mount
+  }, []); 
 
   const handleInputChange = useCallback((e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -50,7 +48,6 @@ export const useUploader = () => {
 
   const showToast = (message: string, type: ToastState['type'] = 'success') => {
     setToast({ message, type });
-    // This timeout is for auto-clearing the message state. The component itself handles visibility.
     setTimeout(() => setToast(prev => (prev.message === message ? { message: '', type: 'success' } : prev)), 5500);
   };
 
@@ -109,6 +106,7 @@ export const useUploader = () => {
   const validateForm = () => {
     if (!formState.company) return "Please select a company.";
     if (!formState.driverName) return "Please enter the driver's name.";
+    // NOTE: BOL Type is not required for validation
     if (fileState.bolFiles.length === 0 && fileState.freightFiles.length === 0) return "Please upload at least one file.";
     return "";
   };
@@ -159,7 +157,6 @@ export const useUploader = () => {
         setStatus('idle');
         return;
       }
-      // Function call now uses the base name: generateDescription
       const description = await generateDescription(imageFiles);
       setFormState(prev => ({ ...prev, description }));
       setStatus('success');
