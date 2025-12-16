@@ -27,18 +27,16 @@
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
-    <script type="module" src="/index.tsx"></script>
+    <script type="module" src="/src/index.tsx"></script>
 
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          // Registering the SW saved in the public folder
           navigator.serviceWorker.register('/service-worker.js')
             .then(reg => console.log('SW registered:', reg.scope))
             .catch(err => console.error('SW failed:', err));
         });
         
-        // Add event listener to update queue count after successful sync
         navigator.serviceWorker.addEventListener('message', event => {
             if (event.data.type === 'SYNC_COMPLETE') {
                 window.dispatchEvent(new Event('syncComplete'));
