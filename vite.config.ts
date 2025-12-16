@@ -1,17 +1,17 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import * as path from 'path'; // <--- CRITICAL: Import path module
+import * as path from 'path';
 
 export default defineConfig({
   plugins: [react()],
-  root: 'src', 
-  // ⚠️ CRITICAL: Add the resolve block to define the alias
+  // REMOVED root: 'src' -> This was causing the 404s
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'), // Set '@' to point to the 'src' directory
+      '@': path.resolve(__dirname, './src'),
     },
   },
   build: {
-    outDir: '../dist',
+    outDir: 'dist', // Standard output directory
+    emptyOutDir: true,
   },
 });
