@@ -5,18 +5,14 @@ const App = () => {
   const [company, setCompany] = useState('');
   const [driverName, setDriverName] = useState('');
   const [loadNum, setLoadNum] = useState('');
+  const [bolNum, setBolNum] = useState('');
   const [puCity, setPuCity] = useState('');
   const [puState, setPuState] = useState('');
   const [delCity, setDelCity] = useState('');
   const [delState, setDelState] = useState('');
+  const [bolType, setBolType] = useState('');
   
   const bolInputRef = useRef<HTMLInputElement>(null);
-  const freightInputRef = useRef<HTMLInputElement>(null);
-
-  const companyLogos: Record<string, string> = {
-    'GLX': 'https://quantum-logistics.com/wp-content/uploads/2023/logo-white.png', 
-    'BST': 'https://bstlogistics.com/wp-content/uploads/2021/04/BST-Logo-White.png',
-  };
 
   const states = [
     'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 
@@ -26,15 +22,19 @@ const App = () => {
     'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'
   ];
 
-  // 🛡️ Strict Validation Logic: All these must be true for the button to appear
+  // 🛡️ Logic: Required either Load# OR BOL# (OR both)
+  const hasReferenceNum = loadNum.trim() !== '' || bolNum.trim() !== '';
+
+  // 🛡️ Final Validation Logic
   const isFormComplete = 
     company !== '' && 
     driverName.trim() !== '' && 
-    loadNum.trim() !== '' && 
+    hasReferenceNum && 
     puCity.trim() !== '' && 
     puState !== '' && 
     delCity.trim() !== '' && 
-    delState !== '';
+    delState !== '' &&
+    bolType !== '';
 
   return (
     <div className="app-container space-y-6">
@@ -42,14 +42,7 @@ const App = () => {
       
       <div className="bg-[#0a0a0a] border border-zinc-800 rounded-lg p-5 shadow-2xl space-y-6">
         
-        <div className="flex justify-center h-16 items-center border-b border-zinc-800 pb-4">
-          {company && companyLogos[company] ? (
-            <img src={companyLogos[company]} alt="Logo" className="max-h-full object-contain" />
-          ) : (
-            <div className="text-zinc-600 italic text-xs">Select a company to view logo</div>
-          )}
-        </div>
-
+        {/* Company & Driver Section */}
         <div className="grid grid-cols-2 gap-4">
           <div className="flex flex-col">
             <label className="text-[10px] cyan-glow mb-1">Company<span className="required-asterisk">*</span></label>
@@ -58,7 +51,7 @@ const App = () => {
               value={company}
               onChange={(e) => setCompany(e.target.value)}
             >
-              <option value="">Select a Company...</option>
+              <option value="">Select Company...</option>
               <option value="GLX">Greenleaf Xpress</option>
               <option value="BST">BST Expedite</option>
             </select>
@@ -75,14 +68,19 @@ const App = () => {
           </div>
         </div>
 
+        {/* Load Data Section */}
         <div className="space-y-4 pt-2">
-          <h2 className="font-orbitron text-sm cyan-glow border-b border-zinc-800 pb-1">Load Data</h2>
+          <div className="flex justify-between items-center border-b border-zinc-800 pb-1">
+            <h2 className="font-orbitron text-sm cyan-glow">Load Data</h2>
+            <span className="text-[9px] text-zinc-500 italic">Enter Load # or BOL #*</span>
+          </div>
+          
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col">
-              <label className="text-[10px] cyan-glow mb-1">Load #<span className="required-asterisk">*</span></label>
+              <label className="text-[10px] cyan-glow mb-1">Load #</label>
               <input 
                 type="text" 
-                placeholder="Enter Load ID or Load #" 
+                placeholder="Enter Load #" 
                 className="bg-[#111] border border-zinc-700 p-2 rounded text-white text-sm outline-none focus:border-cyan-500" 
                 value={loadNum}
                 onChange={(e) => setLoadNum(e.target.value)}
@@ -90,7 +88,13 @@ const App = () => {
             </div>
             <div className="flex flex-col">
               <label className="text-[10px] cyan-glow mb-1">BOL #</label>
-              <input type="text" placeholder="Enter BOL #" className="bg-[#111] border border-zinc-700 p-2 rounded text-white text-sm outline-none" />
+              <input 
+                type="text" 
+                placeholder="Enter BOL #" 
+                className="bg-[#111] border border-zinc-700 p-2 rounded text-white text-sm outline-none focus:border-cyan-500" 
+                value={bolNum}
+                onChange={(e) => setBolNum(e.target.value)}
+              />
             </div>
           </div>
 
@@ -138,16 +142,31 @@ const App = () => {
           </div>
         </div>
 
+        {/* Documents Section */}
         <div className="space-y-4 pt-4">
           <h2 className="font-orbitron text-sm cyan-glow border-b border-zinc-800 pb-1">Documents & Freight</h2>
           
           <input type="file" ref={bolInputRef} className="hidden" multiple accept="image/*,application/pdf" />
           <div className="bg-[#111] border border-zinc-800 p-4 rounded-md space-y-4 shadow-inner">
             <div className="flex justify-between items-center">
-              <span className="text-[11px] font-bold text-white uppercase">BOL / POD Uploads</span>
+              <span className="text-[11px] font-bold text-white uppercase">BOL / POD Uploads<span className="required-asterisk">*</span></span>
               <div className="flex gap-3 text-[10px] text-zinc-400">
-                <label className="flex items-center cursor-pointer"><input type="radio" name="b" className="mr-1 accent-cyan-400"/> Pickup</label>
-                <label className="flex items-center cursor-pointer"><input type="radio" name="b" className="mr-1 accent-cyan-400"/> Delivery</label>
+                <label className="flex items-center cursor-pointer">
+                  <input 
+                    type="radio" 
+                    name="bolType" 
+                    className="mr-1 accent-cyan-400"
+                    onChange={() => setBolType('pickup')}
+                  /> Pickup
+                </label>
+                <label className="flex items-center cursor-pointer">
+                  <input 
+                    type="radio" 
+                    name="bolType" 
+                    className="mr-1 accent-cyan-400"
+                    onChange={() => setBolType('delivery')}
+                  /> Delivery
+                </label>
               </div>
             </div>
             <div className="border border-dashed border-zinc-700 p-6 rounded text-center cursor-pointer" onClick={() => bolInputRef.current?.click()}>
@@ -160,7 +179,6 @@ const App = () => {
           </div>
         </div>
 
-        {/* 🚀 Submission Button: Only glows and works when isFormComplete is true */}
         <button 
           className={`w-full font-orbitron py-4 rounded-md uppercase text-xs tracking-widest transition-all duration-300 ${
             isFormComplete 
