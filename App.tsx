@@ -18,6 +18,7 @@ const App = () => {
   const [bolType, setBolType] = useState('');
   const [uploadedFiles, setUploadedFiles] = useState<FileWithPreview[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0); // ✅ Progress Tracker
   const [showSuccess, setShowSuccess] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -51,6 +52,26 @@ const App = () => {
     });
   };
 
+  // ✅ Animated Upload Logic
+  const handleSubmit = () => {
+    setIsSubmitting(true);
+    setUploadProgress(0);
+    
+    const interval = setInterval(() => {
+      setUploadProgress((prev) => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          setTimeout(() => {
+            setIsSubmitting(false);
+            setShowSuccess(true);
+          }, 500);
+          return 100;
+        }
+        return prev + 5;
+      });
+    }, 100);
+  };
+
   const isGLX = company === 'GLX';
   const isBST = company === 'BST';
   
@@ -62,7 +83,7 @@ const App = () => {
 
   const getFieldStatus = (val: string) => {
     if (val.trim() === '') return 'border-zinc-700';
-    return isBST ? 'border-blue-500/60' : 'border-green-500/60';
+    return isBST ? 'border-blue-500/60 shadow-[0_0_10px_rgba(59,130,246,0.1)]' : 'border-green-500/60 shadow-[0_0_10px_rgba(34,197,94,0.1)]';
   };
 
   const SuccessCheck = ({ condition }: { condition: boolean }) => (
@@ -70,7 +91,7 @@ const App = () => {
   );
 
   const isFormComplete = company !== '' && driverName.trim() !== '' && (loadNum !== '' || bolNum !== '') && 
-                         puCity !== '' && puState !== '' && delCity !== '' && delState !== '' && 
+                         puCity !== '' && puState !== '' && delCity.trim() !== '' && delState !== '' && 
                          bolType !== '' && uploadedFiles.length > 0;
 
   const inputStyle = "bg-[#111] border p-2 rounded text-white text-sm outline-none transition-all font-normal";
@@ -102,18 +123,19 @@ const App = () => {
           <h2 className={`font-orbitron text-lg border-b border-zinc-800 pb-1 uppercase tracking-[0.2em] font-black flex items-center ${getBrandColorClass()}`}>Load Data</h2>
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col">
-              <label className={`text-[10px] mb-1 uppercase font-bold tracking-widest ${getBrandColorClass()}`}>Load #</label>
+              <label className={`text-[10px] mb-1 uppercase font-bold tracking-widest flex items-center ${getBrandColorClass()}`}>Load # <SuccessCheck condition={loadNum !== ''} /></label>
               <input type="text" placeholder="Load ID" className={`${inputStyle} ${getFieldStatus(loadNum)}`} value={loadNum} onChange={(e) => setLoadNum(e.target.value)} />
             </div>
             <div className="flex flex-col">
-              <label className={`text-[10px] mb-1 uppercase font-bold tracking-widest ${getBrandColorClass()}`}>BOL #</label>
+              <label className={`text-[10px] mb-1 uppercase font-bold tracking-widest flex items-center ${getBrandColorClass()}`}>BOL # <SuccessCheck condition={bolNum !== ''} /></label>
               <input type="text" placeholder="BOL #" className={`${inputStyle} ${getFieldStatus(bolNum)}`} value={bolNum} onChange={(e) => setBolNum(e.target.value)} />
             </div>
           </div>
 
           <div className="grid grid-cols-1 gap-4">
             <div className="flex flex-col">
-              <label className={`text-[10px] uppercase font-bold tracking-widest ${getBrandColorClass()}`}>Pickup City/State*</label>
+              {/* ✅ Corrected State Success Check */}
+              <label className={`text-[10px] uppercase font-bold tracking-widest flex items-center ${getBrandColorClass()}`}>Pickup City/State* <SuccessCheck condition={puCity !== '' && puState !== ''} /></label>
               <div className="flex gap-2 mt-1">
                 <input type="text" placeholder="PU City" className={`${inputStyle} flex-1 ${getFieldStatus(puCity)}`} value={puCity} onChange={(e) => setPuCity(e.target.value)} />
                 <select className={`${inputStyle} w-32 ${getFieldStatus(puState)}`} value={puState} onChange={(e) => setPuState(e.target.value)}>
@@ -123,7 +145,8 @@ const App = () => {
               </div>
             </div>
             <div className="flex flex-col">
-              <label className={`text-[10px] uppercase font-bold tracking-widest ${getBrandColorClass()}`}>Delivery City/State*</label>
+              {/* ✅ Corrected State Success Check */}
+              <label className={`text-[10px] uppercase font-bold tracking-widest flex items-center ${getBrandColorClass()}`}>Delivery City/State* <SuccessCheck condition={delCity !== '' && delState !== ''} /></label>
               <div className="flex gap-2 mt-1">
                 <input type="text" placeholder="Del City" className={`${inputStyle} flex-1 ${getFieldStatus(delCity)}`} value={delCity} onChange={(e) => setDelCity(e.target.value)} />
                 <select className={`${inputStyle} w-32 ${getFieldStatus(delState)}`} value={delState} onChange={(e) => setDelState(e.target.value)}>
@@ -135,13 +158,13 @@ const App = () => {
           </div>
         </div>
 
-        {/* Documents */}
+        {/* Documents Section */}
         <div className="space-y-4 pt-4">
-          <h2 className={`font-orbitron text-lg border-b border-zinc-800 pb-1 uppercase tracking-[0.2em] font-black ${getBrandColorClass()}`}>Documents & Freight</h2>
+          <h2 className={`font-orbitron text-lg border-b border-zinc-800 pb-1 uppercase tracking-[0.2em] font-black flex items-center ${getBrandColorClass()}`}>Documents & Freight <SuccessCheck condition={uploadedFiles.length > 0} /></h2>
           
-          <div className={`bg-[#111] border-2 border-dashed p-6 rounded-md space-y-4 transition-all ${isGLX ? 'border-green-500/30 shadow-[inset_0_0_15px_rgba(34,197,94,0.1)]' : isBST ? 'border-blue-500/30 shadow-[inset_0_0_15px_rgba(59,130,246,0.1)]' : 'border-zinc-800'}`}>
+          <div className={`bg-[#111] border-2 border-dashed p-6 rounded-md space-y-4 transition-all ${isGLX ? 'border-green-500/30' : isBST ? 'border-blue-500/30' : 'border-zinc-800'}`}>
             <div className="flex justify-between items-center">
-              <span className={`text-[11px] font-bold uppercase ${getBrandColorClass()}`}>BOL / POD Uploads*</span>
+              <span className={`text-[11px] font-bold uppercase flex items-center ${getBrandColorClass()}`}>BOL / POD Uploads* <SuccessCheck condition={bolType !== ''} /></span>
               <div className="flex gap-3 text-[10px] text-zinc-400 font-bold uppercase tracking-tighter">
                 <label className="flex items-center cursor-pointer"><input type="radio" name="bolType" className="mr-1" onChange={() => setBolType('pickup')}/> Pickup</label>
                 <label className="flex items-center cursor-pointer"><input type="radio" name="bolType" className="mr-1" onChange={() => setBolType('delivery')}/> Delivery</label>
@@ -150,31 +173,19 @@ const App = () => {
 
             <div className="py-4 text-center">
               <p className="text-white text-[10px] font-bold uppercase mb-1">Upload Documentation</p>
-              <p className={`text-[9px] mb-6 italic font-bold ${isGLX ? 'text-green-500/70' : isBST ? 'text-blue-400/70' : 'text-zinc-500'}`}>
-                Tip: Press and hold a photo to select multiple files
-              </p>
-              
               <div className="flex justify-center gap-6 text-[11px] text-zinc-400 font-bold uppercase">
                 <button type="button" className={`flex items-center gap-1 ${isGLX ? 'hover:text-green-500' : isBST ? 'hover:text-blue-400' : 'hover:text-cyan-400'}`} onClick={() => fileInputRef.current?.click()}>📁 Select Files</button>
                 <button type="button" className={`flex items-center gap-1 ${isGLX ? 'hover:text-green-500' : isBST ? 'hover:text-blue-400' : 'hover:text-cyan-400'}`} onClick={() => cameraInputRef.current?.click()}>📷 Use Camera</button>
               </div>
             </div>
 
-            {/* ✅ UPDATED: Strict accept attribute to bypass camera prompt */}
-            <input 
-              type="file" 
-              ref={fileInputRef} 
-              className="hidden" 
-              multiple 
-              accept=".jpg,.jpeg,.png,.pdf,.doc,.docx" 
-              onChange={handleFileChange} 
-            />
+            <input type="file" ref={fileInputRef} className="hidden" multiple accept=".jpg,.jpeg,.png,.pdf,.doc,.docx" onChange={handleFileChange} />
             <input type="file" ref={cameraInputRef} className="hidden" capture="environment" accept="image/*" onChange={handleFileChange} />
 
             {uploadedFiles.length > 0 && (
               <div className="grid grid-cols-3 gap-2 mt-4 pt-4 border-t border-zinc-800">
                 {uploadedFiles.map((item) => (
-                  <div key={item.id} className="relative aspect-square border border-zinc-700 rounded overflow-hidden">
+                  <div key={item.id} className="relative aspect-square border border-zinc-700 rounded bg-zinc-900 overflow-hidden">
                     <img src={item.preview} className="w-full h-full object-cover" alt="preview" />
                     <button onClick={() => removeFile(item.id)} className="absolute top-0 right-0 bg-red-600 text-white text-[10px] p-1 px-2 rounded-bl">X</button>
                   </div>
@@ -184,12 +195,23 @@ const App = () => {
           </div>
         </div>
 
+        {/* ✅ Animated Submit Button with Inner Progress Bar */}
         <button 
           onClick={handleSubmit}
-          className={`w-full font-orbitron py-4 rounded-md uppercase text-xs tracking-widest transition-all ${isFormComplete && !isSubmitting ? (isGLX ? 'bg-green-500 shadow-[0_0_20px_rgba(34,197,94,0.4)]' : isBST ? 'bg-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.4)]' : 'bg-[#00ffff]') : 'bg-zinc-800 text-zinc-500 cursor-not-allowed'}`}
+          className={`relative overflow-hidden w-full font-orbitron py-4 rounded-md uppercase text-xs tracking-widest transition-all ${isFormComplete && !isSubmitting ? (isGLX ? 'bg-green-500 text-white' : isBST ? 'bg-blue-500 text-white' : 'bg-[#00ffff] text-black') : 'bg-zinc-800 text-zinc-500 cursor-not-allowed shadow-none'}`}
           disabled={!isFormComplete || isSubmitting}
         >
-          {isSubmitting ? 'Uploading...' : isFormComplete ? 'Submit Documentation' : 'Complete All Fields & Upload'}
+          {/* ✅ The Animated Progress Bar */}
+          {isSubmitting && (
+            <div 
+              className={`absolute top-0 left-0 h-full transition-all duration-300 ease-linear ${isGLX ? 'bg-green-400' : isBST ? 'bg-blue-400' : 'bg-cyan-400'}`} 
+              style={{ width: `${uploadProgress}%`, opacity: 0.4 }}
+            />
+          )}
+          
+          <span className="relative z-10">
+            {isSubmitting ? `Uploading... ${uploadProgress}%` : isFormComplete ? 'Submit Documentation' : 'Complete All Fields & Upload'}
+          </span>
         </button>
       </div>
 
