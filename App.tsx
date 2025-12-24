@@ -72,8 +72,8 @@ const App = () => {
               <label className="block text-xs cyan-label mb-1">Pickup City/State</label>
               <div className="flex space-x-2">
                 <input type="text" placeholder="City" className="flex-1 bg-[#111] border border-zinc-700 p-2 rounded text-white outline-none" />
-                <select className="w-24 bg-[#111] border border-zinc-700 p-2 rounded text-white outline-none">
-                  <option value="">ST</option>
+                <select className="w-24 bg-[#111] border border-zinc-700 p-2 rounded text-white outline-none cursor-pointer">
+                  <option value="" disabled selected>ST</option>
                   {states.map(st => <option key={`pu-${st}`} value={st}>{st}</option>)}
                 </select>
               </div>
@@ -84,8 +84,8 @@ const App = () => {
               <label className="block text-xs cyan-label mb-1">Delivery City/State</label>
               <div className="flex space-x-2">
                 <input type="text" placeholder="City" className="flex-1 bg-[#111] border border-zinc-700 p-2 rounded text-white outline-none" />
-                <select className="w-24 bg-[#111] border border-zinc-700 p-2 rounded text-white outline-none">
-                  <option value="">ST</option>
+                <select className="w-24 bg-[#111] border border-zinc-700 p-2 rounded text-white outline-none cursor-pointer">
+                  <option value="" disabled selected>ST</option>
                   {states.map(st => <option key={`del-${st}`} value={st}>{st}</option>)}
                 </select>
               </div>
@@ -97,6 +97,7 @@ const App = () => {
         <div className="space-y-6 pt-4">
           <h2 className="font-orbitron text-xl cyan-label border-b border-zinc-800 pb-2">Documents & Freight</h2>
           
+          {/* BOL Section */}
           <div className="bg-[#111] border border-zinc-800 p-4 rounded-lg">
             <h3 className="text-white font-bold mb-3 uppercase">BOL / POD Uploads</h3>
             <div className="flex space-x-6 mb-4 text-sm">
@@ -105,6 +106,18 @@ const App = () => {
                <label className="flex items-center text-white"><input type="radio" name="bolType" className="mr-2 accent-cyan-400"/> Delivery</label>
             </div>
             
+            <div className="border-2 border-dashed border-zinc-700 p-8 rounded-lg text-center cursor-pointer hover:border-cyan-500 transition">
+              <p className="text-white font-bold text-lg mb-2">Tap to open camera or upload files</p>
+              <div className="flex justify-center space-x-8 mt-4">
+                <button className="flex items-center text-zinc-300 text-sm font-bold"><span className="mr-2 text-lg">📁</span> Select Files</button>
+                <button className="flex items-center text-zinc-300 text-sm font-bold"><span className="mr-2 text-lg">📷</span> Use Camera</button>
+              </div>
+            </div>
+          </div>
+
+          {/* Freight Section Restored */}
+          <div className="bg-[#111] border border-zinc-800 p-4 rounded-lg">
+            <h3 className="text-white font-bold mb-3 uppercase">Freight / Video Uploads</h3>
             <div className="border-2 border-dashed border-zinc-700 p-8 rounded-lg text-center cursor-pointer hover:border-cyan-500 transition">
               <p className="text-white font-bold text-lg mb-2">Tap to open camera or upload files</p>
               <div className="flex justify-center space-x-8 mt-4">
