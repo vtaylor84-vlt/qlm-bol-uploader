@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 
 const App = () => {
+  // Logic to track form inputs
   const [company, setCompany] = useState('');
+  const [driverName, setDriverName] = useState('');
   
   // Strictly corrected alphabetical state list
   const states = [
@@ -11,6 +13,9 @@ const App = () => {
     'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 
     'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'
   ];
+
+  // Logic to determine if the button should be active
+  const isReady = company !== '' && driverName.trim() !== '';
 
   return (
     <div className="app-container space-y-6">
@@ -27,6 +32,7 @@ const App = () => {
             <label className="text-[10px] cyan-glow mb-1">Company<span className="required-asterisk">*</span></label>
             <select 
               className="bg-[#111] border border-zinc-700 p-2 rounded text-white text-sm outline-none focus:border-cyan-500" 
+              value={company}
               onChange={(e) => setCompany(e.target.value)}
             >
               <option value="">Select a Company...</option>
@@ -40,6 +46,8 @@ const App = () => {
               type="text" 
               placeholder="Enter your name" 
               className="bg-[#111] border border-zinc-700 p-2 rounded text-white text-sm outline-none focus:border-cyan-500" 
+              value={driverName}
+              onChange={(e) => setDriverName(e.target.value)}
             />
           </div>
         </div>
@@ -59,7 +67,6 @@ const App = () => {
           </div>
 
           <div className="grid grid-cols-1 gap-4">
-            {/* Pickup Location */}
             <div className="flex flex-col">
               <label className="text-[10px] cyan-glow mb-1">Pickup City/State</label>
               <div className="flex gap-2">
@@ -70,7 +77,6 @@ const App = () => {
                 </select>
               </div>
             </div>
-            {/* Delivery Location */}
             <div className="flex flex-col">
               <label className="text-[10px] cyan-glow mb-1">Delivery City/State</label>
               <div className="flex gap-2">
@@ -105,9 +111,16 @@ const App = () => {
           </div>
         </div>
 
-        {/* Action Button */}
-        <button className="w-full bg-zinc-800 text-zinc-500 font-orbitron py-4 rounded-md uppercase text-xs tracking-widest cursor-not-allowed">
-          Complete Required Fields
+        {/* Final Submission Button with Dynamic Styling */}
+        <button 
+          className={`w-full font-orbitron py-4 rounded-md uppercase text-xs tracking-widest transition-all duration-300 ${
+            isReady 
+            ? 'bg-[#00ffff] text-black shadow-[0_0_20px_rgba(0,255,255,0.4)] cursor-pointer' 
+            : 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
+          }`}
+          disabled={!isReady}
+        >
+          {isReady ? 'Submit Documentation' : 'Complete Required Fields'}
         </button>
       </div>
     </div>
