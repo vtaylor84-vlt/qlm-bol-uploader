@@ -51,14 +51,6 @@ const App = () => {
     });
   };
 
-  const handleSubmit = () => {
-    setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setShowSuccess(true);
-    }, 2000);
-  };
-
   const isGLX = company === 'GLX';
   const isBST = company === 'BST';
   
@@ -70,7 +62,7 @@ const App = () => {
 
   const getFieldStatus = (val: string) => {
     if (val.trim() === '') return 'border-zinc-700';
-    return isBST ? 'border-blue-500/60' : 'border-green-500/60';
+    return isBST ? 'border-blue-500/60 shadow-[0_0_10px_rgba(59,130,246,0.1)]' : 'border-green-500/60 shadow-[0_0_10px_rgba(34,197,94,0.1)]';
   };
 
   const SuccessCheck = ({ condition }: { condition: boolean }) => (
@@ -103,34 +95,50 @@ const App = () => {
           </div>
         </div>
 
-        {/* RESTORED: LOAD DATA HEADER */}
+        {/* LOAD DATA SECTION */}
         <div className="space-y-4 pt-2">
           <h2 className={`font-orbitron text-lg border-b border-zinc-800 pb-1 uppercase tracking-[0.2em] font-black flex items-center ${getBrandColorClass()}`}>
-            Load Data <SuccessCheck condition={puCity !== '' && delCity !== ''} />
+            Load Data <SuccessCheck condition={puCity !== '' && delCity !== '' && (loadNum !== '' || bolNum !== '')} />
           </h2>
           <div className="grid grid-cols-2 gap-4">
-            <input type="text" placeholder="Load #" className={`bg-[#111] border p-2 rounded text-white text-sm outline-none ${getFieldStatus(loadNum)}`} value={loadNum} onChange={(e) => setLoadNum(e.target.value)} />
-            <input type="text" placeholder="BOL #" className={`bg-[#111] border p-2 rounded text-white text-sm outline-none ${getFieldStatus(bolNum)}`} value={bolNum} onChange={(e) => setBolNum(e.target.value)} />
-          </div>
-          <div className="grid grid-cols-1 gap-4">
-            <div className="flex gap-2">
-              <input type="text" placeholder="PU City" className={`flex-1 bg-[#111] border p-2 rounded text-white text-sm ${getFieldStatus(puCity)}`} value={puCity} onChange={(e) => setPuCity(e.target.value)} />
-              <select className={`w-32 bg-[#111] border p-2 rounded text-white text-sm ${getFieldStatus(puState)}`} value={puState} onChange={(e) => setPuState(e.target.value)}>
-                <option value="">Select State</option>
-                {states.map(s => <option key={`p-${s}`} value={s}>{s}</option>)}
-              </select>
+            <div className="flex flex-col">
+              <label className={`text-[10px] mb-1 uppercase font-bold tracking-widest flex items-center ${getBrandColorClass()}`}>Load # <SuccessCheck condition={loadNum !== ''} /></label>
+              <input type="text" placeholder="Load ID" className={`bg-[#111] border p-2 rounded text-white text-sm outline-none ${getFieldStatus(loadNum)}`} value={loadNum} onChange={(e) => setLoadNum(e.target.value)} />
             </div>
-            <div className="flex gap-2">
-              <input type="text" placeholder="Del City" className={`flex-1 bg-[#111] border p-2 rounded text-white text-sm ${getFieldStatus(delCity)}`} value={delCity} onChange={(e) => setDelCity(e.target.value)} />
-              <select className={`w-32 bg-[#111] border p-2 rounded text-white text-sm ${getFieldStatus(delState)}`} value={delState} onChange={(e) => setDelState(e.target.value)}>
-                <option value="">Select State</option>
-                {states.map(s => <option key={`d-${s}`} value={s}>{s}</option>)}
-              </select>
+            <div className="flex flex-col">
+              <label className={`text-[10px] mb-1 uppercase font-bold tracking-widest flex items-center ${getBrandColorClass()}`}>BOL # <SuccessCheck condition={bolNum !== ''} /></label>
+              <input type="text" placeholder="BOL #" className={`bg-[#111] border p-2 rounded text-white text-sm outline-none ${getFieldStatus(bolNum)}`} value={bolNum} onChange={(e) => setBolNum(e.target.value)} />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4">
+            {/* ✅ RESTORED: PICKUP HEADER */}
+            <div className="flex flex-col">
+              <label className={`text-[10px] mb-1 uppercase font-bold tracking-widest flex items-center ${getBrandColorClass()}`}>Pickup City/State* <SuccessCheck condition={puCity !== '' && puState !== ''} /></label>
+              <div className="flex gap-2">
+                <input type="text" placeholder="PU City" className={`flex-1 bg-[#111] border p-2 rounded text-white text-sm outline-none ${getFieldStatus(puCity)}`} value={puCity} onChange={(e) => setPuCity(e.target.value)} />
+                <select className={`w-32 bg-[#111] border p-2 rounded text-white text-sm outline-none ${getFieldStatus(puState)}`} value={puState} onChange={(e) => setPuState(e.target.value)}>
+                  <option value="">Select State</option>
+                  {states.map(s => <option key={`p-${s}`} value={s}>{s}</option>)}
+                </select>
+              </div>
+            </div>
+
+            {/* ✅ RESTORED: DELIVERY HEADER */}
+            <div className="flex flex-col">
+              <label className={`text-[10px] mb-1 uppercase font-bold tracking-widest flex items-center ${getBrandColorClass()}`}>Delivery City/State* <SuccessCheck condition={delCity !== '' && delState !== ''} /></label>
+              <div className="flex gap-2">
+                <input type="text" placeholder="Del City" className={`flex-1 bg-[#111] border p-2 rounded text-white text-sm outline-none ${getFieldStatus(delCity)}`} value={delCity} onChange={(e) => setDelCity(e.target.value)} />
+                <select className={`w-32 bg-[#111] border p-2 rounded text-white text-sm outline-none ${getFieldStatus(delState)}`} value={delState} onChange={(e) => setDelState(e.target.value)}>
+                  <option value="">Select State</option>
+                  {states.map(s => <option key={`d-${s}`} value={s}>{s}</option>)}
+                </select>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* RESTORED: DOCUMENTS HEADER & STYLED UPLOAD BOX */}
+        {/* DOCUMENTS SECTION */}
         <div className="space-y-4 pt-4">
           <h2 className={`font-orbitron text-lg border-b border-zinc-800 pb-1 uppercase tracking-[0.2em] font-black flex items-center ${getBrandColorClass()}`}>
             Documents & Freight <SuccessCheck condition={uploadedFiles.length > 0 && bolType !== ''} />
@@ -172,7 +180,7 @@ const App = () => {
         </div>
 
         <button 
-          onClick={handleSubmit}
+          onClick={() => { setIsSubmitting(true); setTimeout(() => { setIsSubmitting(false); setShowSuccess(true); }, 2000); }}
           className={`w-full font-orbitron py-4 rounded-md uppercase text-xs tracking-widest transition-all ${isFormComplete && !isSubmitting ? (isGLX ? 'bg-green-500 shadow-[0_0_20px_rgba(34,197,94,0.4)]' : isBST ? 'bg-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.4)]' : 'bg-[#00ffff]') : 'bg-zinc-800 text-zinc-500 cursor-not-allowed'}`}
           disabled={!isFormComplete || isSubmitting}
         >
@@ -181,16 +189,16 @@ const App = () => {
       </div>
 
       {showSuccess && (
-        <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-6 backdrop-blur-sm animate-fade-in">
-          <div className={`w-full max-w-sm bg-[#0a0a0a] border ${isGLX ? 'border-green-500 shadow-green-500/20' : 'border-blue-500 shadow-blue-500/20'} p-8 rounded-xl text-center space-y-6 shadow-2xl`}>
+        <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-6 backdrop-blur-sm">
+          <div className={`w-full max-w-sm bg-[#0a0a0a] border ${isGLX ? 'border-green-500 shadow-green-500/20' : 'border-blue-500 shadow-blue-500/20'} p-8 rounded-xl text-center space-y-6`}>
             <div className={`text-5xl mb-4 ${isGLX ? 'text-green-500' : 'text-blue-500'}`}>✓</div>
             <h2 className="font-orbitron text-xl text-white uppercase tracking-widest">Submission Sent</h2>
-            <div className="bg-[#111] p-4 rounded text-left space-y-2 text-xs border border-zinc-800">
-              <p className="text-zinc-400">Company: <span className="text-white font-bold">{company === 'GLX' ? 'Greenleaf Xpress' : 'BST Expedite'}</span></p>
-              <p className="text-zinc-400">Load/BOL: <span className="text-white font-bold">{loadNum || bolNum}</span></p>
-              <p className="text-zinc-400">Files Uploaded: <span className="text-white font-bold">{uploadedFiles.length}</span></p>
+            <div className="bg-[#111] p-4 rounded text-left space-y-2 text-xs border border-zinc-800 text-zinc-400">
+              <p>Company: <span className="text-white font-bold">{company === 'GLX' ? 'Greenleaf Xpress' : 'BST Expedite'}</span></p>
+              <p>Load/BOL: <span className="text-white font-bold">{loadNum || bolNum}</span></p>
+              <p>Files: <span className="text-white font-bold">{uploadedFiles.length}</span></p>
             </div>
-            <button onClick={() => window.location.reload()} className={`w-full py-3 rounded font-orbitron text-[10px] uppercase tracking-widest ${isGLX ? 'bg-green-500' : 'bg-blue-500'} text-white`}>Start New Upload</button>
+            <button onClick={() => window.location.reload()} className={`w-full py-3 rounded font-orbitron text-[10px] uppercase tracking-widest ${isGLX ? 'bg-green-500' : 'bg-blue-500'} text-white`}>New Upload</button>
           </div>
         </div>
       )}
