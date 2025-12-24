@@ -4,8 +4,15 @@ const App = () => {
   const [company, setCompany] = useState('');
   const [driverName, setDriverName] = useState('');
   
-  // Create a reference to the hidden file input
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  // Refs for the two different upload sections
+  const bolInputRef = useRef<HTMLInputElement>(null);
+  const freightInputRef = useRef<HTMLInputElement>(null);
+
+  // Logo Mapping - Replace these URLs with your actual direct image links
+  const companyLogos: Record<string, string> = {
+    'GLX': 'https://quantum-logistics.com/wp-content/uploads/2023/logo-white.png', // Placeholder for Greenleaf
+    'BST': 'https://bstlogistics.com/wp-content/uploads/2021/04/BST-Logo-White.png',
+  };
 
   const states = [
     'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 
@@ -15,11 +22,6 @@ const App = () => {
     'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'
   ];
 
-  // Function to trigger the file input
-  const handleUploadClick = () => {
-    fileInputRef.current?.click();
-  };
-
   const isReady = company !== '' && driverName.trim() !== '';
 
   return (
@@ -27,8 +29,14 @@ const App = () => {
       <h1 className="font-orbitron text-2xl text-center cyan-glow tracking-tighter mb-4">BOL / PHOTO UPLOAD</h1>
       
       <div className="bg-[#0a0a0a] border border-zinc-800 rounded-lg p-5 shadow-2xl space-y-6">
-        <div className="text-center h-12 flex items-center justify-center border-b border-zinc-800 pb-4 text-zinc-600 italic text-xs">
-           Select a company to view logo
+        
+        {/* Dynamic Logo Area */}
+        <div className="flex justify-center h-16 items-center border-b border-zinc-800 pb-4">
+          {company && companyLogos[company] ? (
+            <img src={companyLogos[company]} alt="Company Logo" className="max-h-full object-contain transition-opacity duration-500" />
+          ) : (
+            <div className="text-zinc-600 italic text-xs">Select a company to view logo</div>
+          )}
         </div>
 
         {/* Company & Driver Section */}
@@ -76,7 +84,7 @@ const App = () => {
               <label className="text-[10px] cyan-glow mb-1">Pickup City/State</label>
               <div className="flex gap-2">
                 <input type="text" placeholder="PU City" className="flex-1 bg-[#111] border border-zinc-700 p-2 rounded text-white text-sm" />
-                <select className="w-32 bg-[#111] border border-zinc-700 p-2 rounded text-white text-sm cursor-pointer">
+                <select className="w-32 bg-[#111] border border-zinc-700 p-2 rounded text-white text-sm">
                   <option value="">Select State</option>
                   {states.map(s => <option key={`p-${s}`} value={s}>{s}</option>)}
                 </select>
@@ -86,7 +94,7 @@ const App = () => {
               <label className="text-[10px] cyan-glow mb-1">Delivery City/State</label>
               <div className="flex gap-2">
                 <input type="text" placeholder="Del City" className="flex-1 bg-[#111] border border-zinc-700 p-2 rounded text-white text-sm" />
-                <select className="w-32 bg-[#111] border border-zinc-700 p-2 rounded text-white text-sm cursor-pointer">
+                <select className="w-32 bg-[#111] border border-zinc-700 p-2 rounded text-white text-sm">
                   <option value="">Select State</option>
                   {states.map(s => <option key={`d-${s}`} value={s}>{s}</option>)}
                 </select>
@@ -95,20 +103,13 @@ const App = () => {
           </div>
         </div>
 
-        {/* Uploads Section */}
+        {/* Documents & Freight Section */}
         <div className="space-y-4 pt-4">
           <h2 className="font-orbitron text-sm cyan-glow border-b border-zinc-800 pb-1">Documents & Freight</h2>
           
-          {/* Hidden Input Field that actually handles the files */}
-          <input 
-            type="file" 
-            ref={fileInputRef} 
-            className="hidden" 
-            multiple 
-            accept="image/*,application/pdf"
-          />
-
-          <div className="bg-[#111] border border-zinc-800 p-4 rounded-md space-y-4 shadow-inner">
+          {/* BOL Section */}
+          <input type="file" ref={bolInputRef} className="hidden" multiple accept="image/*,application/pdf" />
+          <div className="bg-[#111] border border-zinc-800 p-4 rounded-md space-y-4">
             <div className="flex justify-between items-center">
               <span className="text-[11px] font-bold text-white uppercase">BOL / POD Uploads</span>
               <div className="flex gap-3 text-[10px] text-zinc-400">
@@ -116,25 +117,24 @@ const App = () => {
                 <label className="flex items-center cursor-pointer"><input type="radio" name="b" className="mr-1 accent-cyan-400"/> Delivery</label>
               </div>
             </div>
-            
-            {/* These buttons now trigger the handleUploadClick function */}
-            <div className="border border-dashed border-zinc-700 p-6 rounded text-center">
+            <div className="border border-dashed border-zinc-700 p-6 rounded text-center cursor-pointer" onClick={() => bolInputRef.current?.click()}>
               <p className="text-white text-xs font-bold mb-3 uppercase">Tap to open camera or upload files</p>
               <div className="flex justify-center gap-6 text-[11px] text-zinc-400 font-bold">
-                <button 
-                  type="button" 
-                  onClick={handleUploadClick}
-                  className="hover:text-cyan-400 flex items-center gap-2"
-                >
-                  📁 Select Files
-                </button>
-                <button 
-                  type="button" 
-                  onClick={handleUploadClick}
-                  className="hover:text-cyan-400 flex items-center gap-2"
-                >
-                  📷 Use Camera
-                </button>
+                <button type="button" className="hover:text-cyan-400">📁 Select Files</button>
+                <button type="button" className="hover:text-cyan-400">📷 Use Camera</button>
+              </div>
+            </div>
+          </div>
+
+          {/* Freight Section */}
+          <input type="file" ref={freightInputRef} className="hidden" multiple accept="image/*,video/*" />
+          <div className="bg-[#111] border border-zinc-800 p-4 rounded-md space-y-4">
+            <span className="text-[11px] font-bold text-white uppercase">Freight / Video Uploads</span>
+            <div className="border border-dashed border-zinc-700 p-6 rounded text-center cursor-pointer" onClick={() => freightInputRef.current?.click()}>
+              <p className="text-white text-xs font-bold mb-3 uppercase">Tap to open camera or upload files</p>
+              <div className="flex justify-center gap-6 text-[11px] text-zinc-400 font-bold">
+                <button type="button" className="hover:text-cyan-400">📁 Select Files</button>
+                <button type="button" className="hover:text-cyan-400">📷 Use Camera</button>
               </div>
             </div>
           </div>
