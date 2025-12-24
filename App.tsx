@@ -7,7 +7,7 @@ interface FileWithPreview {
 }
 
 const App = () => {
-  // Terminal States
+  // --- SESSION STATE ---
   const [isLocked, setIsLocked] = useState(true);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [company, setCompany] = useState('');
@@ -24,7 +24,7 @@ const App = () => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [showSuccess, setShowSuccess] = useState(false);
   const [shake, setShake] = useState(false);
-  const [logs, setLogs] = useState<string[]>(['> KERNEL BOOT SUCCESSFUL', '> ENCRYPTION READY']);
+  const [logs, setLogs] = useState<string[]>(['> KERNEL v2.5 BOOT...', '> SECURE UPLINK READY']);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
@@ -32,164 +32,201 @@ const App = () => {
 
   const states = ['AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 'HI', 'IA', 'ID', 'IL', 'IN', 'KS', 'KY', 'LA', 'ME', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'];
 
-  const addLog = (msg: string) => {
-    setLogs(prev => [...prev.slice(-3), `> ${msg.toUpperCase()}`]);
-  };
+  useEffect(() => {
+    audioRef.current = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+    return () => uploadedFiles.forEach(f => URL.revokeObjectURL(f.preview));
+  }, [uploadedFiles]);
+
+  const addLog = (msg: string) => setLogs(prev => [...prev.slice(-3), `> ${msg.toUpperCase()}`]);
 
   const handleAuth = () => {
     setIsAuthenticating(true);
     addLog("SCANNING BIOMETRICS...");
-    setTimeout(() => {
-      setIsLocked(false);
-      setIsAuthenticating(false);
-      addLog("ACCESS GRANTED: OPERATOR VERIFIED");
-    }, 2000);
+    setTimeout(() => { setIsLocked(false); addLog("ACCESS GRANTED: WELCOME OPERATOR"); }, 1800);
   };
 
   const isGLX = company === 'GLX';
   const isBST = company === 'BST';
   const brandColor = isGLX ? 'text-green-500 shadow-green-500/50' : isBST ? 'text-blue-400 shadow-blue-400/40' : 'text-cyan-400 shadow-cyan-500/50';
+  const brandBorder = isGLX ? 'border-green-500/30 shadow-[0_0_15px_rgba(34,197,94,0.1)]' : isBST ? 'border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.1)]' : 'border-zinc-800';
+
+  const isFormComplete = company && driverName && (loadNum || bolNum) && puCity && puState && delCity && delState && bolType && uploadedFiles.length > 0;
+
+  const handleSubmit = () => {
+    if (!isFormComplete) {
+      setShake(true);
+      addLog("ERROR: DATA FIELDS INCOMPLETE");
+      setTimeout(() => setShake(false), 800);
+      return;
+    }
+    setIsSubmitting(true);
+    let prog = 0;
+    const interval = setInterval(() => {
+      prog += 10;
+      setUploadProgress(prog);
+      if (prog >= 100) {
+        clearInterval(interval);
+        audioRef.current?.play().catch(() => {});
+        setTimeout(() => setShowSuccess(true), 500);
+      }
+    }, 150);
+  };
+
+  // Modern Tactical Field Components
+  const FieldLabel = ({ children }: { children: React.ReactNode }) => (
+    <label className={`text-[8px] font-black uppercase tracking-[0.2em] mb-1 ml-1 ${brandColor}`}>{children}</label>
+  );
+
+  const TechInput = (props: any) => (
+    <input {...props} className={`bg-zinc-950/80 border p-2 text-xs rounded outline-none transition-all duration-300 ${shake && !props.value ? 'border-red-600 animate-pulse' : 'border-zinc-800 focus:border-white'}`} />
+  );
 
   if (isLocked) {
     return (
       <div className="min-h-screen bg-black flex flex-col items-center justify-center p-6 font-orbitron overflow-hidden">
-        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#333_1px,transparent_1px)] [background-size:20px_20px]"></div>
-        <div className="z-10 text-center space-y-12 w-full max-w-sm">
-          <header>
-            <h1 className="text-zinc-600 text-xs tracking-[0.8em] uppercase mb-2">Security Protocol</h1>
-            <h2 className="text-white text-2xl font-black tracking-widest uppercase">System Lock</h2>
-          </header>
-          
-          <div className="relative flex justify-center py-10">
-            <button 
-              onMouseDown={handleAuth} 
-              onTouchStart={handleAuth}
-              className={`relative w-24 h-24 rounded-full border-2 border-zinc-800 flex items-center justify-center transition-all ${isAuthenticating ? 'scale-110 border-cyan-500 shadow-[0_0_30px_#06b6d4]' : ''}`}
-            >
-              <span className={`text-4xl transition-opacity ${isAuthenticating ? 'opacity-20' : 'opacity-100'}`}>☝️</span>
-              {isAuthenticating && (
-                <div className="absolute inset-0 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>
-              )}
-            </button>
-            <div className={`absolute -bottom-4 text-[9px] font-black tracking-[0.3em] uppercase transition-colors ${isAuthenticating ? 'text-cyan-500' : 'text-zinc-600'}`}>
-              {isAuthenticating ? 'Verifying...' : 'Hold to Authenticate'}
-            </div>
-          </div>
-          
-          <div className="bg-zinc-900/30 p-4 rounded border border-zinc-800/50">
-            <p className="text-zinc-500 text-[8px] leading-relaxed uppercase tracking-widest">
-              Authorized personnel only. All access attempts are logged and transmitted to primary TMS node.
-            </p>
-          </div>
+        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#444_1px,transparent_1px)] [background-size:30px_30px]"></div>
+        <div className="z-10 text-center space-y-10 w-full max-w-sm">
+          <h1 className="text-white text-2xl font-black tracking-[0.5em] uppercase">Security Protocol</h1>
+          <button onMouseDown={handleAuth} onTouchStart={handleAuth} className={`w-28 h-28 rounded-full border-2 flex items-center justify-center transition-all ${isAuthenticating ? 'border-cyan-500 shadow-[0_0_40px_cyan] scale-110' : 'border-zinc-800'}`}>
+             <span className="text-4xl">☝️</span>
+             {isAuthenticating && <div className="absolute inset-0 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>}
+          </button>
+          <p className="text-zinc-600 text-[9px] uppercase tracking-widest leading-relaxed">System Locked. Hold Biometric Pad to access Fleet Uplink Terminal.</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#020202] text-white pb-10 relative font-orbitron overflow-hidden">
-      {/* Background FX */}
-      <div className={`absolute inset-0 z-0 transition-opacity duration-1000 ${shake ? 'opacity-40' : 'opacity-10'}`} 
-           style={{ backgroundImage: `linear-gradient(${shake ? '#f00' : isGLX ? '#22c55e' : isBST ? '#3b82f6' : '#444'} 1px, transparent 1px), linear-gradient(90deg, ${shake ? '#f00' : isGLX ? '#22c55e' : isBST ? '#3b82f6' : '#444'} 1px, transparent 1px)`, backgroundSize: '35px 35px' }}></div>
+    <div className="min-h-screen bg-[#020202] text-white pb-12 relative font-orbitron overflow-hidden">
+      {/* Tactical Background Grid */}
+      <div className={`absolute inset-0 z-0 transition-opacity duration-1000 ${shake ? 'opacity-40 animate-pulse' : 'opacity-10'}`} 
+           style={{ backgroundImage: `linear-gradient(${shake ? '#f00' : isGLX ? '#22c55e' : isBST ? '#3b82f6' : '#444'} 1px, transparent 1px), linear-gradient(90deg, ${shake ? '#f00' : isGLX ? '#22c55e' : isBST ? '#3b82f6' : '#444'} 1px, transparent 1px)`, backgroundSize: '40px 40px' }}></div>
 
-      <div className="relative z-10 p-4 max-w-xl mx-auto space-y-6">
+      <div className="relative z-10 p-4 max-w-xl mx-auto space-y-8">
         <header className="flex justify-between items-end border-b border-zinc-900 pb-4">
-          <div>
-            <h1 className={`text-lg font-black tracking-widest uppercase ${brandColor}`}>Terminal v2.1</h1>
-            <p className="text-[7px] text-zinc-500 tracking-[0.4em]">ENCRYPTED LOAD DATA UPLINK</p>
+          <div className="space-y-1">
+             <h1 className={`text-xl font-black tracking-widest uppercase ${brandColor}`}>Terminal v2.5</h1>
+             <p className="text-[7px] text-zinc-500 tracking-[0.4em]">ENCRYPTED LOAD DATA UPLINK CHANNEL</p>
           </div>
-          <div className="text-right">
-            <span className="text-[8px] text-zinc-600 uppercase font-bold block">Status</span>
-            <span className="text-green-500 text-[9px] animate-pulse">● ONLINE</span>
-          </div>
+          <div className="text-right"><span className="text-green-500 text-[9px] animate-pulse">● ONLINE</span></div>
         </header>
 
+        {/* SECTION 01: IDENTITY */}
         <div className="grid grid-cols-2 gap-4">
-          <div className="flex flex-col space-y-1">
-            <label className="text-[8px] font-black uppercase text-zinc-500">Carrier</label>
-            <select className="bg-zinc-950 border border-zinc-800 p-2 text-xs rounded outline-none focus:border-cyan-500" value={company} onChange={(e) => setCompany(e.target.value)}>
+          <div className="flex flex-col">
+            <FieldLabel>Carrier ID</FieldLabel>
+            <select className={`bg-zinc-950/80 border p-2 text-xs rounded outline-none ${shake && !company ? 'border-red-600 animate-pulse' : 'border-zinc-800 focus:border-white'}`} value={company} onChange={(e) => setCompany(e.target.value)}>
               <option value="">SELECT...</option>
-              <option value="GLX">GLX</option>
-              <option value="BST">BST</option>
+              <option value="GLX">GLX (GREENLEAF)</option>
+              <option value="BST">BST (EXPEDITE)</option>
             </select>
           </div>
-          <div className="flex flex-col space-y-1">
-            <label className="text-[8px] font-black uppercase text-zinc-500">Operator</label>
-            <input type="text" className="bg-zinc-950 border border-zinc-800 p-2 text-xs rounded outline-none" value={driverName} onChange={(e) => setDriverName(e.target.value)} placeholder="ENTER NAME" />
+          <div className="flex flex-col">
+            <FieldLabel>Operator Name</FieldLabel>
+            <TechInput placeholder="FULL NAME" value={driverName} onChange={(e:any) => setDriverName(e.target.value)} />
           </div>
         </div>
 
+        {/* SECTION 02: REFERENCE DATA */}
         <div className="grid grid-cols-2 gap-4">
-          <div className="flex flex-col space-y-1">
-            <label className="text-[8px] font-black uppercase text-zinc-500">Load Ref</label>
-            <input type="text" className="bg-zinc-950 border border-zinc-800 p-2 text-xs rounded" value={loadNum} onChange={(e) => setLoadNum(e.target.value)} placeholder="LOAD #" />
+          <div className="flex flex-col">
+            <FieldLabel>Load Ref #</FieldLabel>
+            <TechInput placeholder="LOAD ID" value={loadNum} onChange={(e:any) => setLoadNum(e.target.value)} />
           </div>
-          <div className="flex flex-col space-y-1">
-            <label className="text-[8px] font-black uppercase text-zinc-500">BOL Ref</label>
-            <input type="text" className="bg-zinc-950 border border-zinc-800 p-2 text-xs rounded" value={bolNum} onChange={(e) => setBolNum(e.target.value)} placeholder="BOL #" />
+          <div className="flex flex-col">
+            <FieldLabel>BOL Ref #</FieldLabel>
+            <TechInput placeholder="BOL ID" value={bolNum} onChange={(e:any) => setBolNum(e.target.value)} />
           </div>
         </div>
 
-        <div className="bg-zinc-950/50 border border-zinc-900 p-4 rounded-lg">
-          <h2 className={`text-[9px] font-black uppercase mb-4 tracking-widest ${brandColor}`}>Imaging Interface</h2>
-          <div className="flex justify-around mb-6">
-            <button onClick={() => fileInputRef.current?.click()} className="text-[9px] font-bold border border-zinc-800 px-4 py-2 rounded hover:bg-zinc-900">BROWSE FILES</button>
-            <button onClick={() => cameraInputRef.current?.click()} className="text-[9px] font-bold border border-zinc-800 px-4 py-2 rounded hover:bg-zinc-900">SCAN CAMERA</button>
-          </div>
-
-          {uploadedFiles.length > 0 && (
-            <div className="grid grid-cols-3 gap-3">
-              {uploadedFiles.map(f => (
-                <div key={f.id} className="relative aspect-[3/4] rounded border border-zinc-800 overflow-hidden bg-black group">
-                  <img src={f.preview} className="w-full h-full object-cover opacity-60" />
-                  {/* ✅ OCR SCANNER OVERLAY */}
-                  <div className="absolute inset-0 pointer-events-none flex flex-col justify-center items-center">
-                    <div className={`w-full h-[1px] animate-scan ${isGLX ? 'bg-green-500' : 'bg-cyan-500 shadow-[0_0_10px_cyan]'}`}></div>
-                    <div className="text-[5px] font-mono text-cyan-400 mt-1 opacity-50 uppercase tracking-tighter">
-                      Reading: {Math.random().toString(16).substr(2, 8)}
-                    </div>
-                  </div>
-                  <div className="absolute bottom-0 left-0 w-full bg-black/80 p-1 text-[6px] text-zinc-500 font-mono">
-                    CONFIDENCE: 98.4%
-                  </div>
-                </div>
-              ))}
+        {/* ✅ ADDED: SECTION 03: NAVIGATION MODULES (City & State) */}
+        <div className="space-y-4">
+          <div className="grid grid-cols-3 gap-3 items-end">
+            <div className="col-span-2 flex flex-col">
+              <FieldLabel>Origin: Pickup City</FieldLabel>
+              <TechInput placeholder="CITY NAME" value={puCity} onChange={(e:any) => setPuCity(e.target.value)} />
             </div>
-          )}
+            <div className="flex flex-col">
+              <FieldLabel>State</FieldLabel>
+              <select className={`bg-zinc-950/80 border p-2 text-xs rounded outline-none ${shake && !puState ? 'border-red-600 animate-pulse' : 'border-zinc-800'}`} value={puState} onChange={(e) => setPuState(e.target.value)}>
+                <option value=""></option>
+                {states.map(s => <option key={`p-${s}`} value={s}>{s}</option>)}
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-3 items-end">
+            <div className="col-span-2 flex flex-col">
+              <FieldLabel>Dest: Delivery City</FieldLabel>
+              <TechInput placeholder="CITY NAME" value={delCity} onChange={(e:any) => setDelCity(e.target.value)} />
+            </div>
+            <div className="flex flex-col">
+              <FieldLabel>State</FieldLabel>
+              <select className={`bg-zinc-950/80 border p-2 text-xs rounded outline-none ${shake && !delState ? 'border-red-600 animate-pulse' : 'border-zinc-800'}`} value={delState} onChange={(e) => setDelState(e.target.value)}>
+                <option value=""></option>
+                {states.map(s => <option key={`d-${s}`} value={s}>{s}</option>)}
+              </select>
+            </div>
+          </div>
         </div>
 
-        {/* LOG PANEL */}
-        <div className="bg-[#050505] border border-zinc-900 p-3 rounded font-mono text-[8px] text-zinc-600 h-24 overflow-hidden">
+        {/* SECTION 04: IMAGING INTERFACE */}
+        <div className={`bg-zinc-950/40 border-2 border-dashed p-6 rounded-xl text-center transition-all ${brandBorder}`}>
+           <FieldLabel>Digital Imaging System</FieldLabel>
+           <div className="flex justify-center gap-10 mt-4 mb-6">
+              <button onClick={() => fileInputRef.current?.click()} className={`${brandColor} text-[10px] font-black uppercase tracking-widest`}>📁 Files</button>
+              <button onClick={() => cameraInputRef.current?.click()} className={`${brandColor} text-[10px] font-black uppercase tracking-widest`}>📷 Camera</button>
+           </div>
+           
+           <div className="flex justify-center gap-6 text-[9px] text-zinc-500 font-bold uppercase border-t border-zinc-900 pt-4">
+              <label className="flex items-center gap-2"><input type="radio" name="bolType" onChange={() => setBolType('pickup')}/> PU BOL</label>
+              <label className="flex items-center gap-2"><input type="radio" name="bolType" onChange={() => setBolType('delivery')}/> DEL POD</label>
+           </div>
+
+           {uploadedFiles.length > 0 && (
+             <div className="grid grid-cols-4 gap-2 mt-6">
+               {uploadedFiles.map(f => (
+                 <div key={f.id} className="relative aspect-square rounded overflow-hidden border border-zinc-800">
+                   <img src={f.preview} className="w-full h-full object-cover opacity-60" alt="doc" />
+                   <div className={`absolute top-0 left-0 w-full h-[1px] animate-scan ${isGLX ? 'bg-green-500' : 'bg-cyan-500 shadow-[0_0_5px_cyan]'}`}></div>
+                 </div>
+               ))}
+             </div>
+           )}
+        </div>
+
+        {/* LOG CONSOLE */}
+        <div className="bg-[#050505] border border-zinc-900 p-3 rounded font-mono text-[8px] text-zinc-600 h-20 overflow-hidden shadow-inner">
            {logs.map((log, i) => <div key={i}>{log}</div>)}
         </div>
 
         <button 
-          onClick={() => {
-            if(!company) { setShake(true); setTimeout(()=>setShake(false), 500); return; }
-            setIsSubmitting(true);
-            addLog("UPLOADING PACKETS...");
-            setTimeout(() => { setIsSubmitting(false); setShowSuccess(true); }, 2000);
-          }}
-          className={`w-full py-4 rounded font-black text-[10px] uppercase tracking-[0.4em] ${shake ? 'animate-shake bg-red-600' : isBST ? 'bg-blue-600' : isGLX ? 'bg-green-600' : 'bg-zinc-800 text-zinc-500'}`}
+          onClick={handleSubmit}
+          className={`w-full py-5 rounded font-black text-xs uppercase tracking-[0.5em] transition-all relative overflow-hidden ${shake ? 'animate-shake bg-red-600' : isFormComplete ? (isGLX ? 'bg-green-600' : 'bg-blue-600 shadow-[0_0_20px_rgba(59,130,246,0.3)]') : 'bg-zinc-900 text-zinc-700'}`}
         >
-          Execute Uplink
+          {isSubmitting && <div className="absolute top-0 left-0 h-full bg-white/20 transition-all duration-300" style={{ width: `${uploadProgress}%` }}></div>}
+          <span className="relative z-10">{isSubmitting ? `Transmitting... ${uploadProgress}%` : 'Execute Transmission'}</span>
         </button>
       </div>
 
+      {/* SUCCESS DIALOG */}
       {showSuccess && (
-        <div className="fixed inset-0 bg-black/98 z-50 flex flex-col items-center justify-center p-10 backdrop-blur-3xl animate-in fade-in">
-          <div className="w-16 h-16 rounded-full border-2 border-green-500 flex items-center justify-center text-green-500 text-2xl mb-6">✓</div>
-          <h2 className="text-white font-black uppercase tracking-[0.3em] mb-2">Success</h2>
-          <p className="text-zinc-500 text-[9px] uppercase tracking-widest mb-10 text-center">Data synchronized with master spreadsheet</p>
-          <button onClick={() => window.location.reload()} className="w-full max-w-xs py-3 border border-zinc-800 text-zinc-400 text-[10px] font-black uppercase tracking-widest">New Session</button>
+        <div className="fixed inset-0 bg-black/98 z-50 flex items-center justify-center p-8 backdrop-blur-2xl">
+           <div className={`border-2 p-10 rounded-2xl text-center space-y-6 max-w-sm ${isGLX ? 'border-green-500 shadow-green-500/20' : 'border-blue-500 shadow-blue-400/20'}`}>
+              <div className={`text-4xl mb-4 ${isGLX ? 'text-green-500' : 'text-blue-500'}`}>✓</div>
+              <h2 className="text-xl font-black uppercase tracking-widest text-white">Upload Verified</h2>
+              <p className="text-[10px] text-zinc-500 uppercase tracking-widest">Master Spreadsheet Sync Successful</p>
+              <button onClick={() => window.location.reload()} className={`w-full py-3 border text-[10px] font-black uppercase tracking-widest ${brandColor} hover:bg-white/5`}>Initiate New Task</button>
+           </div>
         </div>
       )}
 
       <style>{`
         @keyframes scan { 0% { top: 0; } 100% { top: 100%; } }
-        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
-        .animate-scan { animation: scan 3s linear infinite; }
-        .animate-shake { animation: shake 0.1s linear infinite; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-6px); } 60% { transform: translateX(6px); } }
+        .animate-scan { animation: scan 2s linear infinite; }
+        .animate-shake { animation: shake 0.2s linear infinite; }
       `}</style>
       <input type="file" ref={fileInputRef} className="hidden" multiple accept="image/*" onChange={(e) => {
         if(e.target.files) setUploadedFiles(prev => [...prev, ...Array.from(e.target.files!).map(file => ({ file, preview: URL.createObjectURL(file), id: Math.random().toString() }))])
