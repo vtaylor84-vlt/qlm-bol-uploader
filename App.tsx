@@ -18,15 +18,20 @@ const App = () => {
   const [bolType, setBolType] = useState('');
   const [uploadedFiles, setUploadedFiles] = useState<FileWithPreview[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0); // ✅ Progress Tracker
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [showSuccess, setShowSuccess] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
+  // ✅ Audio Reference for the "Ping" sound
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
   const states = ['AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 'HI', 'IA', 'ID', 'IL', 'IN', 'KS', 'KY', 'LA', 'ME', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'];
 
   useEffect(() => {
+    // Load the sound effect
+    audioRef.current = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
     return () => uploadedFiles.forEach(f => URL.revokeObjectURL(f.preview));
   }, [uploadedFiles]);
 
@@ -52,7 +57,6 @@ const App = () => {
     });
   };
 
-  // ✅ Animated Upload Logic
   const handleSubmit = () => {
     setIsSubmitting(true);
     setUploadProgress(0);
@@ -61,6 +65,8 @@ const App = () => {
       setUploadProgress((prev) => {
         if (prev >= 100) {
           clearInterval(interval);
+          // ✅ Play "Ping" sound when 100% is reached
+          audioRef.current?.play().catch(e => console.log("Audio play blocked by browser"));
           setTimeout(() => {
             setIsSubmitting(false);
             setShowSuccess(true);
@@ -121,11 +127,14 @@ const App = () => {
         {/* Load Data */}
         <div className="space-y-4 pt-2">
           <h2 className={`font-orbitron text-lg border-b border-zinc-800 pb-1 uppercase tracking-[0.2em] font-black flex items-center ${getBrandColorClass()}`}>Load Data</h2>
+          
           <div className="grid grid-cols-2 gap-4">
+            {/* ✅ RESTORED: LOAD # HEADER */}
             <div className="flex flex-col">
               <label className={`text-[10px] mb-1 uppercase font-bold tracking-widest flex items-center ${getBrandColorClass()}`}>Load # <SuccessCheck condition={loadNum !== ''} /></label>
               <input type="text" placeholder="Load ID" className={`${inputStyle} ${getFieldStatus(loadNum)}`} value={loadNum} onChange={(e) => setLoadNum(e.target.value)} />
             </div>
+            {/* ✅ RESTORED: BOL # HEADER */}
             <div className="flex flex-col">
               <label className={`text-[10px] mb-1 uppercase font-bold tracking-widest flex items-center ${getBrandColorClass()}`}>BOL # <SuccessCheck condition={bolNum !== ''} /></label>
               <input type="text" placeholder="BOL #" className={`${inputStyle} ${getFieldStatus(bolNum)}`} value={bolNum} onChange={(e) => setBolNum(e.target.value)} />
@@ -134,7 +143,6 @@ const App = () => {
 
           <div className="grid grid-cols-1 gap-4">
             <div className="flex flex-col">
-              {/* ✅ Corrected State Success Check */}
               <label className={`text-[10px] uppercase font-bold tracking-widest flex items-center ${getBrandColorClass()}`}>Pickup City/State* <SuccessCheck condition={puCity !== '' && puState !== ''} /></label>
               <div className="flex gap-2 mt-1">
                 <input type="text" placeholder="PU City" className={`${inputStyle} flex-1 ${getFieldStatus(puCity)}`} value={puCity} onChange={(e) => setPuCity(e.target.value)} />
@@ -145,7 +153,6 @@ const App = () => {
               </div>
             </div>
             <div className="flex flex-col">
-              {/* ✅ Corrected State Success Check */}
               <label className={`text-[10px] uppercase font-bold tracking-widest flex items-center ${getBrandColorClass()}`}>Delivery City/State* <SuccessCheck condition={delCity !== '' && delState !== ''} /></label>
               <div className="flex gap-2 mt-1">
                 <input type="text" placeholder="Del City" className={`${inputStyle} flex-1 ${getFieldStatus(delCity)}`} value={delCity} onChange={(e) => setDelCity(e.target.value)} />
@@ -172,8 +179,8 @@ const App = () => {
             </div>
 
             <div className="py-4 text-center">
-              <p className="text-white text-[10px] font-bold uppercase mb-1">Upload Documentation</p>
-              <div className="flex justify-center gap-6 text-[11px] text-zinc-400 font-bold uppercase">
+              <p className="text-white text-[10px] font-bold uppercase mb-1 font-orbitron">Upload Documentation</p>
+              <div className="flex justify-center gap-6 text-[11px] text-zinc-400 font-bold uppercase mt-4">
                 <button type="button" className={`flex items-center gap-1 ${isGLX ? 'hover:text-green-500' : isBST ? 'hover:text-blue-400' : 'hover:text-cyan-400'}`} onClick={() => fileInputRef.current?.click()}>📁 Select Files</button>
                 <button type="button" className={`flex items-center gap-1 ${isGLX ? 'hover:text-green-500' : isBST ? 'hover:text-blue-400' : 'hover:text-cyan-400'}`} onClick={() => cameraInputRef.current?.click()}>📷 Use Camera</button>
               </div>
@@ -195,21 +202,18 @@ const App = () => {
           </div>
         </div>
 
-        {/* ✅ Animated Submit Button with Inner Progress Bar */}
         <button 
           onClick={handleSubmit}
-          className={`relative overflow-hidden w-full font-orbitron py-4 rounded-md uppercase text-xs tracking-widest transition-all ${isFormComplete && !isSubmitting ? (isGLX ? 'bg-green-500 text-white' : isBST ? 'bg-blue-500 text-white' : 'bg-[#00ffff] text-black') : 'bg-zinc-800 text-zinc-500 cursor-not-allowed shadow-none'}`}
+          className={`relative overflow-hidden w-full font-orbitron py-4 rounded-md uppercase text-xs tracking-widest transition-all ${isFormComplete && !isSubmitting ? (isGLX ? 'bg-green-500 text-white' : isBST ? 'bg-blue-500 text-white' : 'bg-[#00ffff] text-black') : 'bg-zinc-800 text-zinc-500 cursor-not-allowed'}`}
           disabled={!isFormComplete || isSubmitting}
         >
-          {/* ✅ The Animated Progress Bar */}
           {isSubmitting && (
             <div 
               className={`absolute top-0 left-0 h-full transition-all duration-300 ease-linear ${isGLX ? 'bg-green-400' : isBST ? 'bg-blue-400' : 'bg-cyan-400'}`} 
               style={{ width: `${uploadProgress}%`, opacity: 0.4 }}
             />
           )}
-          
-          <span className="relative z-10">
+          <span className="relative z-10 font-bold">
             {isSubmitting ? `Uploading... ${uploadProgress}%` : isFormComplete ? 'Submit Documentation' : 'Complete All Fields & Upload'}
           </span>
         </button>
