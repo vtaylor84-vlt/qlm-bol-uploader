@@ -60,6 +60,11 @@ const App = () => {
     return 'text-[#00ffff]';
   };
 
+  const getFieldStatus = (val: string) => {
+    if (val.trim() === '') return 'border-zinc-700';
+    return isBST ? 'border-blue-500/60 shadow-[0_0_10px_rgba(59,130,246,0.1)]' : 'border-green-500/60 shadow-[0_0_10px_rgba(34,197,94,0.1)]';
+  };
+
   const SuccessCheck = ({ condition }: { condition: boolean }) => (
     condition ? <span className="ml-2 animate-bounce inline-block">✓</span> : null
   );
@@ -78,7 +83,7 @@ const App = () => {
         <div className="grid grid-cols-2 gap-4">
           <div className="flex flex-col">
             <label className={`text-[10px] mb-1 uppercase font-bold tracking-widest flex items-center ${getBrandColorClass()}`}>Company* <SuccessCheck condition={company !== ''} /></label>
-            <select className="bg-[#111] border border-zinc-700 p-2 rounded text-white text-sm outline-none" value={company} onChange={(e) => setCompany(e.target.value)}>
+            <select className={`bg-[#111] border p-2 rounded text-white text-sm outline-none transition-all font-normal ${getFieldStatus(company)}`} value={company} onChange={(e) => setCompany(e.target.value)}>
               <option value="">Select Company...</option>
               <option value="GLX">Greenleaf Xpress</option>
               <option value="BST">BST Expedite</option>
@@ -86,7 +91,7 @@ const App = () => {
           </div>
           <div className="flex flex-col">
             <label className={`text-[10px] mb-1 uppercase font-bold tracking-widest flex items-center ${getBrandColorClass()}`}>Driver Name* <SuccessCheck condition={driverName !== ''} /></label>
-            <input type="text" placeholder="Enter name" className="bg-[#111] border border-zinc-700 p-2 rounded text-white text-sm outline-none" value={driverName} onChange={(e) => setDriverName(e.target.value)} />
+            <input type="text" placeholder="Enter name" className={`bg-[#111] border p-2 rounded text-white text-sm outline-none transition-all ${getFieldStatus(driverName)}`} value={driverName} onChange={(e) => setDriverName(e.target.value)} />
           </div>
         </div>
 
@@ -96,16 +101,23 @@ const App = () => {
             Load Data <SuccessCheck condition={puCity !== '' && delCity !== '' && (loadNum !== '' || bolNum !== '')} />
           </h2>
           <div className="grid grid-cols-2 gap-4">
-            <input type="text" placeholder="Load #" className="bg-[#111] border border-zinc-700 p-2 rounded text-white text-sm outline-none" value={loadNum} onChange={(e) => setLoadNum(e.target.value)} />
-            <input type="text" placeholder="BOL #" className="bg-[#111] border border-zinc-700 p-2 rounded text-white text-sm outline-none" value={bolNum} onChange={(e) => setBolNum(e.target.value)} />
+            <div className="flex flex-col">
+              <label className={`text-[10px] mb-1 uppercase font-bold tracking-widest flex items-center ${getBrandColorClass()}`}>Load # <SuccessCheck condition={loadNum !== ''} /></label>
+              <input type="text" placeholder="Load ID" className={`bg-[#111] border p-2 rounded text-white text-sm outline-none ${getFieldStatus(loadNum)}`} value={loadNum} onChange={(e) => setLoadNum(e.target.value)} />
+            </div>
+            <div className="flex flex-col">
+              <label className={`text-[10px] mb-1 uppercase font-bold tracking-widest flex items-center ${getBrandColorClass()}`}>BOL # <SuccessCheck condition={bolNum !== ''} /></label>
+              <input type="text" placeholder="BOL #" className={`bg-[#111] border p-2 rounded text-white text-sm outline-none ${getFieldStatus(bolNum)}`} value={bolNum} onChange={(e) => setBolNum(e.target.value)} />
+            </div>
           </div>
-          
+
           <div className="grid grid-cols-1 gap-4 text-[10px] uppercase font-bold tracking-widest">
             <div className="flex flex-col">
               <label className={getBrandColorClass()}>Pickup City/State* <SuccessCheck condition={puCity !== '' && puState !== ''} /></label>
               <div className="flex gap-2 mt-1">
-                <input type="text" placeholder="PU City" className="flex-1 bg-[#111] border border-zinc-700 p-2 rounded text-white text-sm" value={puCity} onChange={(e) => setPuCity(e.target.value)} />
-                <select className="w-32 bg-[#111] border border-zinc-700 p-2 rounded text-white text-sm" value={puState} onChange={(e) => setPuState(e.target.value)}>
+                <input type="text" placeholder="PU City" className={`flex-1 bg-[#111] border p-2 rounded text-white text-sm outline-none ${getFieldStatus(puCity)}`} value={puCity} onChange={(e) => setPuCity(e.target.value)} />
+                {/* ✅ STYLED: Pickup State dropdown is font-normal (not bold) */}
+                <select className={`w-32 bg-[#111] border p-2 rounded text-white text-sm outline-none font-normal transition-all ${getFieldStatus(puState)}`} value={puState} onChange={(e) => setPuState(e.target.value)}>
                   <option value="">Select State</option>
                   {states.map(s => <option key={`p-${s}`} value={s}>{s}</option>)}
                 </select>
@@ -114,8 +126,9 @@ const App = () => {
             <div className="flex flex-col">
               <label className={getBrandColorClass()}>Delivery City/State* <SuccessCheck condition={delCity !== '' && delState !== ''} /></label>
               <div className="flex gap-2 mt-1">
-                <input type="text" placeholder="Del City" className="flex-1 bg-[#111] border border-zinc-700 p-2 rounded text-white text-sm" value={delCity} onChange={(e) => setDelCity(e.target.value)} />
-                <select className="w-32 bg-[#111] border border-zinc-700 p-2 rounded text-white text-sm" value={delState} onChange={(e) => setDelState(e.target.value)}>
+                <input type="text" placeholder="Del City" className={`flex-1 bg-[#111] border p-2 rounded text-white text-sm outline-none ${getFieldStatus(delCity)}`} value={delCity} onChange={(e) => setDelCity(e.target.value)} />
+                {/* ✅ STYLED: Delivery State dropdown is font-normal (not bold) */}
+                <select className={`w-32 bg-[#111] border p-2 rounded text-white text-sm outline-none font-normal transition-all ${getFieldStatus(delState)}`} value={delState} onChange={(e) => setDelState(e.target.value)}>
                   <option value="">Select State</option>
                   {states.map(s => <option key={`d-${s}`} value={s}>{s}</option>)}
                 </select>
@@ -146,31 +159,13 @@ const App = () => {
               </p>
               
               <div className="flex justify-center gap-6 text-[11px] text-zinc-400 font-bold uppercase">
-                {/* Strict Click Actions */}
                 <button type="button" className={`flex items-center gap-1 ${isGLX ? 'hover:text-green-500' : isBST ? 'hover:text-blue-400' : 'hover:text-cyan-400'}`} onClick={() => fileInputRef.current?.click()}>📁 Select Files</button>
                 <button type="button" className={`flex items-center gap-1 ${isGLX ? 'hover:text-green-500' : isBST ? 'hover:text-blue-400' : 'hover:text-cyan-400'}`} onClick={() => cameraInputRef.current?.click()}>📷 Use Camera</button>
               </div>
             </div>
 
-            {/* ✅ UPDATED: Files input now lists document types first to force "Files" view over Camera prompt */}
-            <input 
-              type="file" 
-              ref={fileInputRef} 
-              className="hidden" 
-              multiple 
-              accept=".pdf,.doc,.docx,application/pdf,image/png,image/jpeg" 
-              onChange={handleFileChange} 
-            />
-            
-            {/* Camera input remains strictly for environment capture */}
-            <input 
-              type="file" 
-              ref={cameraInputRef} 
-              className="hidden" 
-              capture="environment" 
-              accept="image/*" 
-              onChange={handleFileChange} 
-            />
+            <input type="file" ref={fileInputRef} className="hidden" multiple accept=".pdf,.doc,.docx,application/pdf,image/png,image/jpeg" onChange={handleFileChange} />
+            <input type="file" ref={cameraInputRef} className="hidden" capture="environment" accept="image/*" onChange={handleFileChange} />
 
             {uploadedFiles.length > 0 && (
               <div className="grid grid-cols-3 gap-2 mt-4 pt-4 border-t border-zinc-800">
@@ -199,7 +194,7 @@ const App = () => {
           <div className={`w-full max-w-sm bg-[#0a0a0a] border ${isGLX ? 'border-green-500' : 'border-blue-500'} p-8 rounded-xl text-center space-y-6`}>
             <div className={`text-5xl mb-4 ${isGLX ? 'text-green-500' : 'text-blue-500'}`}>✓</div>
             <h2 className="font-orbitron text-xl text-white uppercase tracking-widest">Submission Sent</h2>
-            <button onClick={() => window.location.reload()} className={`w-full py-3 rounded font-orbitron text-[10px] uppercase tracking-widest ${isGLX ? 'bg-green-500' : 'bg-blue-500'} text-white`}>New Upload</button>
+            <button onClick={() => window.location.reload()} className={`w-full py-3 rounded font-orbitron text-[10px] uppercase tracking-widest ${isGLX ? 'bg-green-500' : isBST ? 'bg-blue-500'} text-white`}>New Upload</button>
           </div>
         </div>
       )}
