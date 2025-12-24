@@ -13,16 +13,16 @@ const App = () => {
 
         <div className="grid grid-cols-2 gap-4">
           <div className="flex flex-col">
-            <label className="text-[10px] cyan-glow mb-1">Company (REQUIRED)</label>
+            <label className="text-[10px] cyan-glow mb-1">Company<span className="required-asterisk">*</span></label>
             <select className="bg-[#111] border border-zinc-700 p-2 rounded text-white text-sm outline-none focus:border-cyan-500" onChange={(e) => setCompany(e.target.value)}>
-              <option value="">Select...</option>
-              <option value="QLM">QLM</option>
-              <option value="BST">BST</option>
+              <option value="">Select a Company...</option>
+              <option value="QLM">QLM - Quantum Logistics</option>
+              <option value="BST">BST Logistics</option>
             </select>
           </div>
           <div className="flex flex-col">
-            <label className="text-[10px] cyan-glow mb-1">Driver Name (REQUIRED)</label>
-            <input type="text" placeholder="John Doe" className="bg-[#111] border border-zinc-700 p-2 rounded text-white text-sm outline-none focus:border-cyan-500" />
+            <label className="text-[10px] cyan-glow mb-1">Driver Name<span className="required-asterisk">*</span></label>
+            <input type="text" placeholder="Enter your name" className="bg-[#111] border border-zinc-700 p-2 rounded text-white text-sm outline-none focus:border-cyan-500" />
           </div>
         </div>
 
@@ -31,11 +31,11 @@ const App = () => {
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col">
               <label className="text-[10px] cyan-glow mb-1">Load #</label>
-              <input type="text" placeholder="123456" className="bg-[#111] border border-zinc-700 p-2 rounded text-white text-sm outline-none" />
+              <input type="text" placeholder="Enter Load ID or Load #" className="bg-[#111] border border-zinc-700 p-2 rounded text-white text-sm outline-none" />
             </div>
             <div className="flex flex-col">
               <label className="text-[10px] cyan-glow mb-1">BOL #</label>
-              <input type="text" placeholder="78910" className="bg-[#111] border border-zinc-700 p-2 rounded text-white text-sm outline-none" />
+              <input type="text" placeholder="Enter BOL #" className="bg-[#111] border border-zinc-700 p-2 rounded text-white text-sm outline-none" />
             </div>
           </div>
 
@@ -43,9 +43,9 @@ const App = () => {
             <div className="flex flex-col">
               <label className="text-[10px] cyan-glow mb-1">Pickup City/State</label>
               <div className="flex gap-2">
-                <input type="text" placeholder="City" className="flex-1 bg-[#111] border border-zinc-700 p-2 rounded text-white text-sm" />
+                <input type="text" placeholder="PU City" className="flex-1 bg-[#111] border border-zinc-700 p-2 rounded text-white text-sm" />
                 <select className="w-20 bg-[#111] border border-zinc-700 p-2 rounded text-white text-sm">
-                  <option value="">ST</option>
+                  <option value="">Select a state</option>
                   {states.map(s => <option key={`p-${s}`} value={s}>{s}</option>)}
                 </select>
               </div>
@@ -53,9 +53,9 @@ const App = () => {
             <div className="flex flex-col">
               <label className="text-[10px] cyan-glow mb-1">Delivery City/State</label>
               <div className="flex gap-2">
-                <input type="text" placeholder="City" className="flex-1 bg-[#111] border border-zinc-700 p-2 rounded text-white text-sm" />
+                <input type="text" placeholder="Del City" className="flex-1 bg-[#111] border border-zinc-700 p-2 rounded text-white text-sm" />
                 <select className="w-20 bg-[#111] border border-zinc-700 p-2 rounded text-white text-sm">
-                  <option value="">ST</option>
+                  <option value="">Select a state</option>
                   {states.map(s => <option key={`d-${s}`} value={s}>{s}</option>)}
                 </select>
               </div>
@@ -66,13 +66,18 @@ const App = () => {
         <div className="space-y-4 pt-4">
           <h2 className="font-orbitron text-sm cyan-glow border-b border-zinc-800 pb-1">Documents & Freight</h2>
           <div className="bg-[#111] border border-zinc-800 p-4 rounded-md space-y-4">
-            <div className="flex justify-between items-center"><span className="text-[11px] font-bold text-white uppercase">BOL / POD Uploads</span><div className="flex gap-3 text-[10px] text-zinc-400">
-              <label><input type="radio" name="b" className="mr-1"/> Pick Up</label><label><input type="radio" name="b" className="mr-1"/> Delivery</label>
-            </div></div>
+            <div className="flex justify-between items-center">
+              <span className="text-[11px] font-bold text-white uppercase">BOL / POD Uploads</span>
+              <div className="flex gap-3 text-[10px] text-zinc-400">
+                <label className="flex items-center"><input type="radio" name="b" className="mr-1 accent-cyan-400"/> Pickup</label>
+                <label className="flex items-center"><input type="radio" name="b" className="mr-1 accent-cyan-400"/> Delivery</label>
+              </div>
+            </div>
             <div className="border border-dashed border-zinc-700 p-6 rounded text-center">
               <p className="text-white text-xs font-bold mb-3 uppercase">Tap to open camera or upload files</p>
               <div className="flex justify-center gap-6 text-[11px] text-zinc-400 font-bold">
-                <button>📁 Select Files</button><button>📷 Use Camera</button>
+                <button type="button">📁 Select Files</button>
+                <button type="button">📷 Use Camera</button>
               </div>
             </div>
           </div>
