@@ -55,14 +55,14 @@ const App = () => {
                          puCity.trim() !== '' && puState !== '' && delCity.trim() !== '' && 
                          delState !== '' && bolType !== '' && hasUploads;
 
-  // 🎨 Updated Branding Colors
+  // 🎨 Branding Helpers
   const isGLX = company === 'GLX';
   const isBST = company === 'BST';
   
-  const getHeaderStyle = () => {
+  const getBrandColorClass = () => {
     if (isGLX) return 'text-green-500 shadow-green-500/40';
-    if (isBST) return 'text-blue-400 shadow-blue-400/40'; // Pretty Blue
-    return 'text-[#00ffff]';
+    if (isBST) return 'text-blue-400 shadow-blue-400/40';
+    return 'text-[#00ffff] shadow-cyan-500/40';
   };
 
   const getContainerStyles = () => {
@@ -71,60 +71,66 @@ const App = () => {
     return 'border-zinc-800 shadow-2xl';
   };
 
-  const getFieldStatus = (val: string) => val.trim() !== '' ? 'border-green-500/50' : 'border-zinc-700';
+  // ✅ Updated Success Logic: Blue for BST, Green for GLX
+  const getFieldStatus = (val: string) => {
+    if (val.trim() === '') return 'border-zinc-700';
+    if (isBST) return 'border-blue-500/60';
+    return 'border-green-500/60'; // Defaults to green for GLX or general
+  };
 
   return (
     <div className="app-container space-y-6 pb-20">
-      <h1 className={`font-orbitron text-2xl text-center tracking-tighter mb-4 transition-colors duration-500 ${getHeaderStyle()} uppercase glowing-text`}>BOL / PHOTO UPLOAD</h1>
+      <h1 className={`font-orbitron text-2xl text-center tracking-tighter mb-4 transition-colors duration-500 ${getBrandColorClass()} uppercase glowing-text`}>BOL / PHOTO UPLOAD</h1>
       
       <div className={`bg-[#0a0a0a] border rounded-lg p-5 transition-all duration-700 space-y-8 ${getContainerStyles()}`}>
         
         {/* Info Grid */}
         <div className="grid grid-cols-2 gap-4">
           <div className="flex flex-col">
-            <label className={`text-[10px] mb-1 uppercase font-bold tracking-widest ${getHeaderStyle()}`}>Company*</label>
-            <select className={`bg-[#111] border p-2 rounded text-white text-sm outline-none transition-colors ${company !== '' ? 'border-green-500/50' : 'border-zinc-700'}`} value={company} onChange={(e) => setCompany(e.target.value)}>
+            <label className={`text-[10px] mb-1 uppercase font-bold tracking-widest ${getBrandColorClass()}`}>Company*</label>
+            <select className={`bg-[#111] border p-2 rounded text-white text-sm outline-none transition-colors ${getFieldStatus(company)}`} value={company} onChange={(e) => setCompany(e.target.value)}>
               <option value="">Select Company...</option>
               <option value="GLX">Greenleaf Xpress</option>
               <option value="BST">BST Expedite</option>
             </select>
           </div>
           <div className="flex flex-col">
-            <label className={`text-[10px] mb-1 uppercase font-bold tracking-widest ${getHeaderStyle()}`}>Driver Name*</label>
+            <label className={`text-[10px] mb-1 uppercase font-bold tracking-widest ${getBrandColorClass()}`}>Driver Name*</label>
             <input type="text" placeholder="Enter name" className={`bg-[#111] border p-2 rounded text-white text-sm outline-none transition-colors ${getFieldStatus(driverName)}`} value={driverName} onChange={(e) => setDriverName(e.target.value)} />
           </div>
         </div>
 
         {/* Load Data Section */}
         <div className="space-y-4 pt-2">
-          <h2 className={`font-orbitron text-sm border-b border-zinc-800 pb-1 uppercase tracking-widest ${getHeaderStyle()}`}>Load Data</h2>
+          {/* ✅ Bolded and Larger Headers */}
+          <h2 className={`font-orbitron text-lg border-b border-zinc-800 pb-1 uppercase tracking-[0.2em] font-black ${getBrandColorClass()}`}>Load Data</h2>
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col">
-              <label className={`text-[10px] mb-1 uppercase tracking-widest ${getHeaderStyle()}`}>Load #</label>
+              <label className={`text-[10px] mb-1 uppercase tracking-widest ${getBrandColorClass()}`}>Load #</label>
               <input type="text" placeholder="Load ID" className={`bg-[#111] border p-2 rounded text-white text-sm outline-none ${getFieldStatus(loadNum)}`} value={loadNum} onChange={(e) => setLoadNum(e.target.value)} />
             </div>
             <div className="flex flex-col">
-              <label className={`text-[10px] mb-1 uppercase tracking-widest ${getHeaderStyle()}`}>BOL #</label>
+              <label className={`text-[10px] mb-1 uppercase tracking-widest ${getBrandColorClass()}`}>BOL #</label>
               <input type="text" placeholder="BOL #" className={`bg-[#111] border p-2 rounded text-white text-sm outline-none ${getFieldStatus(bolNum)}`} value={bolNum} onChange={(e) => setBolNum(e.target.value)} />
             </div>
           </div>
           <div className="grid grid-cols-1 gap-4">
             <div className="flex flex-col">
-              <label className={`text-[10px] mb-1 uppercase tracking-widest ${getHeaderStyle()}`}>Pickup City/State*</label>
+              <label className={`text-[10px] mb-1 uppercase tracking-widest ${getBrandColorClass()}`}>Pickup City/State*</label>
               <div className="flex gap-2">
                 <input type="text" placeholder="PU City" className={`flex-1 bg-[#111] border p-2 rounded text-white text-sm outline-none ${getFieldStatus(puCity)}`} value={puCity} onChange={(e) => setPuCity(e.target.value)} />
-                <select className={`w-32 bg-[#111] border p-2 rounded text-white text-sm outline-none ${puState !== '' ? 'border-green-500/50' : 'border-zinc-700'}`} value={puState} onChange={(e) => setPuState(e.target.value)}>
-                  <option value="">ST</option>
+                <select className={`w-32 bg-[#111] border p-2 rounded text-white text-sm outline-none ${getFieldStatus(puState)}`} value={puState} onChange={(e) => setPuState(e.target.value)}>
+                  <option value="">Select State</option>
                   {states.map(s => <option key={`p-${s}`} value={s}>{s}</option>)}
                 </select>
               </div>
             </div>
             <div className="flex flex-col">
-              <label className={`text-[10px] mb-1 uppercase tracking-widest ${getHeaderStyle()}`}>Delivery City/State*</label>
+              <label className={`text-[10px] mb-1 uppercase tracking-widest ${getBrandColorClass()}`}>Delivery City/State*</label>
               <div className="flex gap-2">
                 <input type="text" placeholder="Del City" className={`flex-1 bg-[#111] border p-2 rounded text-white text-sm outline-none ${getFieldStatus(delCity)}`} value={delCity} onChange={(e) => setDelCity(e.target.value)} />
-                <select className={`w-32 bg-[#111] border p-2 rounded text-white text-sm outline-none ${delState !== '' ? 'border-green-500/50' : 'border-zinc-700'}`} value={delState} onChange={(e) => setDelState(e.target.value)}>
-                  <option value="">ST</option>
+                <select className={`w-32 bg-[#111] border p-2 rounded text-white text-sm outline-none ${getFieldStatus(delState)}`} value={delState} onChange={(e) => setDelState(e.target.value)}>
+                  <option value="">Select State</option>
                   {states.map(s => <option key={`d-${s}`} value={s}>{s}</option>)}
                 </select>
               </div>
@@ -134,10 +140,10 @@ const App = () => {
 
         {/* Documents Section */}
         <div className="space-y-4 pt-4">
-          <h2 className={`font-orbitron text-sm border-b border-zinc-800 pb-1 uppercase tracking-widest ${getHeaderStyle()}`}>Documents & Freight</h2>
+          <h2 className={`font-orbitron text-lg border-b border-zinc-800 pb-1 uppercase tracking-[0.2em] font-black ${getBrandColorClass()}`}>Documents & Freight</h2>
           <div className="bg-[#111] border border-zinc-800 p-4 rounded-md space-y-4 shadow-inner">
             <div className="flex justify-between items-center">
-              <span className={`text-[11px] font-bold uppercase ${getHeaderStyle()}`}>BOL / POD Uploads*</span>
+              <span className={`text-[11px] font-bold uppercase ${getBrandColorClass()}`}>BOL / POD Uploads*</span>
               <div className="flex gap-3 text-[10px] text-zinc-400">
                 <label className="flex items-center cursor-pointer"><input type="radio" name="bolType" className={`mr-1 ${isGLX ? 'accent-green-500' : isBST ? 'accent-blue-400' : 'accent-cyan-400'}`} onChange={() => setBolType('pickup')}/> Pickup</label>
                 <label className="flex items-center cursor-pointer"><input type="radio" name="bolType" className={`mr-1 ${isGLX ? 'accent-green-500' : isBST ? 'accent-blue-400' : 'accent-cyan-400'}`} onChange={() => setBolType('delivery')}/> Delivery</label>
@@ -169,13 +175,12 @@ const App = () => {
           </div>
         </div>
 
-        {/* Dynamic Submission Button */}
         <button 
           className={`w-full font-orbitron py-4 rounded-md uppercase text-xs tracking-widest transition-all duration-300 ${
             isFormComplete 
-            ? (isGLX ? 'bg-green-500 text-white' : isBST ? 'bg-blue-500 text-white' : 'bg-[#00ffff] text-black') 
+            ? (isGLX ? 'bg-green-500 text-white shadow-[0_0_20px_rgba(34,197,94,0.4)]' : isBST ? 'bg-blue-500 text-white shadow-[0_0_20px_rgba(59,130,246,0.4)]' : 'bg-[#00ffff] text-black shadow-[0_0_20px_rgba(0,255,255,0.4)]') 
             : 'bg-zinc-800 text-zinc-500 cursor-not-allowed shadow-none'
-          } ${isFormComplete ? 'shadow-[0_0_20px_rgba(255,255,255,0.2)]' : ''}`}
+          }`}
           disabled={!isFormComplete}
         >
           {isFormComplete ? 'Submit Documentation' : 'Complete All Fields & Upload'}
