@@ -1,16 +1,20 @@
 import React, { useState, useRef } from 'react';
 
 const App = () => {
+  // Form State Management
   const [company, setCompany] = useState('');
   const [driverName, setDriverName] = useState('');
+  const [loadNum, setLoadNum] = useState('');
+  const [puCity, setPuCity] = useState('');
+  const [puState, setPuState] = useState('');
+  const [delCity, setDelCity] = useState('');
+  const [delState, setDelState] = useState('');
   
-  // Refs for the two different upload sections
   const bolInputRef = useRef<HTMLInputElement>(null);
   const freightInputRef = useRef<HTMLInputElement>(null);
 
-  // Logo Mapping - Replace these URLs with your actual direct image links
   const companyLogos: Record<string, string> = {
-    'GLX': 'https://quantum-logistics.com/wp-content/uploads/2023/logo-white.png', // Placeholder for Greenleaf
+    'GLX': 'https://quantum-logistics.com/wp-content/uploads/2023/logo-white.png', 
     'BST': 'https://bstlogistics.com/wp-content/uploads/2021/04/BST-Logo-White.png',
   };
 
@@ -22,7 +26,15 @@ const App = () => {
     'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'
   ];
 
-  const isReady = company !== '' && driverName.trim() !== '';
+  // 🛡️ Strict Validation Logic: All these must be true for the button to appear
+  const isFormComplete = 
+    company !== '' && 
+    driverName.trim() !== '' && 
+    loadNum.trim() !== '' && 
+    puCity.trim() !== '' && 
+    puState !== '' && 
+    delCity.trim() !== '' && 
+    delState !== '';
 
   return (
     <div className="app-container space-y-6">
@@ -30,16 +42,14 @@ const App = () => {
       
       <div className="bg-[#0a0a0a] border border-zinc-800 rounded-lg p-5 shadow-2xl space-y-6">
         
-        {/* Dynamic Logo Area */}
         <div className="flex justify-center h-16 items-center border-b border-zinc-800 pb-4">
           {company && companyLogos[company] ? (
-            <img src={companyLogos[company]} alt="Company Logo" className="max-h-full object-contain transition-opacity duration-500" />
+            <img src={companyLogos[company]} alt="Logo" className="max-h-full object-contain" />
           ) : (
             <div className="text-zinc-600 italic text-xs">Select a company to view logo</div>
           )}
         </div>
 
-        {/* Company & Driver Section */}
         <div className="grid grid-cols-2 gap-4">
           <div className="flex flex-col">
             <label className="text-[10px] cyan-glow mb-1">Company<span className="required-asterisk">*</span></label>
@@ -65,13 +75,18 @@ const App = () => {
           </div>
         </div>
 
-        {/* Load Data Section */}
         <div className="space-y-4 pt-2">
           <h2 className="font-orbitron text-sm cyan-glow border-b border-zinc-800 pb-1">Load Data</h2>
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col">
-              <label className="text-[10px] cyan-glow mb-1">Load #</label>
-              <input type="text" placeholder="Enter Load ID or Load #" className="bg-[#111] border border-zinc-700 p-2 rounded text-white text-sm outline-none" />
+              <label className="text-[10px] cyan-glow mb-1">Load #<span className="required-asterisk">*</span></label>
+              <input 
+                type="text" 
+                placeholder="Enter Load ID or Load #" 
+                className="bg-[#111] border border-zinc-700 p-2 rounded text-white text-sm outline-none focus:border-cyan-500" 
+                value={loadNum}
+                onChange={(e) => setLoadNum(e.target.value)}
+              />
             </div>
             <div className="flex flex-col">
               <label className="text-[10px] cyan-glow mb-1">BOL #</label>
@@ -81,20 +96,40 @@ const App = () => {
 
           <div className="grid grid-cols-1 gap-4">
             <div className="flex flex-col">
-              <label className="text-[10px] cyan-glow mb-1">Pickup City/State</label>
+              <label className="text-[10px] cyan-glow mb-1">Pickup City/State<span className="required-asterisk">*</span></label>
               <div className="flex gap-2">
-                <input type="text" placeholder="PU City" className="flex-1 bg-[#111] border border-zinc-700 p-2 rounded text-white text-sm" />
-                <select className="w-32 bg-[#111] border border-zinc-700 p-2 rounded text-white text-sm">
+                <input 
+                  type="text" 
+                  placeholder="PU City" 
+                  className="flex-1 bg-[#111] border border-zinc-700 p-2 rounded text-white text-sm outline-none focus:border-cyan-500" 
+                  value={puCity}
+                  onChange={(e) => setPuCity(e.target.value)}
+                />
+                <select 
+                  className="w-32 bg-[#111] border border-zinc-700 p-2 rounded text-white text-sm outline-none focus:border-cyan-500"
+                  value={puState}
+                  onChange={(e) => setPuState(e.target.value)}
+                >
                   <option value="">Select State</option>
                   {states.map(s => <option key={`p-${s}`} value={s}>{s}</option>)}
                 </select>
               </div>
             </div>
             <div className="flex flex-col">
-              <label className="text-[10px] cyan-glow mb-1">Delivery City/State</label>
+              <label className="text-[10px] cyan-glow mb-1">Delivery City/State<span className="required-asterisk">*</span></label>
               <div className="flex gap-2">
-                <input type="text" placeholder="Del City" className="flex-1 bg-[#111] border border-zinc-700 p-2 rounded text-white text-sm" />
-                <select className="w-32 bg-[#111] border border-zinc-700 p-2 rounded text-white text-sm">
+                <input 
+                  type="text" 
+                  placeholder="Del City" 
+                  className="flex-1 bg-[#111] border border-zinc-700 p-2 rounded text-white text-sm outline-none focus:border-cyan-500" 
+                  value={delCity}
+                  onChange={(e) => setDelCity(e.target.value)}
+                />
+                <select 
+                  className="w-32 bg-[#111] border border-zinc-700 p-2 rounded text-white text-sm outline-none focus:border-cyan-500"
+                  value={delState}
+                  onChange={(e) => setDelState(e.target.value)}
+                >
                   <option value="">Select State</option>
                   {states.map(s => <option key={`d-${s}`} value={s}>{s}</option>)}
                 </select>
@@ -103,13 +138,11 @@ const App = () => {
           </div>
         </div>
 
-        {/* Documents & Freight Section */}
         <div className="space-y-4 pt-4">
           <h2 className="font-orbitron text-sm cyan-glow border-b border-zinc-800 pb-1">Documents & Freight</h2>
           
-          {/* BOL Section */}
           <input type="file" ref={bolInputRef} className="hidden" multiple accept="image/*,application/pdf" />
-          <div className="bg-[#111] border border-zinc-800 p-4 rounded-md space-y-4">
+          <div className="bg-[#111] border border-zinc-800 p-4 rounded-md space-y-4 shadow-inner">
             <div className="flex justify-between items-center">
               <span className="text-[11px] font-bold text-white uppercase">BOL / POD Uploads</span>
               <div className="flex gap-3 text-[10px] text-zinc-400">
@@ -125,30 +158,18 @@ const App = () => {
               </div>
             </div>
           </div>
-
-          {/* Freight Section */}
-          <input type="file" ref={freightInputRef} className="hidden" multiple accept="image/*,video/*" />
-          <div className="bg-[#111] border border-zinc-800 p-4 rounded-md space-y-4">
-            <span className="text-[11px] font-bold text-white uppercase">Freight / Video Uploads</span>
-            <div className="border border-dashed border-zinc-700 p-6 rounded text-center cursor-pointer" onClick={() => freightInputRef.current?.click()}>
-              <p className="text-white text-xs font-bold mb-3 uppercase">Tap to open camera or upload files</p>
-              <div className="flex justify-center gap-6 text-[11px] text-zinc-400 font-bold">
-                <button type="button" className="hover:text-cyan-400">📁 Select Files</button>
-                <button type="button" className="hover:text-cyan-400">📷 Use Camera</button>
-              </div>
-            </div>
-          </div>
         </div>
 
+        {/* 🚀 Submission Button: Only glows and works when isFormComplete is true */}
         <button 
           className={`w-full font-orbitron py-4 rounded-md uppercase text-xs tracking-widest transition-all duration-300 ${
-            isReady 
+            isFormComplete 
             ? 'bg-[#00ffff] text-black shadow-[0_0_20px_rgba(0,255,255,0.4)] cursor-pointer' 
             : 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
           }`}
-          disabled={!isReady}
+          disabled={!isFormComplete}
         >
-          {isReady ? 'Submit Documentation' : 'Complete Required Fields'}
+          {isFormComplete ? 'Submit Documentation' : 'Complete Required Fields'}
         </button>
       </div>
     </div>
