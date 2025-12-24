@@ -18,7 +18,9 @@ const App = () => {
   const [bolType, setBolType] = useState('');
   const [uploadedFiles, setUploadedFiles] = useState<FileWithPreview[]>([]);
   
-  const bolInputRef = useRef<HTMLInputElement>(null);
+  // Separate Refs for Files and Camera
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
 
   const states = [
     'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 
@@ -40,7 +42,8 @@ const App = () => {
       });
       setUploadedFiles((prev) => [...prev, ...newFiles]);
     }
-    if (bolInputRef.current) bolInputRef.current.value = '';
+    if (fileInputRef.current) fileInputRef.current.value = '';
+    if (cameraInputRef.current) cameraInputRef.current.value = '';
   };
 
   const removeFile = (id: string) => {
@@ -130,11 +133,29 @@ const App = () => {
               </div>
             </div>
 
-            <input type="file" ref={bolInputRef} className="hidden" multiple accept="image/*,application/pdf" onChange={handleFileChange} />
-            <div className="border border-dashed border-zinc-700 p-6 rounded text-center cursor-pointer hover:bg-zinc-900 transition" onClick={() => bolInputRef.current?.click()}>
-              <p className="text-white text-xs font-bold uppercase mb-2">Tap to open camera or upload files</p>
+            {/* Hidden Input for FILES */}
+            <input type="file" ref={fileInputRef} className="hidden" multiple accept="image/*,application/pdf" onChange={handleFileChange} />
+            
+            {/* Hidden Input for CAMERA (iOS/Android will trigger camera app immediately) */}
+            <input type="file" ref={cameraInputRef} className="hidden" capture="environment" accept="image/*" onChange={handleFileChange} />
+
+            <div className="border border-dashed border-zinc-700 p-6 rounded text-center">
+              <p className="text-white text-xs font-bold uppercase mb-4">Select an upload method</p>
               <div className="flex justify-center gap-6 text-[11px] text-zinc-400 font-bold">
-                <span>📁 Select Files</span><span>📷 Use Camera</span>
+                <button 
+                  type="button" 
+                  className="hover:text-cyan-400 flex items-center gap-2"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  📁 Select Files
+                </button>
+                <button 
+                  type="button" 
+                  className="hover:text-cyan-400 flex items-center gap-2"
+                  onClick={() => cameraInputRef.current?.click()}
+                >
+                  📷 Use Camera
+                </button>
               </div>
             </div>
 
