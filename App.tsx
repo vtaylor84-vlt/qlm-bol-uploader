@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 
 const App = () => {
-  // Logic to track form inputs
   const [company, setCompany] = useState('');
   const [driverName, setDriverName] = useState('');
   
-  // Strictly corrected alphabetical state list
+  // Create a reference to the hidden file input
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const states = [
     'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 
     'HI', 'IA', 'ID', 'IL', 'IN', 'KS', 'KY', 'LA', 'ME', 'MD', 
@@ -14,7 +15,11 @@ const App = () => {
     'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'
   ];
 
-  // Logic to determine if the button should be active
+  // Function to trigger the file input
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
   const isReady = company !== '' && driverName.trim() !== '';
 
   return (
@@ -93,6 +98,16 @@ const App = () => {
         {/* Uploads Section */}
         <div className="space-y-4 pt-4">
           <h2 className="font-orbitron text-sm cyan-glow border-b border-zinc-800 pb-1">Documents & Freight</h2>
+          
+          {/* Hidden Input Field that actually handles the files */}
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            className="hidden" 
+            multiple 
+            accept="image/*,application/pdf"
+          />
+
           <div className="bg-[#111] border border-zinc-800 p-4 rounded-md space-y-4 shadow-inner">
             <div className="flex justify-between items-center">
               <span className="text-[11px] font-bold text-white uppercase">BOL / POD Uploads</span>
@@ -101,17 +116,30 @@ const App = () => {
                 <label className="flex items-center cursor-pointer"><input type="radio" name="b" className="mr-1 accent-cyan-400"/> Delivery</label>
               </div>
             </div>
+            
+            {/* These buttons now trigger the handleUploadClick function */}
             <div className="border border-dashed border-zinc-700 p-6 rounded text-center">
               <p className="text-white text-xs font-bold mb-3 uppercase">Tap to open camera or upload files</p>
               <div className="flex justify-center gap-6 text-[11px] text-zinc-400 font-bold">
-                <button type="button" className="hover:text-cyan-400">📁 Select Files</button>
-                <button type="button" className="hover:text-cyan-400">📷 Use Camera</button>
+                <button 
+                  type="button" 
+                  onClick={handleUploadClick}
+                  className="hover:text-cyan-400 flex items-center gap-2"
+                >
+                  📁 Select Files
+                </button>
+                <button 
+                  type="button" 
+                  onClick={handleUploadClick}
+                  className="hover:text-cyan-400 flex items-center gap-2"
+                >
+                  📷 Use Camera
+                </button>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Final Submission Button with Dynamic Styling */}
         <button 
           className={`w-full font-orbitron py-4 rounded-md uppercase text-xs tracking-widest transition-all duration-300 ${
             isReady 
