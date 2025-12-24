@@ -18,9 +18,14 @@ const App = () => {
   const [bolType, setBolType] = useState('');
   const [uploadedFiles, setUploadedFiles] = useState<FileWithPreview[]>([]);
   
-  // Separate Refs for Files and Camera
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
+
+  // ✅ Updated Logo Mapping to match 'GLX' and 'BST' dropdown values
+  const companyLogos: Record<string, string> = {
+    'GLX': 'https://quantum-logistics.com/wp-content/uploads/2023/logo-white.png', 
+    'BST': 'https://bstlogistics.com/wp-content/uploads/2021/04/BST-Logo-White.png',
+  };
 
   const states = [
     'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 
@@ -67,19 +72,42 @@ const App = () => {
       
       <div className="bg-[#0a0a0a] border border-zinc-800 rounded-lg p-5 shadow-2xl space-y-6">
         
+        {/* ✅ Working Dynamic Logo Area */}
+        <div className="flex justify-center h-20 items-center border-b border-zinc-800 pb-4">
+          {company && companyLogos[company] ? (
+            <img 
+              src={companyLogos[company]} 
+              alt={`${company} Logo`} 
+              className="max-h-full object-contain transition-opacity duration-500 animate-pulse-once" 
+            />
+          ) : (
+            <div className="text-zinc-600 italic text-xs">Select a company to view logo</div>
+          )}
+        </div>
+
         {/* Company & Driver Section */}
         <div className="grid grid-cols-2 gap-4">
           <div className="flex flex-col">
             <label className="text-[10px] cyan-glow mb-1 uppercase">Company<span className="required-asterisk">*</span></label>
-            <select className="bg-[#111] border border-zinc-700 p-2 rounded text-white text-sm outline-none focus:border-cyan-500" value={company} onChange={(e) => setCompany(e.target.value)}>
-              <option value="">Select a Company...</option>
+            <select 
+              className="bg-[#111] border border-zinc-700 p-2 rounded text-white text-sm outline-none focus:border-cyan-500" 
+              value={company} 
+              onChange={(e) => setCompany(e.target.value)}
+            >
+              <option value="">Select Company...</option>
               <option value="GLX">Greenleaf Xpress</option>
               <option value="BST">BST Expedite</option>
             </select>
           </div>
           <div className="flex flex-col">
             <label className="text-[10px] cyan-glow mb-1 uppercase">Driver Name<span className="required-asterisk">*</span></label>
-            <input type="text" placeholder="Enter your name" className="bg-[#111] border border-zinc-700 p-2 rounded text-white text-sm outline-none focus:border-cyan-500" value={driverName} onChange={(e) => setDriverName(e.target.value)} />
+            <input 
+              type="text" 
+              placeholder="Enter your name" 
+              className="bg-[#111] border border-zinc-700 p-2 rounded text-white text-sm outline-none focus:border-cyan-500" 
+              value={driverName} 
+              onChange={(e) => setDriverName(e.target.value)} 
+            />
           </div>
         </div>
 
@@ -89,11 +117,11 @@ const App = () => {
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col">
               <label className="text-[10px] cyan-glow mb-1 uppercase">Load #</label>
-              <input type="text" placeholder="Enter Load ID or Load #" className="bg-[#111] border border-zinc-700 p-2 rounded text-white text-sm outline-none" value={loadNum} onChange={(e) => setLoadNum(e.target.value)} />
+              <input type="text" placeholder="Load ID" className="bg-[#111] border border-zinc-700 p-2 rounded text-white text-sm outline-none" value={loadNum} onChange={(e) => setLoadNum(e.target.value)} />
             </div>
             <div className="flex flex-col">
               <label className="text-[10px] cyan-glow mb-1 uppercase">BOL #</label>
-              <input type="text" placeholder="Enter BOL #" className="bg-[#111] border border-zinc-700 p-2 rounded text-white text-sm outline-none" value={bolNum} onChange={(e) => setBolNum(e.target.value)} />
+              <input type="text" placeholder="BOL #" className="bg-[#111] border border-zinc-700 p-2 rounded text-white text-sm outline-none" value={bolNum} onChange={(e) => setBolNum(e.target.value)} />
             </div>
           </div>
 
@@ -133,29 +161,14 @@ const App = () => {
               </div>
             </div>
 
-            {/* Hidden Input for FILES */}
             <input type="file" ref={fileInputRef} className="hidden" multiple accept="image/*,application/pdf" onChange={handleFileChange} />
-            
-            {/* Hidden Input for CAMERA (iOS/Android will trigger camera app immediately) */}
             <input type="file" ref={cameraInputRef} className="hidden" capture="environment" accept="image/*" onChange={handleFileChange} />
 
-            <div className="border border-dashed border-zinc-700 p-6 rounded text-center">
-              <p className="text-white text-xs font-bold uppercase mb-4">Select an upload method</p>
+            <div className="border border-dashed border-zinc-700 p-6 rounded text-center cursor-pointer hover:bg-zinc-900 transition" onClick={() => fileInputRef.current?.click()}>
+              <p className="text-white text-xs font-bold uppercase mb-4">Tap to open camera or upload files</p>
               <div className="flex justify-center gap-6 text-[11px] text-zinc-400 font-bold">
-                <button 
-                  type="button" 
-                  className="hover:text-cyan-400 flex items-center gap-2"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  📁 Select Files
-                </button>
-                <button 
-                  type="button" 
-                  className="hover:text-cyan-400 flex items-center gap-2"
-                  onClick={() => cameraInputRef.current?.click()}
-                >
-                  📷 Use Camera
-                </button>
+                <button type="button" className="hover:text-cyan-400" onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}>📁 Select Files</button>
+                <button type="button" className="hover:text-cyan-400" onClick={(e) => { e.stopPropagation(); cameraInputRef.current?.click(); }}>📷 Use Camera</button>
               </div>
             </div>
 
@@ -164,7 +177,7 @@ const App = () => {
                 {uploadedFiles.map((item) => (
                   <div key={item.id} className="relative aspect-square border border-zinc-700 rounded overflow-hidden">
                     <img src={item.preview} className="w-full h-full object-cover" alt="preview" />
-                    <button onClick={() => removeFile(item.id)} className="absolute top-0 right-0 bg-red-500 text-white text-[10px] p-1 px-2 rounded-bl">X</button>
+                    <button onClick={() => removeFile(item.id)} className="absolute top-0 right-0 bg-red-500 text-white text-[10px] p-1 px-2 rounded-bl shadow-lg">X</button>
                   </div>
                 ))}
               </div>
