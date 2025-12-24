@@ -62,7 +62,7 @@ const App = () => {
 
   const getFieldStatus = (val: string) => {
     if (val.trim() === '') return 'border-zinc-700';
-    return isBST ? 'border-blue-500/60 shadow-[0_0_10px_rgba(59,130,246,0.1)]' : 'border-green-500/60 shadow-[0_0_10px_rgba(34,197,94,0.1)]';
+    return isBST ? 'border-blue-500/60' : 'border-green-500/60';
   };
 
   const SuccessCheck = ({ condition }: { condition: boolean }) => (
@@ -70,7 +70,7 @@ const App = () => {
   );
 
   const isFormComplete = company !== '' && driverName.trim() !== '' && (loadNum !== '' || bolNum !== '') && 
-                         puCity !== '' && puState !== '' && delCity !== '' && delState !== '' && 
+                         puCity !== '' && puState !== '' && delCity.trim() !== '' && delState !== '' && 
                          bolType !== '' && uploadedFiles.length > 0;
 
   return (
@@ -95,7 +95,7 @@ const App = () => {
           </div>
         </div>
 
-        {/* LOAD DATA SECTION */}
+        {/* Load Data Section */}
         <div className="space-y-4 pt-2">
           <h2 className={`font-orbitron text-lg border-b border-zinc-800 pb-1 uppercase tracking-[0.2em] font-black flex items-center ${getBrandColorClass()}`}>
             Load Data <SuccessCheck condition={puCity !== '' && delCity !== '' && (loadNum !== '' || bolNum !== '')} />
@@ -112,7 +112,6 @@ const App = () => {
           </div>
 
           <div className="grid grid-cols-1 gap-4">
-            {/* ✅ RESTORED: PICKUP HEADER */}
             <div className="flex flex-col">
               <label className={`text-[10px] mb-1 uppercase font-bold tracking-widest flex items-center ${getBrandColorClass()}`}>Pickup City/State* <SuccessCheck condition={puCity !== '' && puState !== ''} /></label>
               <div className="flex gap-2">
@@ -124,7 +123,6 @@ const App = () => {
               </div>
             </div>
 
-            {/* ✅ RESTORED: DELIVERY HEADER */}
             <div className="flex flex-col">
               <label className={`text-[10px] mb-1 uppercase font-bold tracking-widest flex items-center ${getBrandColorClass()}`}>Delivery City/State* <SuccessCheck condition={delCity !== '' && delState !== ''} /></label>
               <div className="flex gap-2">
@@ -138,7 +136,7 @@ const App = () => {
           </div>
         </div>
 
-        {/* DOCUMENTS SECTION */}
+        {/* Documents Section */}
         <div className="space-y-4 pt-4">
           <h2 className={`font-orbitron text-lg border-b border-zinc-800 pb-1 uppercase tracking-[0.2em] font-black flex items-center ${getBrandColorClass()}`}>
             Documents & Freight <SuccessCheck condition={uploadedFiles.length > 0 && bolType !== ''} />
@@ -153,13 +151,14 @@ const App = () => {
               </div>
             </div>
 
-            <div className="py-4 text-center cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-              <p className="text-white text-[10px] font-bold uppercase mb-1 flex justify-center items-center gap-2">Tap to open camera or upload files <SuccessCheck condition={uploadedFiles.length > 0} /></p>
-              <p className="text-[9px] text-zinc-500 mb-6 italic">Drag & drop is also supported (Max PDF/Image)</p>
+            <div className="py-4 text-center cursor-pointer">
+              <p className="text-white text-[10px] font-bold uppercase mb-1 flex justify-center items-center gap-2">Choose an upload method <SuccessCheck condition={uploadedFiles.length > 0} /></p>
+              <p className="text-[9px] text-zinc-500 mb-6 italic">Multiple file selection is now enabled</p>
               
               <div className="flex justify-center gap-6 text-[11px] text-zinc-400 font-bold uppercase">
-                <button type="button" className={`flex items-center gap-1 ${isGLX ? 'hover:text-green-500' : isBST ? 'hover:text-blue-400' : 'hover:text-cyan-400'}`} onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}>📁 Select Files</button>
-                <button type="button" className={`flex items-center gap-1 ${isGLX ? 'hover:text-green-500' : isBST ? 'hover:text-blue-400' : 'hover:text-cyan-400'}`} onClick={(e) => { e.stopPropagation(); cameraInputRef.current?.click(); }}>📷 Use Camera</button>
+                {/* Fixed: Select Files now allows multiple selection and avoids forced camera prompt */}
+                <button type="button" className={`flex items-center gap-1 ${isGLX ? 'hover:text-green-500' : isBST ? 'hover:text-blue-400' : 'hover:text-cyan-400'}`} onClick={() => fileInputRef.current?.click()}>📁 Select Files</button>
+                <button type="button" className={`flex items-center gap-1 ${isGLX ? 'hover:text-green-500' : isBST ? 'hover:text-blue-400' : 'hover:text-cyan-400'}`} onClick={() => cameraInputRef.current?.click()}>📷 Use Camera</button>
               </div>
             </div>
 
@@ -190,14 +189,9 @@ const App = () => {
 
       {showSuccess && (
         <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-6 backdrop-blur-sm">
-          <div className={`w-full max-w-sm bg-[#0a0a0a] border ${isGLX ? 'border-green-500 shadow-green-500/20' : 'border-blue-500 shadow-blue-500/20'} p-8 rounded-xl text-center space-y-6`}>
+          <div className={`w-full max-w-sm bg-[#0a0a0a] border ${isGLX ? 'border-green-500' : 'border-blue-500'} p-8 rounded-xl text-center space-y-6`}>
             <div className={`text-5xl mb-4 ${isGLX ? 'text-green-500' : 'text-blue-500'}`}>✓</div>
             <h2 className="font-orbitron text-xl text-white uppercase tracking-widest">Submission Sent</h2>
-            <div className="bg-[#111] p-4 rounded text-left space-y-2 text-xs border border-zinc-800 text-zinc-400">
-              <p>Company: <span className="text-white font-bold">{company === 'GLX' ? 'Greenleaf Xpress' : 'BST Expedite'}</span></p>
-              <p>Load/BOL: <span className="text-white font-bold">{loadNum || bolNum}</span></p>
-              <p>Files: <span className="text-white font-bold">{uploadedFiles.length}</span></p>
-            </div>
             <button onClick={() => window.location.reload()} className={`w-full py-3 rounded font-orbitron text-[10px] uppercase tracking-widest ${isGLX ? 'bg-green-500' : 'bg-blue-500'} text-white`}>New Upload</button>
           </div>
         </div>
