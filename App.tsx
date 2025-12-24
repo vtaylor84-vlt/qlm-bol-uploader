@@ -99,6 +99,7 @@ const App = () => {
             <input type="text" placeholder="Load #" className="bg-[#111] border border-zinc-700 p-2 rounded text-white text-sm outline-none" value={loadNum} onChange={(e) => setLoadNum(e.target.value)} />
             <input type="text" placeholder="BOL #" className="bg-[#111] border border-zinc-700 p-2 rounded text-white text-sm outline-none" value={bolNum} onChange={(e) => setBolNum(e.target.value)} />
           </div>
+          
           <div className="grid grid-cols-1 gap-4 text-[10px] uppercase font-bold tracking-widest">
             <div className="flex flex-col">
               <label className={getBrandColorClass()}>Pickup City/State* <SuccessCheck condition={puCity !== '' && puState !== ''} /></label>
@@ -140,20 +141,36 @@ const App = () => {
 
             <div className="py-4 text-center">
               <p className="text-white text-[10px] font-bold uppercase mb-1">Choose an upload method</p>
-              {/* ✅ Instructional Tip for Multi-Select */}
               <p className={`text-[9px] mb-6 italic font-bold ${isGLX ? 'text-green-500/70' : isBST ? 'text-blue-400/70' : 'text-zinc-500'}`}>
                 Tip: Press and hold a photo to select multiple files
               </p>
               
               <div className="flex justify-center gap-6 text-[11px] text-zinc-400 font-bold uppercase">
+                {/* Strict Click Actions */}
                 <button type="button" className={`flex items-center gap-1 ${isGLX ? 'hover:text-green-500' : isBST ? 'hover:text-blue-400' : 'hover:text-cyan-400'}`} onClick={() => fileInputRef.current?.click()}>📁 Select Files</button>
                 <button type="button" className={`flex items-center gap-1 ${isGLX ? 'hover:text-green-500' : isBST ? 'hover:text-blue-400' : 'hover:text-cyan-400'}`} onClick={() => cameraInputRef.current?.click()}>📷 Use Camera</button>
               </div>
             </div>
 
-            {/* ✅ Updated Input: Includes PDF to force File Picker over Camera prompt on Mobile */}
-            <input type="file" ref={fileInputRef} className="hidden" multiple accept="image/*,application/pdf,.doc,.docx" onChange={handleFileChange} />
-            <input type="file" ref={cameraInputRef} className="hidden" capture="environment" accept="image/*" onChange={handleFileChange} />
+            {/* ✅ UPDATED: Files input now lists document types first to force "Files" view over Camera prompt */}
+            <input 
+              type="file" 
+              ref={fileInputRef} 
+              className="hidden" 
+              multiple 
+              accept=".pdf,.doc,.docx,application/pdf,image/png,image/jpeg" 
+              onChange={handleFileChange} 
+            />
+            
+            {/* Camera input remains strictly for environment capture */}
+            <input 
+              type="file" 
+              ref={cameraInputRef} 
+              className="hidden" 
+              capture="environment" 
+              accept="image/*" 
+              onChange={handleFileChange} 
+            />
 
             {uploadedFiles.length > 0 && (
               <div className="grid grid-cols-3 gap-2 mt-4 pt-4 border-t border-zinc-800">
