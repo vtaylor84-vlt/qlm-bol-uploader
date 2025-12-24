@@ -73,17 +73,20 @@ const App = () => {
                          puCity !== '' && puState !== '' && delCity.trim() !== '' && delState !== '' && 
                          bolType !== '' && uploadedFiles.length > 0;
 
+  // Unified Input Style Class
+  const inputBaseStyle = "bg-[#111] border p-2 rounded text-white text-sm outline-none transition-all font-normal";
+
   return (
     <div className="app-container space-y-6 pb-20">
-      <h1 className={`font-orbitron text-2xl text-center tracking-tighter mb-4 ${getBrandColorClass()} uppercase glowing-text`}>BOL / PHOTO UPLOAD</h1>
+      <h1 className={`font-orbitron text-2xl text-center tracking-tighter mb-4 transition-colors duration-500 ${getBrandColorClass()} uppercase glowing-text`}>BOL / PHOTO UPLOAD</h1>
       
       <div className={`bg-[#0a0a0a] border rounded-lg p-5 transition-all duration-700 space-y-8 ${isGLX ? 'border-green-500 shadow-[0_0_25px_rgba(34,197,94,0.2)]' : isBST ? 'border-blue-500 shadow-[0_0_25px_rgba(59,130,246,0.2)]' : 'border-zinc-800 shadow-2xl'}`}>
         
-        {/* Info Grid */}
+        {/* Company & Driver Section */}
         <div className="grid grid-cols-2 gap-4">
           <div className="flex flex-col">
             <label className={`text-[10px] mb-1 uppercase font-bold tracking-widest flex items-center ${getBrandColorClass()}`}>Company* <SuccessCheck condition={company !== ''} /></label>
-            <select className={`bg-[#111] border p-2 rounded text-white text-sm outline-none transition-all font-normal ${getFieldStatus(company)}`} value={company} onChange={(e) => setCompany(e.target.value)}>
+            <select className={`${inputBaseStyle} ${getFieldStatus(company)}`} value={company} onChange={(e) => setCompany(e.target.value)}>
               <option value="">Select Company...</option>
               <option value="GLX">Greenleaf Xpress</option>
               <option value="BST">BST Expedite</option>
@@ -91,7 +94,7 @@ const App = () => {
           </div>
           <div className="flex flex-col">
             <label className={`text-[10px] mb-1 uppercase font-bold tracking-widest flex items-center ${getBrandColorClass()}`}>Driver Name* <SuccessCheck condition={driverName !== ''} /></label>
-            <input type="text" placeholder="Enter name" className={`bg-[#111] border p-2 rounded text-white text-sm outline-none transition-all ${getFieldStatus(driverName)}`} value={driverName} onChange={(e) => setDriverName(e.target.value)} />
+            <input type="text" placeholder="Enter name" className={`${inputBaseStyle} ${getFieldStatus(driverName)}`} value={driverName} onChange={(e) => setDriverName(e.target.value)} />
           </div>
         </div>
 
@@ -103,11 +106,11 @@ const App = () => {
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col">
               <label className={`text-[10px] mb-1 uppercase font-bold tracking-widest flex items-center ${getBrandColorClass()}`}>Load # <SuccessCheck condition={loadNum !== ''} /></label>
-              <input type="text" placeholder="Load ID" className={`bg-[#111] border p-2 rounded text-white text-sm outline-none ${getFieldStatus(loadNum)}`} value={loadNum} onChange={(e) => setLoadNum(e.target.value)} />
+              <input type="text" placeholder="Load ID" className={`${inputBaseStyle} ${getFieldStatus(loadNum)}`} value={loadNum} onChange={(e) => setLoadNum(e.target.value)} />
             </div>
             <div className="flex flex-col">
               <label className={`text-[10px] mb-1 uppercase font-bold tracking-widest flex items-center ${getBrandColorClass()}`}>BOL # <SuccessCheck condition={bolNum !== ''} /></label>
-              <input type="text" placeholder="BOL #" className={`bg-[#111] border p-2 rounded text-white text-sm outline-none ${getFieldStatus(bolNum)}`} value={bolNum} onChange={(e) => setBolNum(e.target.value)} />
+              <input type="text" placeholder="BOL #" className={`${inputBaseStyle} ${getFieldStatus(bolNum)}`} value={bolNum} onChange={(e) => setBolNum(e.target.value)} />
             </div>
           </div>
 
@@ -115,9 +118,8 @@ const App = () => {
             <div className="flex flex-col">
               <label className={getBrandColorClass()}>Pickup City/State* <SuccessCheck condition={puCity !== '' && puState !== ''} /></label>
               <div className="flex gap-2 mt-1">
-                <input type="text" placeholder="PU City" className={`flex-1 bg-[#111] border p-2 rounded text-white text-sm outline-none ${getFieldStatus(puCity)}`} value={puCity} onChange={(e) => setPuCity(e.target.value)} />
-                {/* ✅ STYLED: Pickup State dropdown is font-normal (not bold) */}
-                <select className={`w-32 bg-[#111] border p-2 rounded text-white text-sm outline-none font-normal transition-all ${getFieldStatus(puState)}`} value={puState} onChange={(e) => setPuState(e.target.value)}>
+                <input type="text" placeholder="PU City" className={`${inputBaseStyle} flex-1 ${getFieldStatus(puCity)}`} value={puCity} onChange={(e) => setPuCity(e.target.value)} />
+                <select className={`${inputBaseStyle} w-32 ${getFieldStatus(puState)}`} value={puState} onChange={(e) => setPuState(e.target.value)}>
                   <option value="">Select State</option>
                   {states.map(s => <option key={`p-${s}`} value={s}>{s}</option>)}
                 </select>
@@ -126,9 +128,8 @@ const App = () => {
             <div className="flex flex-col">
               <label className={getBrandColorClass()}>Delivery City/State* <SuccessCheck condition={delCity !== '' && delState !== ''} /></label>
               <div className="flex gap-2 mt-1">
-                <input type="text" placeholder="Del City" className={`flex-1 bg-[#111] border p-2 rounded text-white text-sm outline-none ${getFieldStatus(delCity)}`} value={delCity} onChange={(e) => setDelCity(e.target.value)} />
-                {/* ✅ STYLED: Delivery State dropdown is font-normal (not bold) */}
-                <select className={`w-32 bg-[#111] border p-2 rounded text-white text-sm outline-none font-normal transition-all ${getFieldStatus(delState)}`} value={delState} onChange={(e) => setDelState(e.target.value)}>
+                <input type="text" placeholder="Del City" className={`${inputBaseStyle} flex-1 ${getFieldStatus(delCity)}`} value={delCity} onChange={(e) => setDelCity(e.target.value)} />
+                <select className={`${inputBaseStyle} w-32 ${getFieldStatus(delState)}`} value={delState} onChange={(e) => setDelState(e.target.value)}>
                   <option value="">Select State</option>
                   {states.map(s => <option key={`d-${s}`} value={s}>{s}</option>)}
                 </select>
