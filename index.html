@@ -1,62 +1,81 @@
-<style>
-  :root {
-    --glow-cyan: #00ffff;
-    --glow-cyan-low: rgba(0, 255, 255, 0.3);
-    --terminal-green: #00ff41;
-    --bg-black: #050505;
-    --card-bg: #0a0a0a;
-    --input-bg: #111111;
-  }
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>QLM Driver Uploader PWA</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <link rel="manifest" href="/metadata.json">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
 
-  body {
-    font-family: 'Inter', sans-serif;
-    background-color: var(--bg-black);
-    color: #e0e0e0;
-    margin: 0;
-    padding: 0;
-  }
+    <style>
+      :root {
+        --glow-cyan: #00ffff;
+        --glow-cyan-low: rgba(0, 255, 255, 0.3);
+        --bg-black: #050505;
+      }
 
-  /* Force the background grid colors */
-  body::before {
-    content: '';
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background-image: 
-      linear-gradient(to right, rgba(0, 255, 255, 0.07) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(0, 255, 255, 0.07) 1px, transparent 1px);
-    background-size: 40px 40px;
-    z-index: -1;
-  }
+      body {
+        font-family: 'Inter', sans-serif;
+        background-color: var(--bg-black);
+        color: #E0E0E0;
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
+      }
 
-  /* Centering Logic */
-  #root {
-    display: flex;
-    justify-content: center;
-    padding: 20px 10px;
-  }
+      /* Animated Grid Background */
+      body::before {
+        content: '';
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background-image: 
+          linear-gradient(to right, rgba(0, 255, 255, 0.07) 1px, transparent 1px),
+          linear-gradient(to bottom, rgba(0, 255, 255, 0.07) 1px, transparent 1px);
+        background-size: 40px 40px;
+        z-index: -1;
+      }
 
-  #root > div {
-    width: 100%;
-    max-width: 480px;
-  }
+      /* Mobile Card Centering */
+      #root {
+        display: flex;
+        justify-content: center;
+        min-height: 100vh;
+        padding: 20px 12px;
+      }
 
-  /* Specific UI Colors for Header and Buttons */
-  .font-orbitron { font-family: 'Orbitron', sans-serif; color: var(--glow-cyan); }
-  
-  .glowing-text-cyan {
-    text-shadow: 0 0 10px var(--glow-cyan), 0 0 20px var(--glow-cyan-low);
-  }
+      #root > div {
+        width: 100%;
+        max-width: 480px;
+        margin: 0 auto;
+      }
 
-  /* Style for the 'Complete Required Fields' button area */
-  button:disabled {
-    background-color: #222 !important;
-    color: #444 !important;
-    border: 1px solid #333 !important;
-  }
+      .font-orbitron { font-family: 'Orbitron', sans-serif; }
+      .glowing-text-cyan {
+        text-shadow: 0 0 10px var(--glow-cyan), 0 0 20px var(--glow-cyan-low);
+      }
+    </style>
 
-  button:not(:disabled) {
-    background-color: var(--glow-cyan) !important;
-    color: #000 !important;
-    box-shadow: 0 0 15px var(--glow-cyan);
-  }
-</style>
+    <script type="importmap">
+      {
+        "imports": {
+          "@google/genai": "https://aistudiocdn.com/@google/genai@^1.29.0",
+          "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+          "react/": "https://aistudiocdn.com/react@^19.2.0/",
+          "react": "https://aistudiocdn.com/react@^19.2.0",
+          "idb": "https://aistudiocdn.com/idb@^8.0.0"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+    <script type="module" src="/src/index.tsx"></script>
+  </body>
+</html>
