@@ -9,27 +9,19 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     
-    <link rel="manifest" href="/metadata.json">
-    
     <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
       :root {
         --glow-cyan: #00ffff;
-        --glow-cyan-low: rgba(0, 255, 255, 0.3);
         --bg-black: #050505;
       }
-
       body {
         font-family: 'Inter', sans-serif;
         background-color: var(--bg-black);
-        color: #E0E0E0;
         margin: 0;
-        padding: 0;
         overflow-x: hidden;
       }
-
-      /* Animated Grid Background */
       body::before {
         content: '';
         position: fixed;
@@ -40,24 +32,15 @@
         background-size: 40px 40px;
         z-index: -1;
       }
-
-      /* Mobile Card View Centering */
       #root {
         display: flex;
         justify-content: center;
         min-height: 100vh;
         padding: 20px 12px;
       }
-
       #root > div {
         width: 100%;
         max-width: 480px;
-        margin: 0 auto;
-      }
-
-      .font-orbitron { font-family: 'Orbitron', sans-serif; }
-      .glowing-text-cyan {
-        text-shadow: 0 0 10px var(--glow-cyan), 0 0 20px var(--glow-cyan-low);
       }
     </style>
 
@@ -71,9 +54,7 @@
     </script>
   </head>
   <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
-    
-    <script type="module" src="/index.tsx"></script>
+    <script type="module" src="./index.tsx"></script>
   </body>
 </html>
