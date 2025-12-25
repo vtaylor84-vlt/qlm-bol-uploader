@@ -1,350 +1,368 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import { initializeApp } from "firebase/app";
+import { getAuth, GoogleAuthProvider, signInWithPopup, User, onAuthStateChanged, signOut } from "firebase/auth";
+import { getStorage, ref as storageRef, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import { getFirestore, collection, addDoc, serverTimestamp } from "firebase/firestore";
 
 /**
- * LOGISTICS COMMAND TERMINAL v6.2 [SUPERIOR EDITION]
- * FOCUS: Tactile entry protocols & high-fidelity feedback loops.
+ * NEXUS TERMINAL v11.0 [APEX-TACTICAL]
+ * ---------------------------------------------------------
+ * CORE: React 18 / Firebase Gen-3
+ * UX: Industrial Cockpit Interface (ICI)
+ * PERFORMANCE: Optimized Frame-Budgeting
  */
 
-interface FileWithPreview {
-  file: File;
-  preview: string;
-  id: string;
-  timestamp: string;
-}
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const storage = getStorage(app);
+const db = getFirestore(app);
+const provider = new GoogleAuthProvider();
+
+// --- ATOMIC UI COMPONENTS ---
+
+const TacticalLine = ({ vertical = false }) => (
+  <div className={`${vertical ? 'w-px h-full' : 'h-px w-full'} bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-50`} />
+);
+
+const HexNode = ({ active, color }: { active: boolean; color: string }) => (
+  <div className={`w-3 h-3 rotate-45 border transition-all duration-500 ${active ? 'scale-110' : 'opacity-20'}`} 
+       style={{ borderColor: color, backgroundColor: active ? color : 'transparent', boxShadow: active ? `0 0 10px ${color}` : 'none' }} />
+);
 
 const App: React.FC = () => {
-  // --- SESSION STATE ---
-  const [isLocked, setIsLocked] = useState(true);
-  const [authStatus, setAuthStatus] = useState<'IDLE' | 'SCANNING' | 'VERIFYING' | 'GRANTED'>('IDLE');
-  const [authProgress, setAuthProgress] = useState(0);
-  
-  // --- APP STATE ---
+  const [user, setUser] = useState<User | null>(null);
+  const [isSyncing, setIsSyncing] = useState(false);
   const [company, setCompany] = useState<'GLX' | 'BST' | ''>('');
   const [driverName, setDriverName] = useState('');
-  const [loadNum, setLoadNum] = useState('');
-  const [bolNum, setBolNum] = useState('');
   const [puCity, setPuCity] = useState('');
   const [puState, setPuState] = useState('');
   const [delCity, setDelCity] = useState('');
   const [delState, setDelState] = useState('');
   const [bolType, setBolType] = useState<'pickup' | 'delivery' | ''>('');
-  const [uploadedFiles, setUploadedFiles] = useState<FileWithPreview[]>([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [showSuccess, setShowSuccess] = useState(false);
-  const [shake, setShake] = useState(false);
+  const [files, setFiles] = useState<any[]>([]);
+  const [isTransmitting, setIsTransmitting] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [activeTab, setActiveTab] = useState<'SYS' | 'NAV' | 'DATA'>('SYS');
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const cameraInputRef = useRef<HTMLInputElement>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const fileInput = useRef<HTMLInputElement>(null);
+  const cameraInput = useRef<HTMLInputElement>(null);
 
-  const states = ['AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 'HI', 'IA', 'ID', 'IL', 'IN', 'KS', 'KY', 'LA', 'ME', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'];
-
-  // --- THEME ENGINE ---
   const isGLX = company === 'GLX';
   const isBST = company === 'BST';
-  const accentHex = isGLX ? '#22c55e' : isBST ? '#3b82f6' : '#06b6d4';
-  const accentTailwind = isGLX ? 'green-500' : isBST ? 'blue-500' : 'cyan-500';
+  const themeHex = isGLX ? '#22c55e' : isBST ? '#3b82f6' : '#06b6d4';
+  const themeTailwind = isGLX ? 'green-500' : isBST ? 'blue-500' : 'cyan-500';
 
-  useEffect(() => {
-    audioRef.current = new Audio('https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3');
-    return () => uploadedFiles.forEach(f => URL.revokeObjectURL(f.preview));
-  }, [uploadedFiles]);
+  useEffect(() => { return onAuthStateChanged(auth, setUser); }, []);
 
-  const handleAuth = () => {
-    if (authStatus !== 'IDLE') return;
-    
-    setAuthStatus('SCANNING');
-    audioRef.current?.play().catch(() => {});
+  const overallProgress = useMemo(() => 
+    files.length ? Math.round(files.reduce((s, f) => s + (f.progress || 0), 0) / files.length) : 0, [files]);
 
-    let p = 0;
-    const interval = setInterval(() => {
-      p += 4;
-      setAuthProgress(p);
-      if (p === 60) setAuthStatus('VERIFYING');
-      if (p >= 100) {
-        clearInterval(interval);
-        setAuthStatus('GRANTED');
-        setTimeout(() => setIsLocked(false), 500);
-      }
-    }, 30);
+  const mapSource = useMemo(() => {
+    if (!puCity || !delCity) return null;
+    return `https://www.google.com/maps/embed/v1/directions?key=YOUR_API_KEY&origin=${encodeURIComponent(puCity + ',' + puState)}&destination=${encodeURIComponent(delCity + ',' + delState)}&mode=driving&maptype=roadmap`;
+  }, [puCity, puState, delCity, delState]);
+
+  const handleAuth = async () => {
+    setIsSyncing(true);
+    try { await signInWithPopup(auth, provider); } catch (e) { console.error("AUTH_ERR", e); }
+    setIsSyncing(false);
   };
 
-  const handleFile = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const filesArray = Array.from(e.target.files).map(file => ({
-        file,
-        preview: URL.createObjectURL(file),
-        id: crypto.randomUUID(),
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-      }));
-      setUploadedFiles(prev => [...prev, ...filesArray]);
-    }
-  }, []);
-
-  const isFormComplete = company && driverName && (loadNum || bolNum) && puCity && puState && delCity && delState && bolType && uploadedFiles.length > 0;
-
-  const handleSubmit = () => {
-    if (!isFormComplete) {
-      setShake(true);
-      setTimeout(() => setShake(false), 600);
-      return;
-    }
-    setIsSubmitting(true);
-    let prog = 0;
-    const timer = setInterval(() => {
-      prog += Math.random() * 12;
-      setUploadProgress(Math.min(prog, 100));
-      if (prog >= 100) {
-        clearInterval(timer);
-        setTimeout(() => setShowSuccess(true), 600);
-      }
-    }, 150);
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) return;
+    const newAssets = Array.from(e.target.files).map(file => ({
+      id: crypto.randomUUID(),
+      file,
+      preview: URL.createObjectURL(file),
+      progress: 0,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    }));
+    setFiles(prev => [...prev, ...newAssets]);
   };
 
-  const inputClass = `w-full bg-black/60 border border-zinc-800/80 p-4 text-[11px] font-mono tracking-widest rounded-none outline-none focus:border-${accentTailwind} transition-all duration-300 placeholder-zinc-800 text-white backdrop-blur-md shadow-inner`;
+  const executeUplink = async () => {
+    if (!user || files.length === 0) return;
+    setIsTransmitting(true);
 
-  // --- AUTH SCREEN (THE GATE) ---
-  if (isLocked) {
+    const uploadPromises = files.map(async (fileItem) => {
+      const sRef = storageRef(storage, `nexus_uplink/${user.uid}/${fileItem.id}`);
+      const task = uploadBytesResumable(sRef, fileItem.file);
+
+      return new Promise((resolve) => {
+        task.on('state_changed', 
+          (s) => {
+            const p = (s.bytesTransferred / s.totalBytes) * 100;
+            setFiles(prev => prev.map(f => f.id === fileItem.id ? { ...f, progress: p } : f));
+          },
+          (err) => console.error(err),
+          async () => {
+            const url = await getDownloadURL(task.snapshot.ref);
+            resolve(url);
+          }
+        );
+      });
+    });
+
+    try {
+      const urls = await Promise.all(uploadPromises);
+      await addDoc(collection(db, "uplinks"), {
+        uid: user.uid,
+        operator: driverName,
+        fleet: company,
+        route: { origin: `${puCity}, ${puState}`, dest: `${delCity}, ${delState}` },
+        type: bolType,
+        payload: urls,
+        timestamp: serverTimestamp()
+      });
+      setSuccess(true);
+    } catch (e) {
+      setIsTransmitting(false);
+    }
+  };
+
+  // --- UI FRAGMENTS ---
+
+  if (!user) {
     return (
-      <div className="min-h-screen bg-black flex flex-col items-center justify-center p-8 font-orbitron overflow-hidden relative">
-        {/* Background Atmosphere */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_#111_0%,_#000_70%)] opacity-100" />
-        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-50" />
-        
-        <div className="z-10 w-full max-w-sm flex flex-col items-center gap-12">
-          {/* Brand Header */}
-          <div className="text-center space-y-2 animate-in fade-in slide-in-from-bottom-4 duration-1000">
-            <h2 className="text-cyan-500/40 text-[9px] tracking-[0.8em] uppercase font-black">Secure Data Uplink</h2>
-            <h1 className="text-white text-5xl font-black tracking-tighter italic">V5.0</h1>
+      <div className="min-h-screen bg-[#020202] flex items-center justify-center p-6 font-orbitron overflow-hidden relative">
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20" />
+        <div className="z-10 w-full max-w-lg text-center">
+          <div className="relative mb-20">
+            <h1 className="text-8xl font-black text-white italic tracking-tighter opacity-10 select-none absolute -top-10 left-1/2 -translate-x-1/2">NEXUS</h1>
+            <h1 className="text-5xl font-black text-white tracking-[0.4em] relative z-10">HANDSHAKE_REQUIRED</h1>
           </div>
-
-          {/* THE IGNITION NODE (Clickable Entry) */}
-          <div className="relative group">
-            <div className={`absolute -inset-8 bg-cyan-500/10 blur-[60px] rounded-full transition-opacity duration-1000 ${authStatus !== 'IDLE' ? 'opacity-100' : 'opacity-40'}`} />
-            
-            <button 
-              onClick={handleAuth}
-              disabled={authStatus !== 'IDLE'}
-              className={`relative w-48 h-48 rounded-full border-2 flex flex-col items-center justify-center transition-all duration-700 active:scale-95 ${
-                authStatus === 'IDLE' 
-                  ? 'border-cyan-500/30 hover:border-cyan-400 shadow-[0_0_30px_rgba(6,182,212,0.1)] hover:shadow-[0_0_50px_rgba(6,182,212,0.3)] animate-pulse-subtle' 
-                  : 'border-cyan-400 shadow-[0_0_60px_rgba(6,182,212,0.4)]'
-              }`}
-            >
-              {/* Biometric SVG */}
-              <svg className={`w-16 h-16 transition-colors duration-500 ${authStatus !== 'IDLE' ? 'text-cyan-400' : 'text-zinc-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.2" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09m10.839-12.218c1.744 2.772 2.753 6.054 2.753 9.571m-1.113-12.218A11.95 11.95 0 0012 2c-2.31 0-4.47.653-6.309 1.782m12.618 0c1.84 1.129 3.414 2.651 4.59 4.433m-17.208 0C2.906 6.433 4.48 4.911 6.32 3.782m12.618 0l.042.025M5.168 20.427A11.95 11.95 0 012 12c0-2.31.653-4.47 1.782-6.309m15.054 15.054A11.95 11.95 0 0022 12c0-2.31-.653-4.47-1.782-6.309m-11.41 12.618a5 5 0 117.072 0m-7.072 0a11.95 11.95 0 01-2.753-9.571m1.113-2.618A5 5 0 0119 12a11.95 11.95 0 01-2.753 9.571"/>
-              </svg>
-              
-              <span className="mt-4 text-[9px] font-black uppercase tracking-[0.3em] text-cyan-500/60">
-                {authStatus === 'IDLE' ? 'Initialize' : authStatus}
-              </span>
-
-              {/* Spinning Progress Ring */}
-              {authStatus !== 'IDLE' && (
-                <svg className="absolute inset-0 w-full h-full -rotate-90">
-                  <circle 
-                    cx="96" cy="96" r="90" fill="none" stroke="rgba(6,182,212,0.1)" strokeWidth="2" 
-                  />
-                  <circle 
-                    cx="96" cy="96" r="90" fill="none" stroke="#06b6d4" strokeWidth="3"
-                    strokeDasharray="565.48"
-                    strokeDashoffset={565.48 - (565.48 * authProgress) / 100}
-                    className="transition-all duration-100 ease-linear shadow-[0_0_10px_#06b6d4]"
-                  />
-                </svg>
-              )}
-            </button>
-          </div>
-
-          <p className="text-[8px] text-zinc-700 font-mono tracking-[0.4em] uppercase text-center max-w-[240px] leading-relaxed">
-            Click to establish secure biometric handshake with logistics core.
-          </p>
+          <button onClick={handleAuth} className="w-full py-8 border border-cyan-500/50 bg-cyan-500/5 text-cyan-400 font-black text-lg tracking-[0.5em] hover:bg-cyan-400 hover:text-black transition-all duration-700 relative overflow-hidden group">
+            <span className="relative z-10">{isSyncing ? 'PROTOCOL_INIT...' : 'INITIATE_NEXUS_UPLINK'}</span>
+            <div className="absolute inset-0 bg-white translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 opacity-20" />
+          </button>
         </div>
       </div>
     );
   }
 
-  // --- MAIN APP (THE TERMINAL) ---
   return (
-    <div className={`min-h-screen bg-[#020202] text-zinc-300 font-orbitron overflow-x-hidden selection:bg-${accentTailwind} selection:text-black`}>
-      {/* Dynamic Grid Background */}
-      <div className="fixed inset-0 pointer-events-none z-0">
-        <div className={`absolute inset-0 opacity-[0.05] transition-colors duration-1000`} 
-             style={{ backgroundImage: `linear-gradient(${accentHex} 1px, transparent 1px), linear-gradient(90deg, ${accentHex} 1px, transparent 1px)`, backgroundSize: '40px 40px' }} />
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
+    <div className="min-h-screen bg-[#050505] text-zinc-400 font-orbitron overflow-hidden relative selection:bg-cyan-500 selection:text-black">
+      {/* BACKGROUND TELEMETRY LAYER */}
+      <div className="fixed inset-0 pointer-events-none opacity-20 z-0">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:32px_32px]" />
+        <div className="absolute bottom-0 left-0 w-full h-[300px] bg-gradient-to-t from-black to-transparent" />
       </div>
 
-      <div className="relative z-10 max-w-5xl mx-auto p-5 md:p-12 space-y-12">
-        {/* TOP HUD */}
-        <header className="flex justify-between items-end border-b border-zinc-900 pb-10">
-          <div className="flex items-center gap-6">
-            <div className={`w-14 h-14 border transition-all duration-1000 flex items-center justify-center font-black text-xl shadow-2xl ${isGLX ? 'bg-green-500 text-black border-green-400' : isBST ? 'bg-blue-600 text-white border-blue-400' : 'bg-zinc-900 text-zinc-700 border-zinc-800'}`}>
-              {isGLX ? 'G' : isBST ? 'B' : '?'}
+      <div className="max-w-[1600px] mx-auto p-4 md:p-10 relative z-10">
+        {/* HEADER: COMMAND HUD */}
+        <header className="flex flex-col lg:flex-row justify-between items-start lg:items-center border-b border-zinc-900 pb-10 gap-8">
+          <div className="flex items-center gap-10">
+            <div className={`w-24 h-24 border-2 flex items-center justify-center text-4xl font-black transition-all duration-1000 ${isGLX ? 'border-green-500 text-green-500 shadow-[0_0_30px_#22c55e40]' : isBST ? 'border-blue-500 text-blue-500 shadow-[0_0_30px_#3b82f640]' : 'border-zinc-800 text-zinc-800'}`}>
+              {company ? company.substring(0, 1) : 'Ø'}
             </div>
-            <div className="space-y-1">
-              <h2 className={`text-2xl font-black tracking-tighter uppercase italic leading-none ${accentTailwind}`}>Logistics_Uplink</h2>
-              <div className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse shadow-[0_0_5px_#22c55e]" />
-                <p className="text-[8px] text-zinc-600 tracking-[0.4em] font-mono">NODE_ACTIVE // {new Date().toLocaleTimeString()}</p>
+            <div className="space-y-2">
+              <h1 className="text-4xl font-black text-white italic tracking-tighter">NEXUS_TERMINAL_v11</h1>
+              <div className="flex items-center gap-4 text-[10px] tracking-[0.3em] font-mono">
+                <span className="text-cyan-500 animate-pulse">● UPLINK_STABLE</span>
+                <TacticalLine vertical />
+                <span className="text-zinc-600 uppercase">Operator: {user.displayName}</span>
               </div>
             </div>
           </div>
-          <div className="hidden md:block text-right font-mono text-[9px] text-zinc-700 tracking-widest uppercase">
-            ID: {crypto.randomUUID().split('-')[0]} // SEC_LEVEL: 4
+          <div className="flex gap-6 items-center">
+             <div className="text-right hidden sm:block">
+               <p className="text-[10px] text-zinc-600 font-mono tracking-widest">{new Date().toLocaleDateString()}</p>
+               <p className="text-[10px] text-zinc-500 font-mono tracking-widest">NODE_ID: {user.uid.substring(0,8).toUpperCase()}</p>
+             </div>
+             <button onClick={() => signOut(auth)} className="px-6 py-4 border border-red-900/40 text-red-500 text-xs font-black tracking-widest hover:bg-red-500 hover:text-white transition-all">TERMINATE</button>
           </div>
         </header>
 
-        <main className={`grid grid-cols-1 lg:grid-cols-12 gap-12 transition-all ${shake ? 'animate-shake' : ''}`}>
-          {/* COLUMN 1: MANIFEST */}
-          <div className="lg:col-span-7 space-y-10">
-            <section className="space-y-6">
-              <div className="flex items-center gap-4">
-                <span className={`h-px flex-1 bg-gradient-to-r from-${accentTailwind}/40 to-transparent`} />
-                <h3 className="text-[10px] font-black uppercase tracking-[0.5em] text-zinc-500 italic">01 // Identity</h3>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="space-y-3">
-                  <label className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest ml-1">Fleet Selection</label>
-                  <select className={inputClass} value={company} onChange={e => setCompany(e.target.value as any)}>
-                    <option value="">[ SELECT FLEET ]</option>
-                    <option value="GLX">GREENLEAF XPRESS (GLX)</option>
-                    <option value="BST">BST EXPEDITE (BST)</option>
-                  </select>
-                </div>
-                <div className="space-y-3">
-                  <label className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest ml-1">Operator ID</label>
-                  <input type="text" placeholder="FULL_LEGAL_NAME" className={inputClass} value={driverName} onChange={e => setDriverName(e.target.value)} />
-                </div>
-              </div>
-            </section>
-
-            <section className="space-y-6">
-              <div className="flex items-center gap-4">
-                <span className={`h-px flex-1 bg-gradient-to-r from-${accentTailwind}/40 to-transparent`} />
-                <h3 className="text-[10px] font-black uppercase tracking-[0.5em] text-zinc-500 italic">02 // Load_Ref</h3>
-              </div>
-              <div className="grid grid-cols-2 gap-8">
-                <input type="text" placeholder="LOAD_#" className={inputClass} value={loadNum} onChange={e => setLoadNum(e.target.value)} />
-                <input type="text" placeholder="BOL_#" className={inputClass} value={bolNum} onChange={e => setBolNum(e.target.value)} />
-              </div>
-            </section>
-
-            <section className="space-y-6">
-              <div className="flex items-center gap-4">
-                <span className={`h-px flex-1 bg-gradient-to-r from-${accentTailwind}/40 to-transparent`} />
-                <h3 className="text-[10px] font-black uppercase tracking-[0.5em] text-zinc-500 italic">03 // Route_Map</h3>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="flex gap-2">
-                  <input type="text" placeholder="PU_CITY" className={inputClass} value={puCity} onChange={e => setPuCity(e.target.value)} />
-                  <select className={`${inputClass} w-28 text-center`} value={puState} onChange={e => setPuState(e.target.value)}>
-                    <option value="">ST</option>
-                    {states.map(s => <option key={s} value={s}>{s}</option>)}
-                  </select>
-                </div>
-                <div className="flex gap-2">
-                  <input type="text" placeholder="DEL_CITY" className={inputClass} value={delCity} onChange={e => setDelCity(e.target.value)} />
-                  <select className={`${inputClass} w-28 text-center`} value={delState} onChange={e => setDelState(e.target.value)}>
-                    <option value="">ST</option>
-                    {states.map(s => <option key={s} value={s}>{s}</option>)}
-                  </select>
-                </div>
-              </div>
-            </section>
-          </div>
-
-          {/* COLUMN 2: ASSETS */}
-          <div className="lg:col-span-5 space-y-10">
-            <section className="bg-zinc-950/80 border border-zinc-900 p-8 relative group overflow-hidden">
-              <div className={`absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-transparent via-${accentTailwind} to-transparent opacity-20`} />
-              <h3 className="text-[10px] font-black uppercase tracking-[0.4em] mb-8 text-center text-zinc-600">Document_Scanner</h3>
-              
-              <div className="flex justify-center gap-8 mb-10">
-                <button onClick={() => cameraInputRef.current?.click()} className="w-24 h-24 flex flex-col items-center justify-center gap-3 border border-zinc-800 hover:border-cyan-500 transition-colors bg-zinc-900/40">
-                  <svg className="w-6 h-6 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeWidth="1" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><circle cx="12" cy="13" r="3"/></svg>
-                  <span className="text-[7px] font-black tracking-widest uppercase">Scan</span>
-                </button>
-                <button onClick={() => fileInputRef.current?.click()} className="w-24 h-24 flex flex-col items-center justify-center gap-3 border border-zinc-800 hover:border-cyan-500 transition-colors bg-zinc-900/40">
-                  <svg className="w-6 h-6 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeWidth="1" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                  <span className="text-[7px] font-black tracking-widest uppercase">Files</span>
-                </button>
-              </div>
-
-              <div className="flex justify-center gap-6 text-[9px] font-black uppercase tracking-widest mb-10 border-y border-zinc-900/50 py-5">
-                <label className={`cursor-pointer flex items-center gap-2 transition-all ${bolType === 'pickup' ? `text-${accentTailwind}` : 'text-zinc-600'}`}>
-                  <input type="radio" className="hidden" name="b" onChange={() => setBolType('pickup')} />
-                  <div className={`w-2 h-2 rounded-full border border-zinc-800 ${bolType === 'pickup' ? 'bg-current shadow-[0_0_8px_currentColor]' : ''}`} />
-                  PU BOL
-                </label>
-                <label className={`cursor-pointer flex items-center gap-2 transition-all ${bolType === 'delivery' ? `text-${accentTailwind}` : 'text-zinc-600'}`}>
-                  <input type="radio" className="hidden" name="b" onChange={() => setBolType('delivery')} />
-                  <div className={`w-2 h-2 rounded-full border border-zinc-800 ${bolType === 'delivery' ? 'bg-current shadow-[0_0_8px_currentColor]' : ''}`} />
-                  DEL POD
-                </label>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3 max-h-48 overflow-y-auto custom-scroll pr-2">
-                {uploadedFiles.map(f => (
-                  <div key={f.id} className="relative aspect-[3/4] border border-zinc-900 bg-black group overflow-hidden">
-                    <img src={f.preview} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" alt="doc" />
-                    <div className={`absolute inset-0 border-2 border-${accentTailwind}/30 opacity-0 group-hover:opacity-100 transition-opacity`} />
-                    <button onClick={() => setUploadedFiles(prev => prev.filter(x => x.id !== f.id))} className="absolute top-2 right-2 w-5 h-5 bg-red-600 text-white text-[10px] flex items-center justify-center font-black">✕</button>
-                    <div className="absolute bottom-1 left-2 text-[6px] font-mono text-cyan-400">{f.timestamp}</div>
+        {/* MAIN COCKPIT GRID */}
+        <div className="mt-12 grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+          
+          {/* LEFT: STATUS READOUT */}
+          <aside className="lg:col-span-3 space-y-8 bg-zinc-950/80 p-6 border border-zinc-900 backdrop-blur-2xl">
+            <h3 className="text-[10px] font-black text-zinc-500 tracking-[0.5em] uppercase mb-10 italic">// Telemetry_Stream</h3>
+            <div className="space-y-12">
+              {[
+                { label: 'FLEET_SYNC', active: !!company, desc: company || 'IDLE' },
+                { label: 'GEO_COORD', active: !!puCity, desc: puCity ? 'LOCKED' : 'WAITING' },
+                { label: 'ASSET_MAP', active: files.length > 0, desc: `${files.length} UNITS` },
+                { label: 'UPLINK_PCT', active: isTransmitting, desc: `${overallProgress}%` }
+              ].map((item, i) => (
+                <div key={i} className="flex flex-col gap-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[9px] font-mono text-zinc-600 tracking-tighter">{item.label}</span>
+                    <HexNode active={item.active} color={themeHex} />
                   </div>
+                  <div className={`text-xs font-black uppercase tracking-widest ${item.active ? 'text-white' : 'text-zinc-800'}`}>{item.desc}</div>
+                  <TacticalLine />
+                </div>
+              ))}
+            </div>
+          </aside>
+
+          {/* CENTER: PRIMARY INTERFACE */}
+          <main className="lg:col-span-6 space-y-10">
+            <div className="flex gap-12 border-b border-zinc-900 pb-px">
+              {['SYS', 'NAV', 'DATA'].map(tab => (
+                <button key={tab} onClick={() => setActiveTab(tab as any)}
+                  className={`pb-6 text-sm font-black tracking-[0.5em] transition-all relative ${activeTab === tab ? `text-${themeTailwind}` : 'text-zinc-800 hover:text-zinc-600'}`}>
+                  {tab}
+                  {activeTab === tab && <div className={`absolute bottom-0 left-0 w-full h-1 bg-${themeTailwind} shadow-[0_0_20px_${themeHex}80]`} />}
+                </button>
+              ))}
+            </div>
+
+            <div className="min-h-[600px] transition-all duration-700">
+              {activeTab === 'SYS' && (
+                <div className="space-y-12 animate-in fade-in slide-in-from-bottom-8">
+                  <div className="grid grid-cols-2 gap-8">
+                    <div className="space-y-4">
+                      <label className="text-[10px] font-black uppercase text-zinc-600 tracking-widest">Fleet_Authority</label>
+                      <select className="w-full bg-zinc-950 border border-zinc-800 p-5 text-sm text-white focus:border-cyan-500 transition-all outline-none backdrop-blur-3xl" value={company} onChange={e => setCompany(e.target.value as any)}>
+                        <option value="">-- SELECT --</option>
+                        <option value="GLX">GREENLEAF XPRESS</option>
+                        <option value="BST">BST EXPEDITE</option>
+                      </select>
+                    </div>
+                    <div className="space-y-4">
+                      <label className="text-[10px] font-black uppercase text-zinc-600 tracking-widest">Operator_Sign</label>
+                      <input type="text" placeholder="AUTH_NAME" className="w-full bg-zinc-950 border border-zinc-800 p-5 text-sm text-white focus:border-cyan-500 outline-none transition-all" value={driverName} onChange={e => setDriverName(e.target.value)} />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-8">
+                    <div className="space-y-4">
+                      <label className="text-[10px] font-black uppercase text-zinc-600 tracking-widest">Pickup_Vector</label>
+                      <div className="flex gap-2">
+                        <input type="text" placeholder="CITY" className="flex-1 bg-zinc-950 border border-zinc-800 p-5 text-sm text-white outline-none" value={puCity} onChange={e => setPuCity(e.target.value)} />
+                        <select className="w-24 bg-zinc-950 border border-zinc-800 p-5 text-sm outline-none text-white" value={puState} onChange={e => setPuState(e.target.value)}>
+                          <option value="">ST</option>{states.map(s => <option key={s}>{s}</option>)}
+                        </select>
+                      </div>
+                    </div>
+                    <div className="space-y-4">
+                      <label className="text-[10px] font-black uppercase text-zinc-600 tracking-widest">Delivery_Vector</label>
+                      <div className="flex gap-2">
+                        <input type="text" placeholder="CITY" className="flex-1 bg-zinc-950 border border-zinc-800 p-5 text-sm text-white outline-none" value={delCity} onChange={e => setDelCity(e.target.value)} />
+                        <select className="w-24 bg-zinc-950 border border-zinc-800 p-5 text-sm outline-none text-white" value={delState} onChange={e => setDelState(e.target.value)}>
+                          <option value="">ST</option>{states.map(s => <option key={s}>{s}</option>)}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-12 border border-zinc-900 bg-zinc-950/50 flex flex-col items-center justify-center gap-10 group relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-tr from-cyan-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <h3 className="text-xs font-black tracking-[0.8em] text-zinc-700 uppercase italic">Asset_Capture_Array</h3>
+                    <div className="flex gap-16 relative z-10">
+                      <button onClick={() => cameraInput.current?.click()} className="flex flex-col items-center gap-4 group/btn transition-transform active:scale-95">
+                        <div className="w-24 h-24 border border-zinc-800 flex items-center justify-center bg-zinc-900/50 group-hover/btn:border-cyan-500 transition-all shadow-2xl">
+                          <svg className="w-10 h-10 text-zinc-700 group-hover/btn:text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeWidth="1" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><circle cx="12" cy="13" r="3"/></svg>
+                        </div>
+                        <span className="text-[9px] font-black tracking-widest">SCAN_CAM</span>
+                      </button>
+                      <button onClick={() => fileInput.current?.click()} className="flex flex-col items-center gap-4 group/btn transition-transform active:scale-95">
+                        <div className="w-24 h-24 border border-zinc-800 flex items-center justify-center bg-zinc-900/50 group-hover/btn:border-cyan-500 transition-all shadow-2xl">
+                          <svg className="w-10 h-10 text-zinc-700 group-hover/btn:text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeWidth="1" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                        </div>
+                        <span className="text-[9px] font-black tracking-widest">LOCAL_DISK</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'NAV' && (
+                <div className="h-[600px] bg-zinc-950 border border-zinc-900 p-2 animate-in zoom-in-95 duration-500 relative">
+                  <div className="absolute inset-0 z-10 pointer-events-none border-[30px] border-black/90 shadow-inner" />
+                  {mapSource ? (
+                    <iframe className="w-full h-full grayscale invert opacity-60 contrast-125" src={mapSource} frameBorder="0" loading="lazy" />
+                  ) : (
+                    <div className="flex items-center justify-center h-full text-[10px] uppercase tracking-[1em] text-zinc-800">No_Route_Coordinates</div>
+                  )}
+                </div>
+              )}
+
+              {activeTab === 'DATA' && (
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-6 animate-in slide-in-from-right-10 duration-500">
+                  {files.map(f => (
+                    <div key={f.id} className="relative aspect-square border border-zinc-900 bg-black group overflow-hidden">
+                      <img src={f.preview} className="w-full h-full object-cover opacity-40 group-hover:opacity-100 transition-opacity duration-700" alt="payload" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80" />
+                      <div className="absolute bottom-2 left-2 text-[8px] font-mono text-cyan-400">{f.timestamp}</div>
+                      <div className={`absolute bottom-0 left-0 h-1 bg-${themeTailwind} transition-all duration-300`} style={{ width: `${f.progress}%` }} />
+                      <button onClick={() => setFiles(prev => prev.filter(x => x.id !== f.id))} className="absolute top-2 right-2 p-2 bg-red-600/20 text-red-500 text-[10px] opacity-0 group-hover:opacity-100 transition-opacity font-black">✕</button>
+                    </div>
+                  ))}
+                  {files.length === 0 && <div className="col-span-full py-40 text-center border-2 border-dashed border-zinc-900 text-zinc-800 uppercase tracking-[1em] font-black">Null_Payload</div>}
+                </div>
+              )}
+            </div>
+          </main>
+
+          {/* RIGHT: TRANSMISSION CONTROL */}
+          <aside className="lg:col-span-3 space-y-10">
+            <div className="bg-zinc-950 p-6 border border-zinc-900 space-y-8">
+              <h3 className="text-[10px] font-black uppercase text-zinc-600 tracking-[0.4em] italic">// Transmission_Mode</h3>
+              <div className="space-y-4">
+                {['pickup', 'delivery'].map(type => (
+                  <label key={type} className={`flex items-center justify-between p-5 border border-zinc-900 cursor-pointer transition-all ${bolType === type ? `bg-${themeTailwind}/10 border-${themeTailwind} text-white` : 'hover:bg-white/5 text-zinc-700'}`}>
+                    <span className="text-[10px] font-black uppercase tracking-widest">{type}</span>
+                    <input type="radio" className="hidden" name="mode" onChange={() => setBolType(type as any)} />
+                    <div className={`w-3 h-3 rounded-full border border-zinc-800 ${bolType === type ? `bg-${themeTailwind} shadow-[0_0_10px_${themeHex}]` : ''}`} />
+                  </label>
                 ))}
               </div>
-            </section>
+            </div>
 
             <div className="space-y-4 pt-10">
               <button 
-                onClick={handleSubmit} 
-                disabled={isSubmitting}
-                className={`w-full py-8 text-[11px] font-black uppercase tracking-[0.8em] transition-all relative overflow-hidden group ${
-                  isFormComplete ? `bg-${accentTailwind} text-black shadow-2xl` : 'bg-zinc-900 text-zinc-700 pointer-events-none'
-                }`}
-              >
-                {isSubmitting && <div className="absolute inset-0 bg-white/20 transition-all duration-300" style={{ width: `${uploadProgress}%` }} />}
-                <span className="relative z-10">{isSubmitting ? 'Transmitting...' : 'Initiate_Transmission'}</span>
-                <div className="absolute inset-0 opacity-0 group-hover:opacity-10 bg-gradient-to-r from-transparent via-white to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                onClick={executeUplink} 
+                disabled={isTransmitting || files.length === 0}
+                className={`w-full py-10 text-[11px] font-black uppercase tracking-[0.8em] transition-all relative overflow-hidden group ${files.length > 0 ? `bg-${themeTailwind} text-black shadow-2xl hover:scale-[1.03]` : 'bg-zinc-900 text-zinc-700 pointer-events-none'}`}>
+                {isTransmitting ? 'SENDING_PACKETS...' : 'Execute_Uplink'}
+                {isTransmitting && <div className="absolute inset-0 bg-white/20 transition-all duration-300" style={{ width: `${overallProgress}%` }} />}
               </button>
-              <div className="flex justify-between font-mono text-[7px] text-zinc-700 tracking-[0.3em] uppercase px-1">
-                <span>Buffer: 1024KB</span>
-                <span>Signal: High</span>
-                <span>Key: {crypto.randomUUID().split('-')[1].toUpperCase()}</span>
+              <div className="flex justify-between text-[8px] font-mono text-zinc-700 uppercase px-1 tracking-widest">
+                <span>Buffer: 2048KB</span>
+                <span>Latency: 14MS</span>
               </div>
             </div>
-          </div>
-        </main>
+          </aside>
+        </div>
       </div>
 
-      {/* SUCCESS OVERLAY */}
-      {showSuccess && (
-        <div className="fixed inset-0 z-[100] bg-black/98 flex flex-col items-center justify-center p-12 backdrop-blur-3xl animate-in fade-in duration-1000">
-          <div className="w-full max-w-lg space-y-10 text-center">
-            <div className={`w-24 h-24 rounded-full border-2 mx-auto flex items-center justify-center text-4xl mb-12 animate-pulse ${isGLX ? 'border-green-500 text-green-500' : 'border-blue-500 text-blue-500'}`}>✓</div>
-            <h2 className="text-white text-3xl font-black uppercase tracking-[0.5em] italic">Link_Established</h2>
-            <div className="space-y-2 text-[10px] text-zinc-500 font-mono uppercase tracking-[0.2em] max-w-xs mx-auto">
-              <p>Transmission_Confirmed</p>
-              <p>Packet_Hash: 0x{Math.random().toString(16).substr(2, 8).toUpperCase()}</p>
+      {/* SUCCESS OVERLAY: GLOBAL INTERRUPT */}
+      {success && (
+        <div className="fixed inset-0 z-[200] bg-black/98 flex flex-col items-center justify-center p-10 font-orbitron animate-in fade-in duration-1000">
+          <div className="max-w-md w-full text-center space-y-16">
+            <div className={`w-32 h-32 rounded-full border-4 border-${themeTailwind} text-${themeTailwind} mx-auto flex items-center justify-center text-6xl animate-pulse shadow-[0_0_60px_${themeHex}]`}>✓</div>
+            <div className="space-y-6">
+              <h2 className="text-white text-5xl font-black italic tracking-tighter uppercase underline decoration-zinc-800 underline-offset-8 decoration-4">UPLINK_STABLE</h2>
+              <p className="text-zinc-600 text-[10px] font-mono leading-relaxed uppercase tracking-[0.3em]">Transmission confirmed by dispatch core. Central node acknowledges receipt of all data packets.</p>
             </div>
-            <button onClick={() => window.location.reload()} className="w-full py-5 border border-zinc-800 text-white text-[10px] font-black uppercase tracking-[0.5em] hover:bg-white/5 transition-colors">Terminate_Session</button>
+            <button onClick={() => window.location.reload()} className="w-full py-6 border-2 border-zinc-800 text-white text-[10px] font-black uppercase tracking-[0.5em] hover:bg-white/5 transition-all">TERMINATE_SESSION</button>
           </div>
         </div>
       )}
 
       <style>{`
-        @keyframes pulse-subtle { 0%, 100% { opacity: 0.8; transform: scale(1); } 50% { opacity: 1; transform: scale(1.02); } }
-        .animate-pulse-subtle { animation: pulse-subtle 4s ease-in-out infinite; }
-        .animate-shake { animation: shake 0.2s linear 3; }
-        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
-        .custom-scroll::-webkit-scrollbar { width: 2px; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #27272a; }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: #000; }
+        ::-webkit-scrollbar-thumb { background: #222; }
+        ::-webkit-scrollbar-thumb:hover { background: #333; }
+        select { -webkit-appearance: none; appearance: none; }
       `}</style>
       
-      <input type="file" ref={fileInputRef} className="hidden" multiple accept="image/*" onChange={handleFile} />
-      <input type="file" ref={cameraInputRef} className="hidden" capture="environment" accept="image/*" onChange={handleFile} />
+      <input type="file" ref={fileInput} className="hidden" multiple accept="image/*" onChange={handleFileUpload} />
+      <input type="file" ref={cameraInput} className="hidden" capture="environment" accept="image/*" onChange={handleFileUpload} />
     </div>
   );
 };
