@@ -1,14 +1,15 @@
-import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { initializeApp } from "firebase/app";
 import { getStorage, ref as storageRef, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { getFirestore, collection, addDoc, serverTimestamp } from "firebase/firestore";
 
 /**
- * AURORA NEXUS v17.0 [NON-AUTH COMMAND DECK]
+ * AURORA NEXUS v22.0 [QUANTUM-OVERLORD EDITION]
  * -----------------------------------------------------------
- * DESIGN: Brutalist Industrial / Tactical Obsidian
- * SOUND: Sub-Harmonic Session Handshake
- * ENGINE: Firebase Gen-4 Storage & Firestore
+ * DESIGN: Adaptive Warp Plasma / Glitch-Neon Brutalist
+ * SOUND: Multi-Layer Resonance FM Synthesis
+ * ENGINE: Canvas Warp Field + Procedural Particles + Firebase Elite
+ * FEATURES: Glitch bursts, asset explosion removal, quantum validation
  */
 
 const firebaseConfig = {
@@ -24,38 +25,108 @@ const app = initializeApp(firebaseConfig);
 const storage = getStorage(app);
 const db = getFirestore(app);
 
-// --- TACTICAL HAPTIC CORE ---
-const playHaptic = (freq: number, type: OscillatorType = 'sine', vol = 0.1) => {
+// --- RESONANCE FM SYNTHESIS ENGINE ---
+const playResonance = (baseFreq: number, modFreq = 300, depth = 400, duration = 0.4, volume = 0.18) => {
   try {
     const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = type;
-    osc.frequency.setValueAtTime(freq, ctx.currentTime);
-    gain.gain.setValueAtTime(vol, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start();
-    osc.stop(ctx.currentTime + 0.3);
+    const carrier = ctx.createOscillator();
+    const modulator = ctx.createOscillator();
+    const modGain = ctx.createGain();
+    const mainGain = ctx.createGain();
+
+    carrier.type = 'sine';
+    modulator.type = 'triangle';
+    carrier.frequency.value = baseFreq;
+    modulator.frequency.value = modFreq;
+    modGain.gain.value = depth;
+
+    modulator.connect(modGain);
+    modGain.connect(carrier.frequency);
+    carrier.connect(mainGain);
+    mainGain.connect(ctx.destination);
+
+    mainGain.gain.setValueAtTime(volume, ctx.currentTime);
+    mainGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+
+    carrier.start();
+    modulator.start();
+    carrier.stop(ctx.currentTime + duration);
+    modulator.stop(ctx.currentTime + duration);
   } catch (e) {}
 };
 
-// --- ELITE UI FRAGMENTS ---
+// --- PROCEDURAL PARTICLE EXPLOSION FOR ASSET REMOVAL ---
+const explodeParticles = (color: string) => {
+  const container = document.createElement('div');
+  container.className = 'fixed inset-0 pointer-events-none z-50';
+  document.body.appendChild(container);
 
-const CornerBracket = ({ position }: { position: 'tl' | 'tr' | 'bl' | 'br' }) => {
-  const styles = {
-    tl: "top-0 left-0 border-t-2 border-l-2",
-    tr: "top-0 right-0 border-t-2 border-r-2",
-    bl: "bottom-0 left-0 border-b-2 border-l-2",
-    br: "bottom-0 right-0 border-b-2 border-r-2",
-  };
-  return <div className={`absolute w-4 h-4 border-zinc-700 ${styles[position]} pointer-events-none group-focus-within:border-cyan-500 transition-colors duration-500`} />;
+  for (let i = 0; i < 40; i++) {
+    const p = document.createElement('div');
+    p.style.position = 'absolute';
+    p.style.width = '4px';
+    p.style.height = '4px';
+    p.style.background = color;
+    p.style.borderRadius = '50%';
+    p.style.left = `${50 + (Math.random() - 0.5) * 20}%`;
+    p.style.top = `${50 + (Math.random() - 0.5) * 20}%`;
+    p.style.boxShadow = `0 0 15px ${color}`;
+
+    const angle = Math.random() * Math.PI * 2;
+    const velocity = Math.random() * 300 + 200;
+    p.animate([
+      { transform: 'scale(0)', opacity: 1 },
+      { transform: `translate(${Math.cos(angle) * velocity}px, ${Math.sin(angle) * velocity}px) scale(0)`, opacity: 0 }
+    ], { duration: 800, easing: 'cubic-bezier(0,0,0.2,1)' }).onfinish = () => p.remove();
+
+    container.appendChild(p);
+  }
+  setTimeout(() => container.remove(), 1000);
+};
+
+// --- CANVAS WARP DISTORTION FIELD ---
+const WarpField = ({ accent }: { accent: string }) => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    let time = 0;
+    const animate = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.globalAlpha = 0.07;
+
+      for (let x = 0; x < canvas.width; x += 40) {
+        for (let y = 0; y < canvas.height; y += 40) {
+          const dist = Math.sin(time + x / 100) * 20;
+          ctx.fillStyle = accent;
+          ctx.fillRect(x + dist, y + Math.cos(time + y / 100) * 10, 2, canvas.height);
+        }
+      }
+      time += 0.02;
+      requestAnimationFrame(animate);
+    };
+    animate();
+
+    const resize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+    window.addEventListener('resize', resize);
+    return () => window.removeEventListener('resize', resize);
+  }, [accent]);
+
+  return <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none z-0" />;
 };
 
 const App: React.FC = () => {
   const [isBooting, setIsBooting] = useState(true);
-  const [bootProgress, setBootProgress] = useState(0);
   const [company, setCompany] = useState<'GLX' | 'BST' | ''>('');
   const [driverName, setDriverName] = useState('');
   const [loadRef, setLoadRef] = useState('');
@@ -64,228 +135,233 @@ const App: React.FC = () => {
   const [delCity, setDelCity] = useState('');
   const [delState, setDelState] = useState('');
   const [bolType, setBolType] = useState<'pickup' | 'delivery' | ''>('');
-  const [files, setFiles] = useState<any[]>([]);
+  const [files, setFiles] = useState<{ id: string; file: File; preview: string; progress: number }[]>([]);
   const [isTransmitting, setIsTransmitting] = useState(false);
   const [complete, setComplete] = useState(false);
 
   const states = ['AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 'HI', 'IA', 'ID', 'IL', 'IN', 'KS', 'KY', 'LA', 'ME', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'];
-  const accent = company === 'GLX' ? '#10b981' : company === 'BST' ? '#6366f1' : '#06b6d4';
 
-  // --- BOOT SEQUENCE ---
+  const accent = company === 'GLX' ? '#10b981' : company === 'BST' ? '#a78bfa' : '#f43f5e';
+
+  const overallProgress = useMemo(() => 
+    files.length ? Math.round(files.reduce((a, f) => a + f.progress, 0) / files.length) : 0, [files]);
+
   useEffect(() => {
-    let p = 0;
-    const interval = setInterval(() => {
-      p += Math.random() * 15;
-      if (p >= 100) {
-        setBootProgress(100);
-        clearInterval(interval);
-        setTimeout(() => {
-          setIsBooting(false);
-          playHaptic(120, 'sine', 0.2);
-        }, 500);
-      } else {
-        setBootProgress(p);
-        if (Math.random() > 0.7) playHaptic(1000, 'square', 0.02);
-      }
-    }, 100);
+    setTimeout(() => {
+      setIsBooting(false);
+      playResonance(160, 500, 800, 1.0, 0.3);
+    }, 2800);
   }, []);
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
-    playHaptic(800, 'sine');
-    const newAssets = Array.from(e.target.files).map(f => ({
+    playResonance(1000, 600, 500, 0.3);
+    const newFiles = Array.from(e.target.files).map(f => ({
       id: crypto.randomUUID(),
       file: f,
       preview: URL.createObjectURL(f),
       progress: 0
     }));
-    setFiles(prev => [...prev, ...newAssets]);
-  };
+    setFiles(prev => [...prev, ...newFiles]);
+  }, []);
+
+  const removeFile = useCallback((id: string) => {
+    playResonance(80, 200, 300, 0.4);
+    explodeParticles(accent);
+    setFiles(prev => prev.filter(f => f.id !== id));
+  }, [accent]);
 
   const executeUplink = async () => {
-    if (files.length === 0) return;
+    if (files.length === 0 || !driverName || !company || !bolType) return;
     setIsTransmitting(true);
-    playHaptic(60, 'sawtooth', 0.3);
+    playResonance(40, 800, 1000, 1.5, 0.35);
 
-    const uploads = files.map(async (fileItem) => {
-      const sRef = storageRef(storage, `uplink_v17/${fileItem.id}`);
-      const task = uploadBytesResumable(sRef, fileItem.file);
-      return new Promise((res) => {
-        task.on('state_changed', s => {
-          const p = (s.bytesTransferred / s.totalBytes) * 100;
-          setFiles(prev => prev.map(f => f.id === fileItem.id ? { ...f, progress: p } : f));
-        }, null, async () => res(await getDownloadURL(task.snapshot.ref)));
+    const uploads = files.map(async (item) => {
+      const sRef = storageRef(storage, `quantum_v22/${item.id}`);
+      const task = uploadBytesResumable(sRef, item.file);
+      return new Promise<string>((resolve) => {
+        task.on('state_changed', snap => {
+          const p = (snap.bytesTransferred / snap.totalBytes) * 100;
+          setFiles(prev => prev.map(f => f.id === item.id ? { ...f, progress: p } : f));
+          if (p % 12 === 0) playResonance(350 + p * 2, 150, 100, 0.15);
+        }, () => {}, async () => resolve(await getDownloadURL(task.snapshot.ref)));
       });
     });
 
     const urls = await Promise.all(uploads);
-    await addDoc(collection(db, "transmissions_v17"), {
-      driver: driverName,
+    await addDoc(collection(db, "quantum_transmissions_v22"), {
+      operator: driverName,
       fleet: company,
-      load: loadRef,
-      route: `${puCity} to ${delCity}`,
+      loadRef,
+      route: `${puCity}, ${puState} → ${delCity}, ${delState}`,
       bol: bolType,
       assets: urls,
       timestamp: serverTimestamp()
     });
+
+    playResonance(1800, 300, 800, 1.2, 0.4);
     setComplete(true);
   };
 
   if (isBooting) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center p-12 font-mono relative overflow-hidden">
-        <div className="absolute inset-0 opacity-5 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
-        <div className="w-full max-w-sm space-y-6 relative z-10">
-          <div className="flex justify-between text-[10px] text-zinc-500 tracking-[0.3em]">
-            <span>SYSTEM_INIT</span>
-            <span>{Math.round(bootProgress)}%</span>
+      <div className="min-h-screen bg-black flex items-center justify-center font-mono overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-900/30 via-cyan-900/30 to-black animate-pulse" />
+        <div className="text-center space-y-16">
+          <h1 className="text-6xl font-black text-white tracking-tighter">QUANTUM_OVERLORD_ONLINE</h1>
+          <div className="w-[500px] h-2 bg-zinc-900 rounded-full overflow-hidden">
+            <div className="h-full bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500" style={{ animation: 'warp 3s infinite' }} />
           </div>
-          <div className="h-1 bg-zinc-900 w-full overflow-hidden border border-zinc-800">
-            <div className="h-full bg-cyan-500 transition-all duration-100" style={{ width: `${bootProgress}%` }} />
-          </div>
-          <div className="text-[8px] text-zinc-700 uppercase tracking-widest text-center animate-pulse">
-            Establishing Secure Satellite Handshake...
-          </div>
+          <p className="text-zinc-500 uppercase tracking-widest animate-pulse">Warping Reality Matrix...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#050505] text-zinc-300 font-orbitron p-4 md:p-10 relative overflow-hidden selection:bg-cyan-500 selection:text-black">
-      {/* TACTICAL OVERLAY */}
-      <div className="fixed inset-0 pointer-events-none opacity-[0.02] z-0 bg-[linear-gradient(45deg,transparent_48%,white_49%,white_51%,transparent_52%)] bg-[size:60px_60px]" />
-      
-      <div className="max-w-6xl mx-auto relative z-10">
-        
-        {/* HEADER */}
-        <header className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-zinc-900 pb-10 mb-12 gap-8">
-          <div className="flex items-center gap-8">
-            <div className="w-16 h-16 border-2 flex items-center justify-center text-3xl font-black bg-zinc-950 transition-all duration-700"
-                 style={{ borderColor: accent, color: accent, boxShadow: `0 0 20px ${accent}33` }}>
-              {company ? company[0] : 'Ø'}
+    <div className="min-h-screen bg-black text-zinc-200 font-orbitron relative overflow-hidden" style={{ '--accent': accent } as any}>
+      <WarpField accent={accent} />
+      <div className="fixed inset-0 pointer-events-none opacity-15 bg-gradient-to-tl from-[var(--accent)]/30 via-transparent to-rose-600/20" />
+
+      <div className="max-w-7xl mx-auto p-8 md:p-20 relative z-10">
+        {/* Header */}
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-24 border-b border-zinc-900 pb-16">
+          <div className="flex items-center gap-16">
+            <div className="w-32 h-32 border-4 rounded-2xl flex items-center justify-center text-6xl font-black animate-pulse shadow-2xl"
+                 style={{ borderColor: accent, color: accent, boxShadow: `0 0 80px ${accent}80` }}>
+              {company || 'Ω'}
             </div>
             <div>
-              <h1 className="text-3xl font-black text-white italic tracking-tighter uppercase leading-none">Command_Terminal_v17</h1>
-              <p className="text-[9px] tracking-[0.6em] font-mono text-zinc-600 mt-2">SECURE_ID: {Math.random().toString(36).substring(7).toUpperCase()} // SESSION_ACTIVE</p>
+              <h1 className="text-8xl font-black text-white uppercase tracking-tighter">Quantum_Nexus_v22</h1>
+              <p className="text-sm text-zinc-600 tracking-[1em] mt-6">OVERLORD_LINK // REALITY_WARP_ACTIVE</p>
             </div>
           </div>
-          <button onClick={() => location.reload()} className="px-6 py-3 border border-zinc-800 text-zinc-500 text-[10px] font-black tracking-widest hover:border-white hover:text-white transition-all">Reset_Node</button>
+          <button onClick={() => location.reload()} className="px-16 py-8 border-2 border-zinc-800 text-zinc-500 hover:border-[var(--accent)] hover:text-[var(--accent)] text-lg font-black tracking-widest transition-all">
+            PURGE_MATRIX
+          </button>
         </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-          
-          {/* PRIMARY FORM */}
-          <main className="lg:col-span-8 space-y-10">
-            <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="relative p-6 bg-zinc-900/30 backdrop-blur-3xl group">
-                <CornerBracket position="tl" /><CornerBracket position="br" />
-                <label className="text-[10px] font-black uppercase text-zinc-600 tracking-[0.3em] block mb-4">Fleet_Select</label>
-                <select className="w-full bg-transparent border-none text-white text-sm outline-none appearance-none cursor-pointer" value={company} onChange={e => setCompany(e.target.value as any)}>
-                  <option value="">NULL_SELECT</option>
-                  <option value="GLX">GREENLEAF_XPRESS</option>
-                  <option value="BST">BST_EXPEDITE</option>
-                </select>
-              </div>
-              <div className="relative p-6 bg-zinc-900/30 backdrop-blur-3xl group">
-                <CornerBracket position="tl" /><CornerBracket position="br" />
-                <label className="text-[10px] font-black uppercase text-zinc-600 tracking-[0.3em] block mb-4">Operator_Sign</label>
-                <input type="text" placeholder="FULL_NAME" className="w-full bg-transparent border-none text-white text-sm outline-none" value={driverName} onChange={e => setDriverName(e.target.value)} />
-              </div>
-            </section>
-
-            <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="relative p-6 bg-zinc-900/30 backdrop-blur-3xl">
-                <CornerBracket position="tl" /><CornerBracket position="br" />
-                <label className="text-[10px] font-black uppercase text-zinc-600 tracking-[0.3em] block mb-4">Pickup_Origin</label>
-                <div className="flex gap-4">
-                  <input type="text" placeholder="CITY" className="flex-1 bg-transparent text-sm text-white border-none outline-none" value={puCity} onChange={e => setPuCity(e.target.value)} />
-                  <select className="w-20 bg-transparent text-sm text-white border-none outline-none" value={puState} onChange={e => setPuState(e.target.value)}>
-                    <option value="">ST</option>{states.map(s => <option key={s}>{s}</option>)}
-                  </select>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-20">
+          <main className="lg:col-span-8 space-y-20">
+            {/* Top Inputs */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+              {[
+                { label: 'Fleet_Overlord', value: company, set: (v: any) => { playResonance(600); setCompany(v); }, options: ['', 'GLX', 'BST'], texts: ['VOID', 'GREENLEAF_QUANTUM', 'BST_OVERLORD'] },
+                { label: 'Operator_Core', value: driverName, set: (v: string) => setDriverName(v), placeholder: 'QUANTUM_ID' },
+                { label: 'Load_Quantum', value: loadRef, set: (v: string) => setLoadRef(v), placeholder: 'MATRIX_REF' }
+              ].map((field, i) => (
+                <div key={i} className="p-12 bg-zinc-950/60 backdrop-blur-2xl border border-zinc-800 hover:border-[var(--accent)] transition-all group">
+                  <label className="text-xs uppercase tracking-[0.8em] text-zinc-600 mb-8 block">{field.label}</label>
+                  {field.options ? (
+                    <select className="w-full bg-transparent text-3xl text-white outline-none" value={field.value} onChange={e => field.set(e.target.value)}>
+                      {field.options.map((opt, j) => <option key={opt} value={opt}>{field.texts?.[j] || opt}</option>)}
+                    </select>
+                  ) : (
+                    <input type="text" className="w-full bg-transparent text-3xl text-white outline-none" placeholder={field.placeholder} value={field.value} onChange={e => field.set(e.target.value)} />
+                  )}
                 </div>
-              </div>
-              <div className="relative p-6 bg-zinc-900/30 backdrop-blur-3xl">
-                <CornerBracket position="tl" /><CornerBracket position="br" />
-                <label className="text-[10px] font-black uppercase text-zinc-600 tracking-[0.3em] block mb-4">Delivery_Dest</label>
-                <div className="flex gap-4">
-                  <input type="text" placeholder="CITY" className="flex-1 bg-transparent text-sm text-white border-none outline-none" value={delCity} onChange={e => setDelCity(e.target.value)} />
-                  <select className="w-20 bg-transparent text-sm text-white border-none outline-none" value={delState} onChange={e => setDelState(e.target.value)}>
-                    <option value="">ST</option>{states.map(s => <option key={s}>{s}</option>)}
-                  </select>
-                </div>
-              </div>
-            </section>
+              ))}
+            </div>
 
-            <section className="p-12 border border-zinc-900 bg-zinc-950/50 flex flex-col items-center justify-center gap-12 group relative">
-              <div className="absolute inset-0 bg-gradient-to-tr from-cyan-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-              <h3 className="text-[10px] font-black tracking-[1em] text-zinc-800 uppercase italic">Imaging_Array</h3>
-              <div className="flex gap-20 relative z-10">
-                <button onClick={() => (document.getElementById('cam') as any).click()} className="flex flex-col items-center gap-4 group/btn transition-transform active:scale-95">
-                  <div className="w-24 h-24 border border-zinc-800 rounded-full flex items-center justify-center bg-zinc-900/20 group-hover/btn:border-cyan-500/50 transition-all shadow-2xl">
-                    <span className="text-3xl">📷</span>
+            {/* Routes */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+              {[
+                { label: 'Origin_Warp', city: puCity, setCity: setPuCity, state: puState, setState: setPuState },
+                { label: 'Terminus_Node', city: delCity, setCity: setDelCity, state: delState, setState: setDelState }
+              ].map((route, i) => (
+                <div key={i} className="p-16 bg-zinc-950/50 backdrop-blur-xl border border-zinc-800">
+                  <label className="text-xs uppercase tracking-[0.8em] text-zinc-600 mb-10 block">{route.label}</label>
+                  <div className="flex gap-8">
+                    <input type="text" placeholder="WARP_CITY" className="flex-1 bg-transparent text-2xl text-white border-b-2 border-zinc-700 focus:border-[var(--accent)] pb-6 outline-none transition-all" value={route.city} onChange={e => route.setCity(e.target.value)} />
+                    <select className="bg-transparent text-2xl text-white" value={route.state} onChange={e => route.setState(e.target.value)}>
+                      <option>ZONE</option>{states.map(s => <option key={s}>{s}</option>)}
+                    </select>
                   </div>
-                  <span className="text-[9px] font-black tracking-widest text-zinc-700">CAMERA</span>
-                </button>
-                <button onClick={() => (document.getElementById('file') as any).click()} className="flex flex-col items-center gap-4 group/btn transition-transform active:scale-95">
-                  <div className="w-24 h-24 border border-zinc-800 rounded-full flex items-center justify-center bg-zinc-900/20 group-hover/btn:border-cyan-500/50 transition-all shadow-2xl">
-                    <span className="text-3xl">📁</span>
-                  </div>
-                  <span className="text-[9px] font-black tracking-widest text-zinc-700">GALLERY</span>
-                </button>
+                </div>
+              ))}
+            </div>
+
+            {/* Capture Array */}
+            <div className="p-32 bg-gradient-to-br from-zinc-950/80 to-black border-2 border-zinc-800 rounded-2xl text-center space-y-24">
+              <h3 className="text-lg uppercase tracking-[1.5em] text-zinc-700">Reality_Capture_Matrix</h3>
+              <div className="flex justify-center gap-40">
+                {[
+                  { label: 'Quantum_Scan', icon: '📸', id: 'cam' },
+                  { label: 'Void_Archive', icon: '📁', id: 'file' }
+                ].map((btn) => (
+                  <button key={btn.id} onClick={() => { playResonance(1200, 400, 600, 0.4); (document.getElementById(btn.id) as any)?.click(); }} className="group">
+                    <div className="w-48 h-48 rounded-3xl bg-zinc-900 border-4 border-zinc-800 flex items-center justify-center group-hover:border-[var(--accent)] group-hover:shadow-[0_0_100px_var(--accent)60] transition-all">
+                      <span className="text-8xl group-hover:scale-125 transition-transform">{btn.icon}</span>
+                    </div>
+                    <p className="mt-10 text-sm tracking-widest text-zinc-600 group-hover:text-[var(--accent)] uppercase">{btn.label}</p>
+                  </button>
+                ))}
               </div>
-            </section>
+            </div>
           </main>
 
-          {/* SIDEBAR */}
-          <aside className="lg:col-span-4 space-y-10">
-            <div className="bg-zinc-950 p-8 border border-zinc-900 relative overflow-hidden group">
-              <div className="absolute top-0 left-0 w-1 h-full bg-cyan-500 opacity-20" />
-              <h3 className="text-[11px] font-black uppercase text-zinc-700 tracking-[0.5em] mb-10 italic">// Protocol</h3>
-              <div className="space-y-4">
-                {['pickup', 'delivery'].map(type => (
-                  <label key={type} className={`flex items-center justify-between p-5 border border-zinc-900 cursor-pointer transition-all ${bolType === type ? 'bg-zinc-900 border-zinc-500 text-white' : 'hover:bg-white/5 text-zinc-700'}`}>
-                    <span className="text-[10px] font-black uppercase tracking-widest">{type}</span>
-                    <input type="radio" className="hidden" name="m" onChange={() => setBolType(type as any)} />
-                    <div className={`w-3 h-3 rounded-full border border-zinc-800 ${bolType === type ? 'bg-cyan-500 shadow-[0_0_10px_cyan]' : ''}`} />
-                  </label>
+          <aside className="lg:col-span-4 space-y-20">
+            {/* Protocol */}
+            <div className="p-16 bg-zinc-950/80 backdrop-blur-2xl border border-zinc-800">
+              <h3 className="text-sm uppercase tracking-[1em] text-zinc-700 mb-16">// Quantum_Protocol</h3>
+              <div className="space-y-10">
+                {(['pickup', 'delivery'] as const).map(type => (
+                  <button key={type} onClick={() => { playResonance(500, 200, 400); setBolType(type); }} className={`w-full p-10 border-2 ${bolType === type ? 'border-[var(--accent)] bg-[var(--accent)]/20 shadow-2xl' : 'border-zinc-800'} transition-all`}>
+                    <div className="flex justify-between items-center">
+                      <span className="text-lg uppercase tracking-widest">{type}_WARP</span>
+                      <div className={`w-6 h-6 rounded-full border-4 ${bolType === type ? 'bg-[var(--accent)] border-[var(--accent)] shadow-[0_0_30px_var(--accent)]' : 'border-zinc-600'}`} />
+                    </div>
+                  </button>
                 ))}
               </div>
             </div>
 
-            <div className="bg-zinc-950 p-8 border border-zinc-900 min-h-[240px]">
-              <h3 className="text-[10px] font-black text-zinc-700 tracking-[0.5em] uppercase mb-8 italic">// Cargo_Preview</h3>
-              <div className="grid grid-cols-2 gap-4">
-                {files.map(f => (
-                  <div key={f.id} className="aspect-square border border-zinc-900 relative group overflow-hidden bg-black">
-                    <img src={f.preview} className="w-full h-full object-cover opacity-50 group-hover:opacity-100 transition-opacity" />
-                    <div className="absolute bottom-0 left-0 h-1 bg-cyan-500 transition-all" style={{ width: `${f.progress}%` }} />
+            {/* Assets */}
+            <div className="p-12 bg-zinc-950/70 backdrop-blur-xl border border-zinc-800 min-h-[400px]">
+              <h4 className="text-sm uppercase tracking-[0.8em] text-zinc-700 mb-12">// Reality_Fragments</h4>
+              <div className="grid grid-cols-2 gap-8">
+                {files.map(file => (
+                  <div key={file.id} className="relative group overflow-hidden rounded-2xl border-2 border-zinc-800">
+                    <img src={file.preview} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-all duration-500" />
+                    <div className="absolute inset-x-0 bottom-0 h-3 bg-[var(--accent)] shadow-[0_0_20px_var(--accent)]" style={{ width: `${file.progress}%` }} />
+                    <button onClick={() => removeFile(file.id)} className="absolute top-4 right-4 bg-red-900/90 text-white px-4 py-2 rounded opacity-0 group-hover:opacity-100 transition-opacity font-black">ERASE</button>
                   </div>
                 ))}
-                {files.length === 0 && <div className="col-span-2 py-10 text-center text-zinc-900 font-black tracking-widest text-[9px]">NO_DATA</div>}
+                {files.length === 0 && <p className="col-span-2 text-center py-32 text-zinc-800 uppercase tracking-widest text-lg animate-pulse">VOID_AWAITS</p>}
               </div>
             </div>
 
-            <button 
-              onClick={executeUplink} 
+            {/* Uplink Button */}
+            <button
+              onClick={executeUplink}
               disabled={isTransmitting || files.length === 0}
-              className={`w-full py-10 text-[12px] font-black uppercase tracking-[1em] transition-all relative overflow-hidden shadow-2xl ${files.length > 0 ? 'bg-white text-black hover:bg-cyan-500' : 'bg-zinc-900 text-zinc-700 opacity-50 pointer-events-none'}`}
+              className="w-full py-24 text-2xl font-black uppercase tracking-[2em] bg-white text-black hover:bg-[var(--accent)] hover:text-white transition-all shadow-2xl disabled:bg-zinc-900 disabled:text-zinc-700"
             >
-              {isTransmitting ? `TRANSMITTING_${overallProgress}%` : 'EXECUTE_UPLINK'}
+              {isTransmitting ? `WARP_${overallProgress}%` : 'FORGE_QUANTUM_LINK'}
             </button>
           </aside>
         </div>
       </div>
 
       {complete && (
-        <div className="fixed inset-0 z-[500] bg-black/98 flex flex-col items-center justify-center p-12 animate-in fade-in duration-1000">
-          <div className="max-w-xl w-full text-center space-y-16">
-            <div className="w-32 h-32 rounded-full border-4 border-cyan-500 text-cyan-500 mx-auto flex items-center justify-center text-6xl shadow-[0_0_100px_cyan]">✓</div>
-            <h2 className="text-white text-5xl font-black italic tracking-tighter uppercase underline decoration-zinc-900 underline-offset-[20px]">Transmission_Complete</h2>
-            <button onClick={() => location.reload()} className="w-full py-6 border border-zinc-800 text-zinc-500 text-[12px] font-black uppercase tracking-[0.8em] hover:text-white transition-all">TERMINATE_SESSION</button>
+        <div className="fixed inset-0 bg-black/98 z-50 flex items-center justify-center p-20">
+          <div className="text-center space-y-32">
+            <div className="w-80 h-80 rounded-full border-12 border-[var(--accent)] flex items-center justify-center text-[12rem] text-[var(--accent)] shadow-[0_0_300px_var(--accent)] animate-pulse">✓</div>
+            <div>
+              <h2 className="text-9xl font-black text-white uppercase tracking-tighter">REALITY_FORGED</h2>
+              <p className="text-zinc-500 mt-12 uppercase tracking-widest text-xl">Quantum reconciliation complete across all dimensions</p>
+            </div>
+            <button onClick={() => location.reload()} className="px-32 py-16 border-4 border-zinc-800 text-zinc-400 hover:border-[var(--accent)] hover:text-[var(--accent)] text-2xl font-black uppercase tracking-[1.5em] transition-all">
+              COLLAPSE_WAVEFUNCTION
+            </button>
           </div>
         </div>
       )}
+
+      <style jsx>{`
+        @keyframes warp { 0% { width: 0%; } 100% { width: 100%; } }
+        .animate-warp { animation: warp 3s infinite alternate; }
+      `}</style>
 
       <input type="file" id="file" className="hidden" multiple accept="image/*" onChange={handleFileUpload} />
       <input type="file" id="cam" className="hidden" capture="environment" accept="image/*" onChange={handleFileUpload} />
