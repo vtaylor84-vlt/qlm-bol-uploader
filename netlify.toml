@@ -1,26 +1,19 @@
 [build]
-  # Directory to publish (Vite output)
   publish = "dist"
-
-  # Build command
   command = "npm run build"
 
-  # Use a modern, stable Node.js version
-  environment = { 
-    NODE_VERSION = "20",
-    # Disable smart secrets detection to avoid false positives from Firebase SDK type definitions
+  [build.environment]
+    NODE_VERSION = "20"
+    # Disable false-positive secrets scanning from Firebase type files
     SECRETS_SCAN_SMART_DETECTION_ENABLED = "false"
-  }
 
-# --- Header Rules for Optimal Caching ---
+# --- Optimal Caching Headers ---
 
-# Main HTML file – short cache, revalidate on every visit
 [[headers]]
   for = "/index.html"
   [headers.values]
     Cache-Control = "public, max-age=300, must-revalidate"
 
-# Hashed assets (JS, CSS, images) – cache forever since filename changes on update
 [[headers]]
   for = "/assets/*"
   [headers.values]
