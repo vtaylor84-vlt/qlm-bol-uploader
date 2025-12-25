@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 
 /**
- * LOGISTICS TERMINAL v1.4 - FULL OPERATIONAL RECOVERY
- * Restored: All Headers, Route Fields (PU/DEL), and Multi-Category Imaging
+ * LOGISTICS TERMINAL v1.5 - COPY OPTIMIZATION
+ * Refined: Carrier Selection Label, Operator Placeholder, and State Selects
  * Style: Neural Tactical UI (GLX/BST Theme Responsive)
  */
 
@@ -104,11 +104,11 @@ const App: React.FC = () => {
         {/* --- HEADER --- */}
         <header className="flex justify-between items-end border-b border-zinc-900 pb-8 pt-4">
           <div className="flex items-center gap-6">
-            <div className={`w-16 h-16 rounded-2xl flex flex-col items-center justify-center font-black transition-all duration-700 border-2 ${isGLX ? 'bg-green-500 text-black border-green-400' : isBST ? 'bg-blue-600 text-white border-blue-400' : 'bg-zinc-900 text-zinc-700 border-zinc-800'}`}>
+            <div className={`w-16 h-16 rounded-2xl flex flex-col items-center justify-center font-black transition-all duration-700 border-2 ${isGLX ? 'bg-green-500 text-black border-green-400 shadow-[0_0_20px_rgba(34,197,94,0.3)]' : isBST ? 'bg-blue-600 text-white border-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.3)]' : 'bg-zinc-900 text-zinc-700 border-zinc-800'}`}>
               <span className="text-xl">{isGLX ? 'GLX' : isBST ? 'BST' : '?'}</span>
             </div>
             <div className="space-y-1">
-              <h1 className={`text-2xl font-black tracking-tighter uppercase ${themeColor}`}>Terminal v1.4</h1>
+              <h1 className={`text-2xl font-black tracking-tighter uppercase ${themeColor}`}>Terminal v1.5</h1>
               <p className="text-[8px] text-zinc-600 tracking-[0.5em] font-bold">CARRIER_UPLINK_SECURE</p>
             </div>
           </div>
@@ -119,14 +119,14 @@ const App: React.FC = () => {
           <div>
             <label className={labelStyle}>Carrier Identity</label>
             <select className={fieldStyle} value={company} onChange={(e) => setCompany(e.target.value as any)}>
-              <option value="">-- SELECT FLEET --</option>
+              <option value="">-- SELECT CARRIER --</option>
               <option value="GLX">GREENLEAF XPRESS (GLX)</option>
               <option value="BST">BST EXPEDITE (BST)</option>
             </select>
           </div>
           <div>
             <label className={labelStyle}>Operator Name</label>
-            <input type="text" placeholder="LEGAL FULL NAME" className={fieldStyle} value={driverName} onChange={(e) => setDriverName(e.target.value)} />
+            <input type="text" placeholder="ENTER NAME" className={fieldStyle} value={driverName} onChange={(e) => setDriverName(e.target.value)} />
           </div>
         </section>
 
@@ -155,7 +155,7 @@ const App: React.FC = () => {
              <div>
                <label className={labelStyle}>State</label>
                <select className={fieldStyle} value={puState} onChange={(e) => setPuState(e.target.value)}>
-                 <option value="">ST</option>
+                 <option value="">SELECT STATE</option>
                  {states.map(s => <option key={`p-${s}`} value={s}>{s}</option>)}
                </select>
              </div>
@@ -168,7 +168,7 @@ const App: React.FC = () => {
              <div>
                <label className={labelStyle}>State</label>
                <select className={fieldStyle} value={delState} onChange={(e) => setDelState(e.target.value)}>
-                 <option value="">ST</option>
+                 <option value="">SELECT STATE</option>
                  {states.map(s => <option key={`d-${s}`} value={s}>{s}</option>)}
                </select>
              </div>
@@ -196,14 +196,14 @@ const App: React.FC = () => {
               <div className={`w-28 h-28 border border-zinc-800 flex items-center justify-center bg-black transition-all ${hoverBorder} ${hoverGlow}`}>
                 <span className="text-5xl grayscale group-hover/btn:grayscale-0 transition-all">📸</span>
               </div>
-              <span className="text-[10px] font-black tracking-[0.8em] text-zinc-800 uppercase group-hover/btn:text-white">Neural_Cam</span>
+              <span className="text-[10px] font-black tracking-[0.8em] text-zinc-800 uppercase group-hover/btn:text-white transition-colors">Neural_Cam</span>
             </button>
 
             <button onClick={() => fileInputRef.current?.click()} className="flex flex-col items-center gap-6 group/btn active:scale-95 transition-all">
               <div className={`w-28 h-28 border border-zinc-800 flex items-center justify-center bg-black transition-all ${hoverBorder} ${hoverGlow}`}>
                 <span className="text-5xl grayscale group-hover/btn:grayscale-0 transition-all">📂</span>
               </div>
-              <span className="text-[10px] font-black tracking-[0.8em] text-zinc-800 uppercase group-hover/btn:text-white">Local_Vault</span>
+              <span className="text-[10px] font-black tracking-[0.8em] text-zinc-800 uppercase group-hover/btn:text-white transition-colors">Local_Vault</span>
             </button>
           </div>
 
@@ -211,7 +211,7 @@ const App: React.FC = () => {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 animate-in slide-in-from-bottom-2">
               {uploadedFiles.filter(f => f.category === 'bol').map(f => (
                 <div key={f.id} className="relative aspect-[3/4] border border-zinc-800 rounded-xl overflow-hidden group">
-                  <img src={f.preview} className="w-full h-full object-cover grayscale opacity-50 group-hover:grayscale-0 group-hover:opacity-100 transition-all" />
+                  <img src={f.preview} className="w-full h-full object-cover grayscale opacity-50 group-hover:grayscale-0 group-hover:opacity-100 transition-all" alt="doc" />
                   <div className={`absolute top-0 left-0 w-full h-[2px] animate-scan ${themeColor.replace('text-', 'bg-')}`} />
                   <button onClick={() => setUploadedFiles(p => p.filter(i => i.id !== f.id))} className="absolute top-2 right-2 w-6 h-6 bg-red-600 text-white rounded-full text-[10px] font-black opacity-0 group-hover:opacity-100 transition-all">✕</button>
                 </div>
@@ -232,8 +232,8 @@ const App: React.FC = () => {
           {uploadedFiles.filter(f => f.category === 'freight').length > 0 && (
             <div className="grid grid-cols-4 gap-4">
               {uploadedFiles.filter(f => f.category === 'freight').map(f => (
-                <div key={f.id} className="relative aspect-square border border-zinc-800 rounded-lg overflow-hidden">
-                  <img src={f.preview} className="w-full h-full object-cover opacity-60" />
+                <div key={f.id} className="relative aspect-square border border-zinc-800 rounded-lg overflow-hidden bg-black">
+                  <img src={f.preview} className="w-full h-full object-cover opacity-60" alt="freight" />
                 </div>
               ))}
             </div>
@@ -243,7 +243,7 @@ const App: React.FC = () => {
         {/* --- TRANSMISSION --- */}
         <div className="pt-8">
           <button 
-            onClick={() => { if(!company || !driverName) { setShake(true); setTimeout(()=>setShake(false),500); } else { setIsSubmitting(true); setTimeout(()=>setShowSuccess(true),2500); }}}
+            onClick={() => { if(!company || !driverName || uploadedFiles.length === 0) { setShake(true); setTimeout(()=>setShake(false),500); } else { setIsSubmitting(true); setTimeout(()=>setShowSuccess(true),2500); }}}
             disabled={isSubmitting}
             className={`w-full py-8 rounded-[2rem] font-black text-xs uppercase tracking-[1em] transition-all relative overflow-hidden ${isGLX ? 'bg-green-600 text-black shadow-lg shadow-green-500/20' : isBST ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'bg-zinc-900 text-zinc-700 border border-zinc-800'}`}
           >
