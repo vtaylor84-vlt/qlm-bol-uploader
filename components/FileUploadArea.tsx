@@ -1,133 +1,85 @@
-import React, { useRef, useState, DragEvent } from 'react';
-import type { UploadedFile } from '@/types'; // Use absolute path for safety
-import { FileThumbnail } from '@/components/FileThumbnail.tsx'; // Use absolute path for safety
-import { CameraIcon } from '@/components/icons/CameraIcon.tsx'; // Use absolute path for safety
-import { FolderIcon } from '@/components/icons/FolderIcon.tsx'; // Use absolute path for safety
+/**
+ * TACTICAL UPLINK: SILENT TRANSCODER v3.0
+ * Logic: Intercepts mobile proprietary formats (HEIC/RAW) 
+ * and high-bitrate Pixel 10 HD photos for web optimization.
+ */
 
-interface FileUploadAreaProps {
-  id: 'bolFiles' | 'freightFiles';
-  files: UploadedFile[];
-  onFileChange: (e: React.ChangeEvent<HTMLInputElement>, fileType: 'bolFiles' | 'freightFiles') => void;
-  onRemoveFile: (fileId: string, fileType: 'bolFiles' | 'freightFiles') => void;
-  onFileReorder: (draggedId: string, targetId: string, fileType: 'bolFiles' | 'freightFiles') => void;
-  accept: string;
-}
+// Inside your FileUploadArea component:
+const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawFiles = e.target.files;
+    if (!rawFiles) return;
 
-export const FileUploadArea: React.FC<FileUploadAreaProps> = ({
-  id,
-  files,
-  onFileChange,
-  onRemoveFile,
-  onFileReorder,
-  accept,
-}) => {
-  const dragId = useRef<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const cameraInputRef = useRef<HTMLInputElement>(null);
-  const [isDragging, setIsDragging] = useState(false);
+    // Trigger a low-frequency hum to signal processing initiation
+    if (typeof triggerPulse === 'function') triggerPulse(400, 'sine', 0.2);
 
-  // Handlers for File Reordering (for existing thumbnails)
-  const handleDragStart = (id: string) => { dragId.current = id; };
-  const handleDropReorder = (targetId: string) => {
-    if (dragId.current && dragId.current !== targetId) {
-      onFileReorder(dragId.current, targetId, id);
-    }
-    dragId.current = null;
-  };
-  
-  // --- DRAG & DROP ZONE LOGIC (For initial file upload) ---
-  const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(true);
-  };
-  
-  const handleDragLeave = (e: DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    // Only set isDragging to false if we fully leave the element
-    if (e.currentTarget.contains(e.relatedTarget as Node) === false) {
-        setIsDragging(false);
-    }
-  };
+    const processedFiles = await Promise.all(
+        Array.from(rawFiles).map(async (file) => {
+            let processedFile = file;
 
-  const handleDropUpload = (e: DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
+            // 1. HEIC Handling (iPhone specific)
+            if (file.type === 'image/heic' || file.name.toLowerCase().endsWith('.heic')) {
+                try {
+                    // We dynamically import to keep the initial load light (Senior Expert Optimization)
+                    const heic2any = (await import('heic2any')).default;
+                    const blob: any = await heic2any({ 
+                        blob: file, 
+                        toType: 'image/jpeg',
+                        quality: 0.8 
+                    });
+                    processedFile = new File([blob], file.name.replace(/\.[^/.]+$/, ".jpg"), { type: 'image/jpeg' });
+                } catch (err) {
+                    console.error("HEIC_TRANSCODE_FAILURE", err);
+                }
+            }
 
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      // Create a mock change event object to pass to the existing handler in useUploader
-      const mockEvent = {
-        target: { files: e.dataTransfer.files } as HTMLInputElement,
-        // The type property is often needed for React events, adding it here for safety
-        type: 'change'
-      } as React.ChangeEvent<HTMLInputElement>; 
-      
-      onFileChange(mockEvent, id);
-    }
-  };
-  
-  // Helper to trigger the hidden file input when clicking the drop zone
-  const triggerFileInput = () => fileInputRef.current?.click();
+            // 2. Pixel 10 / HD Compression (Canvas Downsampling)
+            // If file > 5MB, we downsample to ensure the browser doesn't choke on the preview
+            if (processedFile.type.startsWith('image/') && processedFile.size > 5 * 1024 * 1024) {
+                processedFile = await compressImage(processedFile);
+            }
 
-  const primaryAccept = id === 'bolFiles' ? 'image/*,application/pdf' : 'image/*,video/*';
+            return {
+                id: crypto.randomUUID(),
+                file: processedFile,
+                previewUrl: URL.createObjectURL(processedFile),
+                progress: 0,
+                timestamp: new Date().toLocaleTimeString()
+            };
+        })
+    );
 
-  return (
-    <div className="space-y-4">
-      
-      {/* 1. FILE INPUTS (Hidden) */}
-      <input ref={fileInputRef} type="file" className="sr-only" multiple accept={primaryAccept} onChange={(e) => onFileChange(e, id)} />
-      <input ref={cameraInputRef} type="file" className="sr-only" multiple accept="image/*" capture="environment" onChange={(e) => onFileChange(e, id)} />
-      
-      {/* 2. THUMBNAILS (Displayed if files exist) */}
-      {files.length > 0 && (
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 pt-2">
-          {files.map((file) => (
-            <FileThumbnail
-              key={file.id}
-              fileWrapper={file}
-              onRemove={() => onRemoveFile(file.id, id)}
-              onDragStart={() => handleDragStart(file.id)}
-              onDrop={() => handleDropReorder(file.id)}
-            />
-          ))}
-        </div>
-      )}
+    // Call your existing state update function
+    onFileChange({ target: { files: processedFiles } } as any, id);
+};
 
-      {/* 3. DROP ZONE UI (Displayed below/above thumbnails) */}
-      <div 
-        className={`
-          flex flex-col items-center justify-center p-8 text-center h-48 rounded-lg 
-          border-2 border-dashed transition-all duration-300 cursor-pointer
-          ${isDragging 
-            ? 'border-cyan-400 bg-black/80 shadow-[0_0_15px_rgba(0,255,255,0.5)]' 
-            : 'border-gray-700 bg-gray-900/60 hover:border-gray-500'
-          }
-        `}
-        onClick={triggerFileInput} // Click anywhere to open file dialog
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDropUpload}
-      >
-        <CameraIcon className="w-10 h-10 text-cyan-400 mb-2" />
-        <p className="font-orbitron text-gray-300 font-semibold text-lg">
-          Tap to open camera or upload files
-        </p>
-        <p className="text-sm text-gray-500">
-          Drag & drop is also supported (Max ${id === 'bolFiles' ? 'PDF/Image' : 'Video/Image'})
-        </p>
-        
-        {/* BUTTONS (If you want to keep them visible but smaller, integrate them here) */}
-        <div className="flex space-x-4 mt-3">
-          <button type="button" onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }} className="flex items-center text-sm text-gray-400 hover:text-white">
-            <FolderIcon className="w-5 h-5 mr-1" /> Select Files
-          </button>
-          <button type="button" onClick={(e) => { e.stopPropagation(); cameraInputRef.current?.click(); }} className="flex items-center text-sm text-gray-400 hover:text-white">
-            <CameraIcon className="w-5 h-5 mr-1" /> Use Camera
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+// HELPER: Professional Grade Canvas Compression
+const compressImage = (file: File): Promise<File> => {
+    return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (event) => {
+            const img = new Image();
+            img.src = event.target?.result as string;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const MAX_WIDTH = 1920; // 1080p Standard for Logistics
+                let width = img.width;
+                let height = img.height;
+
+                if (width > MAX_WIDTH) {
+                    height *= MAX_WIDTH / width;
+                    width = MAX_WIDTH;
+                }
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx?.drawImage(img, 0, 0, width, height);
+                canvas.toBlob((blob) => {
+                    if (blob) {
+                        resolve(new File([blob], file.name, { type: 'image/jpeg' }));
+                    }
+                }, 'image/jpeg', 0.8);
+            };
+        };
+    });
 };
