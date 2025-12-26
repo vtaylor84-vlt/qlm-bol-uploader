@@ -1,10 +1,9 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 
 /**
- * LOGISTICS TERMINAL v1.7 - HUD STRUCTURAL REFINEMENT
- * Removed: Shipment_Reference header, background icons, and section borders.
- * Added: Explicit REFERENCED LOAD/BOL headers with high-fidelity tracking.
- * Feature: Chromatic Pulse & Tactical Chevron Inlays preserved.
+ * LOGISTICS TERMINAL v1.8 - KINETIC ROUTE HUD
+ * Refined: Origin/Destination headers and specific field placeholders.
+ * Feature: Chromatic Sectional Pulse & Tactical Chevron Inlays.
  */
 
 interface FileWithPreview {
@@ -169,8 +168,8 @@ const App: React.FC = () => {
               <span className="text-xl">{isGLX ? 'GLX' : isBST ? 'BST' : '?'}</span>
             </div>
             <div className="space-y-1">
-              <h1 className={`text-2xl font-black tracking-tighter uppercase ${themeColor}`}>Terminal v1.7</h1>
-              <p className="text-[8px] text-zinc-600 tracking-[0.5em] font-bold uppercase">Uplink_Structural_Verified</p>
+              <h1 className={`text-2xl font-black tracking-tighter uppercase ${themeColor}`}>Terminal v1.8</h1>
+              <p className="text-[8px] text-zinc-600 tracking-[0.5em] font-bold uppercase">Logistics_Matrix_Initialized</p>
             </div>
           </div>
         </header>
@@ -192,7 +191,7 @@ const App: React.FC = () => {
           </div>
         </section>
 
-        {/* --- SECTION 02: SHIPMENT DATA (HUD STYLE) --- */}
+        {/* --- SECTION 02: SHIPMENT DATA --- */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <TacticalLabel>REFERENCED LOAD #</TacticalLabel>
@@ -204,24 +203,24 @@ const App: React.FC = () => {
           </div>
         </section>
 
-        {/* --- SECTION 03: LOGISTICS ROUTE --- */}
+        {/* --- SECTION 03: LOGISTICS ROUTE (UPDATED) --- */}
         <section className="space-y-8">
           <div className="grid grid-cols-3 gap-4">
              <div className="col-span-2">
-               <TacticalLabel>Pickup Origin</TacticalLabel>
-               <input type="text" placeholder="CITY" className="w-full bg-black border border-zinc-900 p-3.5 text-xs rounded-xl outline-none text-white focus:border-zinc-600 transition-all font-mono placeholder-zinc-800" value={puCity} onChange={(e) => setPuCity(e.target.value)} />
+               <TacticalLabel>ORIGIN: PICKUP CITY</TacticalLabel>
+               <input type="text" placeholder="ENTER CITY" className="w-full bg-black border border-zinc-900 p-3.5 text-xs rounded-xl outline-none text-white focus:border-zinc-600 transition-all font-mono placeholder-zinc-800" value={puCity} onChange={(e) => setPuCity(e.target.value)} />
              </div>
              <div className="pt-5">
-               <TacticalSelect value={puState} onChange={(e: any) => setPuState(e.target.value)} options={states} placeholder="STATE" />
+               <TacticalSelect value={puState} onChange={(e: any) => setPuState(e.target.value)} options={states} placeholder="SELECT STATE" />
              </div>
           </div>
           <div className="grid grid-cols-3 gap-4">
              <div className="col-span-2">
-               <TacticalLabel>Delivery Destination</TacticalLabel>
-               <input type="text" placeholder="CITY" className="w-full bg-black border border-zinc-900 p-3.5 text-xs rounded-xl outline-none text-white focus:border-zinc-600 transition-all font-mono placeholder-zinc-800" value={delCity} onChange={(e) => setDelCity(e.target.value)} />
+               <TacticalLabel>DESTINATION: DELIVERY CITY</TacticalLabel>
+               <input type="text" placeholder="ENTER CITY" className="w-full bg-black border border-zinc-900 p-3.5 text-xs rounded-xl outline-none text-white focus:border-zinc-600 transition-all font-mono placeholder-zinc-800" value={delCity} onChange={(e) => setDelCity(e.target.value)} />
              </div>
              <div className="pt-5">
-               <TacticalSelect value={delState} onChange={(e: any) => setDelState(e.target.value)} options={states} placeholder="STATE" />
+               <TacticalSelect value={delState} onChange={(e: any) => setDelState(e.target.value)} options={states} placeholder="SELECT STATE" />
              </div>
           </div>
         </section>
