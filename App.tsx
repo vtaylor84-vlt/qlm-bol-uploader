@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 
 /**
- * LOGISTICS TERMINAL v2.5 - OPERATIONAL AUTHORITY
- * Logic: Conditional Validation (Load # OR BOL # satisfies section)
- * UI: High-Luminance Imaging Buttons restored.
- * UX: Driver-centric Freight Inspection labeling.
+ * LOGISTICS TERMINAL v2.6 - ENFORCEMENT PROTOCOL
+ * Refinement: Removed "At least one" hint to discourage driver laziness.
+ * Branding: "Imaging Protocol" morphed to "BOL UPLOAD".
+ * UX: Direct, action-oriented labeling for freight inspection.
  */
 
 interface FileWithPreview {
@@ -30,7 +30,6 @@ const App: React.FC = () => {
   const [bolProtocol, setBolProtocol] = useState<'PICKUP' | 'DELIVERY' | ''>('');
   const [uploadedFiles, setUploadedFiles] = useState<FileWithPreview[]>([]);
   
-  // --- VALIDATION VISUALS ---
   const [validatedFields, setValidatedFields] = useState<Set<string>>(new Set());
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -53,10 +52,10 @@ const App: React.FC = () => {
   const themeGlow = isGLX ? 'shadow-[0_0_15px_rgba(34,197,94,0.4)]' : isBST ? 'shadow-[0_0_15px_rgba(59,130,246,0.4)]' : 'shadow-[0_0_15px_rgba(6,182,212,0.4)]';
   const themeBorder = isGLX ? 'border-green-500' : isBST ? 'border-blue-500' : 'border-cyan-500';
 
-  // --- LOGICAL GATEKEEPER ---
+  // --- LOGICAL VALIDATION ---
   const isReady = useMemo(() => {
     const hasIdentity = company && driverName;
-    const hasReference = loadNum || bolNum; // EITHER LOAD # OR BOL #
+    const hasReference = loadNum || bolNum; 
     const hasRoute = puCity && puState && delCity && delState;
     const hasDocs = bolProtocol && uploadedFiles.some(f => f.category === 'bol');
     return hasIdentity && hasReference && hasRoute && hasDocs;
@@ -126,9 +125,9 @@ const App: React.FC = () => {
       <div className="min-h-screen bg-[#020202] flex items-center justify-center p-6 font-orbitron">
         <button onMouseDown={handleAuth} className="group relative p-16 border border-zinc-900 bg-zinc-950 rounded-[3rem] transition-all active:scale-95">
           <div className="w-32 h-32 border border-zinc-800 flex items-center justify-center bg-black transition-all group-hover:border-cyan-500">
-            <span className="text-5xl">🔐</span>
+            <span className="text-5xl grayscale group-hover:grayscale-0 transition-all">🔐</span>
           </div>
-          <p className="mt-8 text-[10px] font-black tracking-[1em] text-zinc-700 uppercase text-center">Decrypting_Node</p>
+          <p className="mt-8 text-[10px] font-black tracking-[1em] text-zinc-700 uppercase text-center tracking-[0.5em]">Init_Uplink</p>
         </button>
       </div>
     );
@@ -149,7 +148,7 @@ const App: React.FC = () => {
               <span className="text-xl">{isGLX ? 'GLX' : isBST ? 'BST' : '?'}</span>
             </div>
             <div className="space-y-1">
-              <h1 className={`text-2xl font-black tracking-tighter uppercase ${themeColor}`}>Terminal v2.5</h1>
+              <h1 className={`text-2xl font-black tracking-tighter uppercase ${themeColor}`}>Terminal v2.6</h1>
               <p className="text-[8px] text-zinc-600 tracking-[0.5em] font-bold uppercase underline underline-offset-4 decoration-zinc-800">Operational_Uplink</p>
             </div>
           </div>
@@ -171,8 +170,8 @@ const App: React.FC = () => {
           </div>
         </section>
 
-        {/* --- SHIPMENT DATA (Either/Or Logic) --- */}
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-6 border-l-2 border-zinc-900 pl-4">
+        {/* --- SHIPMENT DATA --- */}
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
             <label className={`text-[9px] font-black uppercase tracking-[0.3em] ${themeColor} ml-1`}>REFERENCED LOAD #</label>
             <input type="text" placeholder="LOAD-XXXXX" className={getTacticalStyles('loadNum')} value={loadNum} onChange={(e) => setLoadNum(e.target.value)} onBlur={(e) => validate('loadNum', e.target.value)} />
@@ -181,7 +180,6 @@ const App: React.FC = () => {
             <label className={`text-[9px] font-black uppercase tracking-[0.3em] ${themeColor} ml-1`}>REFERENCED BOL #</label>
             <input type="text" placeholder="BOL-XXXXX" className={getTacticalStyles('bolNum')} value={bolNum} onChange={(e) => setBolNum(e.target.value)} onBlur={(e) => validate('bolNum', e.target.value)} />
           </div>
-          <p className="col-span-full text-[7px] text-zinc-600 font-bold uppercase tracking-widest mt-1 italic">* Mandatory: At least one reference number required</p>
         </section>
 
         {/* --- ROUTE --- */}
@@ -214,10 +212,10 @@ const App: React.FC = () => {
           </div>
         </section>
 
-        {/* --- BOL IMAGING (Inversion UI Restored) --- */}
+        {/* --- BOL UPLOAD SECTION --- */}
         <section className="space-y-6">
           <div className="flex justify-between items-center border-b border-zinc-900 pb-4">
-            <h2 className={`text-[11px] font-black uppercase tracking-[0.4em] ${themeColor}`}>Imaging Protocol</h2>
+            <h2 className={`text-[11px] font-black uppercase tracking-[0.4em] ${themeColor}`}>BOL UPLOAD</h2>
             <div className="flex gap-4">
                 <button 
                   onClick={() => { setBolProtocol('PICKUP'); triggerPulse(); }}
@@ -263,17 +261,21 @@ const App: React.FC = () => {
           )}
         </section>
 
-        {/* --- FREIGHT INSPECTION (Restored) --- */}
+        {/* --- FREIGHT INSPECTION (Updated Labels) --- */}
         <section className="space-y-6">
           <h2 className={`text-[11px] font-black uppercase tracking-[0.4em] ${themeColor} border-b border-zinc-900 pb-4`}>Images of freight loaded on the trailer</h2>
-          <button onClick={() => freightInputRef.current?.click()} className="w-full py-16 border-2 border-dashed border-zinc-900 rounded-[2rem] text-[10px] font-black uppercase tracking-[0.6em] text-zinc-700 hover:text-white transition-all bg-zinc-950/30">
-            + Upload Inspection Assets (Optional)
+          <button onClick={() => freightInputRef.current?.click()} className="w-full py-16 border-2 border-dashed border-zinc-900 rounded-[2rem] text-[10px] font-black uppercase tracking-[0.4em] text-zinc-700 hover:text-white transition-all bg-zinc-950/30 group">
+            <span className="flex flex-col items-center gap-2">
+                <span className="text-2xl group-hover:scale-125 transition-transform duration-500">📷</span>
+                <span>Click here to take pictures or upload images of freight loaded</span>
+            </span>
           </button>
           {uploadedFiles.filter(f => f.category === 'freight').length > 0 && (
             <div className="grid grid-cols-4 gap-4 mt-6">
               {uploadedFiles.filter(f => f.category === 'freight').map(f => (
-                <div key={f.id} className="relative aspect-square border border-zinc-800 rounded-lg overflow-hidden bg-black">
+                <div key={f.id} className="relative aspect-square border border-zinc-800 rounded-lg overflow-hidden bg-black group">
                   <img src={f.preview} className="w-full h-full object-cover opacity-60" alt="freight" />
+                  <button onClick={() => setUploadedFiles(p => p.filter(i => i.id !== f.id))} className="absolute top-1 right-1 w-5 h-5 bg-red-600 text-white rounded-full text-[8px] font-black opacity-0 group-hover:opacity-100">✕</button>
                 </div>
               ))}
             </div>
