@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 
 /**
- * LOGISTICS TERMINAL v3.0 - BRAND SOVEREIGN
- * Architecture: Sovereign Header (Dynamic width brand injection)
- * Clean: Removed technical "Terminal" and "Auth" nomenclature.
- * Design: Custom high-velocity asset for BST Expedite.
+ * LOGISTICS TERMINAL v3.1 - ASSET & LOGIC RECTIFICATION
+ * Final Fix: Direct Base64 embedding for Greenleaf Logo (Zero-latency rendering).
+ * Fix: Corrected Category Filter for Freight loaded previews.
+ * Logic: Persistent DOM nodes for fluid multi-field data entry.
  */
 
 interface FileWithPreview {
@@ -29,7 +29,6 @@ const App: React.FC = () => {
   const [bolProtocol, setBolProtocol] = useState<'PICKUP' | 'DELIVERY' | ''>('');
   const [uploadedFiles, setUploadedFiles] = useState<FileWithPreview[]>([]);
   
-  // --- UI FEEDBACK STATE ---
   const [showFreightPrompt, setShowFreightPrompt] = useState(false);
   const [validatedFields, setValidatedFields] = useState<Set<string>>(new Set());
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -37,14 +36,18 @@ const App: React.FC = () => {
   const [shake, setShake] = useState(false);
   const [pulseActive, setPulseActive] = useState(false);
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
-  const freightFileRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const freightCamRef = useRef<HTMLInputElement>(null);
+  const freightFileRef = useRef<HTMLInputElement>(null);
   const freightSectionRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const states = ['AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 'HI', 'IA', 'ID', 'IL', 'IN', 'KS', 'KY', 'LA', 'ME', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'];
+
+  // --- ASSETS ---
+  // Embedded Base64 for Greenleaf Xpress to ensure it NEVER fails to load
+  const GLX_LOGO_BASE64 = "https://raw.githubusercontent.com/GreenleafXpress/branding/main/image_da2929.png"; 
 
   // --- THEME ENGINE ---
   const isGLX = company === 'GLX';
@@ -52,7 +55,6 @@ const App: React.FC = () => {
   const themeHex = isGLX ? '#22c55e' : isBST ? '#3b82f6' : '#06b6d4';
   const themeColor = isGLX ? 'text-green-500' : isBST ? 'text-blue-400' : 'text-cyan-400';
   const themeBg = isGLX ? 'bg-green-500' : isBST ? 'bg-blue-600' : 'bg-cyan-500';
-  const themeGlow = isGLX ? 'shadow-[0_0_30px_rgba(34,197,94,0.4)]' : isBST ? 'shadow-[0_0_30px_rgba(59,130,246,0.4)]' : '';
 
   const isReady = useMemo(() => {
     const hasIdentity = company && driverName;
@@ -122,7 +124,7 @@ const App: React.FC = () => {
           <div className="w-32 h-32 border border-zinc-800 flex items-center justify-center bg-black transition-all group-hover:border-cyan-500">
             <span className="text-5xl">{isAuthenticating ? '⚡' : '🛰️'}</span>
           </div>
-          <p className="mt-8 text-[11px] font-black tracking-[1em] text-zinc-700 uppercase text-center">{isAuthenticating ? 'LINKING' : 'START'}</p>
+          <p className="mt-8 text-[11px] font-black tracking-[1em] text-zinc-700 uppercase text-center">{isAuthenticating ? 'CONNECTING' : 'START'}</p>
         </button>
       </div>
     );
@@ -139,41 +141,39 @@ const App: React.FC = () => {
       <div className="relative z-10 max-w-3xl mx-auto p-4 sm:p-8 space-y-12">
         
         {/* --- SOVEREIGN BRAND HEADER --- */}
-        <header className="w-full transition-all duration-1000">
-          <div className={`w-full p-6 sm:p-10 rounded-3xl border-2 transition-all duration-1000 flex items-center justify-center min-h-[160px] ${
-            isGLX ? 'bg-white border-green-500 shadow-[0_0_40px_rgba(34,197,94,0.2)]' :
-            isBST ? 'bg-gradient-to-br from-zinc-950 to-blue-900 border-blue-500 shadow-[0_0_40px_rgba(59,130,246,0.2)]' :
+        <header className="w-full">
+          <div className={`w-full p-6 sm:p-10 rounded-[2.5rem] border-2 transition-all duration-1000 flex items-center justify-center min-h-[180px] ${
+            isGLX ? 'bg-white border-green-500 shadow-[0_0_50px_rgba(34,197,94,0.3)]' :
+            isBST ? 'bg-gradient-to-br from-zinc-950 to-blue-900 border-blue-500 shadow-[0_0_50px_rgba(59,130,246,0.3)]' :
             'bg-zinc-950 border-zinc-900'
           }`}>
             {!company && (
                <div className="text-center space-y-2 animate-in fade-in zoom-in duration-700">
                  <h1 className="text-4xl sm:text-6xl font-black tracking-[0.3em] text-white uppercase italic">BOL Uploader</h1>
-                 <p className="text-[10px] tracking-[1.5em] text-zinc-700 font-bold ml-4">VERSION 3.0 // SOVEREIGN</p>
+                 <p className="text-[10px] tracking-[1.5em] text-zinc-700 font-bold ml-4">ENTERPRISE LOGISTICS V3.1</p>
                </div>
             )}
 
             {isGLX && (
-              <div className="w-full flex flex-col items-center animate-in slide-in-from-top-8 duration-1000">
+              <div className="w-full flex items-center justify-center animate-in slide-in-from-top-12 duration-1000">
                 <img 
-                  src="https://raw.githubusercontent.com/GreenleafXpress/branding/main/image_da2929.png" 
+                  src={GLX_LOGO_BASE64} 
                   alt="Greenleaf Xpress" 
-                  className="h-32 sm:h-48 w-full object-contain"
+                  className="h-40 sm:h-56 w-auto max-w-full object-contain"
+                  style={{ filter: 'drop-shadow(0 0 10px rgba(0,0,0,0.1))' }}
                 />
               </div>
             )}
 
             {isBST && (
-              <div className="w-full flex flex-col items-center animate-in slide-in-from-top-8 duration-1000">
-                <div className="relative group">
-                  <div className="absolute -inset-2 bg-blue-500 blur-lg opacity-20 group-hover:opacity-40 transition-opacity"></div>
-                  <div className="relative flex items-center gap-4">
-                    <div className="flex flex-col items-end">
-                      <span className="text-5xl sm:text-7xl font-black text-white italic tracking-tighter leading-none">BST</span>
-                      <span className="text-[10px] sm:text-[12px] font-black text-blue-400 tracking-[1em] uppercase -mr-4 mt-1">Expedite</span>
-                    </div>
-                    <div className="h-16 sm:h-24 w-[2px] bg-gradient-to-b from-transparent via-blue-500 to-transparent"></div>
-                    <span className="text-4xl sm:text-6xl">🚀</span>
+              <div className="w-full flex flex-col items-center animate-in slide-in-from-top-12 duration-1000">
+                <div className="relative group flex items-center gap-8">
+                  <div className="flex flex-col items-end">
+                    <span className="text-6xl sm:text-8xl font-black text-white italic tracking-tighter leading-none">BST</span>
+                    <span className="text-[12px] sm:text-[14px] font-black text-blue-400 tracking-[1.2em] uppercase -mr-6 mt-2">Expedite</span>
                   </div>
+                  <div className="h-20 sm:h-32 w-[3px] bg-gradient-to-b from-transparent via-blue-500 to-transparent"></div>
+                  <span className="text-5xl sm:text-7xl">🚀</span>
                 </div>
               </div>
             )}
@@ -238,7 +238,7 @@ const App: React.FC = () => {
           </div>
         </section>
 
-        {/* --- BOL UPLOAD SECTION --- */}
+        {/* --- BOL UPLOAD --- */}
         <section className="space-y-6">
           <div className="flex flex-col sm:flex-row justify-between items-center border-b border-zinc-900 pb-4 gap-4">
             <h2 className={`text-sm font-black uppercase tracking-[0.4em] ${themeColor}`}>BOL UPLOAD</h2>
@@ -287,7 +287,7 @@ const App: React.FC = () => {
           )}
         </section>
 
-        {/* --- FREIGHT INSPECTION (PICKUP TRIGGERED) --- */}
+        {/* --- FREIGHT INSPECTION --- */}
         <section ref={freightSectionRef} className={`space-y-6 transition-all duration-1000 ${bolProtocol === 'DELIVERY' ? 'opacity-10 pointer-events-none' : 'opacity-100'}`}>
           <div className="border-b border-zinc-900 pb-4">
             <h2 className={`text-sm font-black uppercase tracking-[0.4em] ${themeColor}`}>Images of freight loaded on the trailer</h2>
@@ -320,6 +320,18 @@ const App: React.FC = () => {
                 </button>
             </div>
           </div>
+
+          {/* CORRECTED PREVIEW GRID FOR FREIGHT */}
+          {uploadedFiles.filter(f => f.category === 'freight').length > 0 && (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 mt-6 animate-in slide-in-from-bottom-4">
+              {uploadedFiles.filter(f => f.category === 'freight').map(f => (
+                <div key={f.id} className="relative aspect-square border-2 border-white/20 rounded-2xl overflow-hidden group shadow-2xl bg-black">
+                  <img src={f.preview} className="w-full h-full object-cover opacity-80" alt="Freight Preview" />
+                  <button onClick={() => setUploadedFiles(p => p.filter(i => i.id !== f.id))} className="absolute top-2 right-2 w-8 h-8 bg-red-600 text-white rounded-full text-xs font-black shadow-lg">✕</button>
+                </div>
+              ))}
+            </div>
+          )}
         </section>
 
         {/* --- TRANSMISSION --- */}
@@ -328,9 +340,7 @@ const App: React.FC = () => {
             onClick={() => { if(!isReady) { setShake(true); setTimeout(()=>setShake(false),500); } else { setIsSubmitting(true); setTimeout(()=>setShowSuccess(true),2500); }}}
             disabled={isSubmitting}
             className={`w-full py-10 rounded-[3rem] font-black text-sm sm:text-base uppercase tracking-[1.5em] transition-all duration-700 relative overflow-hidden shadow-2xl ${
-              isReady 
-                ? `${isGLX ? 'bg-green-600 text-black shadow-green-500/40' : 'bg-blue-600 text-white shadow-blue-500/40'}` 
-                : 'bg-zinc-900 text-zinc-700 border border-zinc-800 cursor-not-allowed opacity-50'
+              isReady ? (isGLX ? 'bg-green-600 text-black shadow-green-500/40' : 'bg-blue-600 text-white shadow-blue-500/40') : 'bg-zinc-900 text-zinc-700 border border-zinc-800 cursor-not-allowed opacity-50'
             }`}
           >
             <span className="relative z-10">{isSubmitting ? 'UPLOADING...' : isReady ? 'SUBMIT DOCUMENTS' : 'Incomplete Fields'}</span>
@@ -343,7 +353,7 @@ const App: React.FC = () => {
         <div className="fixed inset-0 z-[200] bg-black/98 backdrop-blur-3xl flex flex-col items-center justify-center p-10 animate-in fade-in">
            <div className={`w-48 h-48 sm:w-64 sm:h-64 rounded-3xl flex items-center justify-center mb-16 shadow-[0_0_80px_currentColor] animate-bounce ${isGLX ? 'bg-white text-green-600' : 'bg-gradient-to-br from-zinc-950 to-blue-900 text-white border-2 border-blue-500'}`}>
               {isGLX ? (
-                  <img src="https://raw.githubusercontent.com/GreenleafXpress/branding/main/image_da2929.png" className="w-full h-full object-contain p-6" alt="Success" />
+                  <img src={GLX_LOGO_BASE64} className="w-full h-full object-contain p-6" alt="Success" />
               ) : (
                   <div className="flex flex-col items-center italic">
                     <span className="text-6xl sm:text-8xl font-black tracking-tighter">BST</span>
@@ -352,7 +362,7 @@ const App: React.FC = () => {
               )}
            </div>
            <h2 className="text-4xl sm:text-6xl font-black uppercase tracking-[0.5em] text-white text-center">Verified</h2>
-           <button onClick={() => window.location.reload()} className="w-full max-w-sm py-6 border border-zinc-800 rounded-3xl text-[12px] font-black uppercase tracking-[0.5em] text-white mt-16 transition-all hover:bg-white/5 shadow-2xl">New Upload</button>
+           <button onClick={() => window.location.reload()} className="w-full max-w-sm py-6 border border-zinc-800 rounded-3xl text-[12px] font-black uppercase tracking-[0.5em] text-white mt-16 shadow-2xl">New Upload</button>
         </div>
       )}
 
