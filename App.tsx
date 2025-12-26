@@ -1,9 +1,10 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 
 /**
- * LOGISTICS TERMINAL v1.6 - THE KINETIC UPLINK
- * UX Innovation: Chromatic Pulse Engine & Tactical Chevron Inlays
- * Logic: Sectional Observer for haptic-visual feedback
+ * LOGISTICS TERMINAL v1.7 - HUD STRUCTURAL REFINEMENT
+ * Removed: Shipment_Reference header, background icons, and section borders.
+ * Added: Explicit REFERENCED LOAD/BOL headers with high-fidelity tracking.
+ * Feature: Chromatic Pulse & Tactical Chevron Inlays preserved.
  */
 
 interface FileWithPreview {
@@ -51,7 +52,7 @@ const App: React.FC = () => {
   const themeColor = isGLX ? 'text-green-500' : isBST ? 'text-blue-400' : 'text-cyan-400';
   const themeBg = isGLX ? 'bg-green-500' : isBST ? 'bg-blue-600' : 'bg-cyan-500';
 
-  // --- SECTION OBSERVER (The "Chromatic Pulse" Logic) ---
+  // --- SECTION OBSERVER ---
   const sectionStatus = useMemo(() => ({
     identity: !!(company && driverName),
     shipment: !!(loadNum && bolNum),
@@ -68,18 +69,17 @@ const App: React.FC = () => {
       triggerPulse();
       setCompletedSections(newlyCompleted);
     }
-  }, [sectionStatus]);
+  }, [sectionStatus, completedSections]);
 
   const triggerPulse = () => {
     setPulseActive(true);
-    // Acoustic Signature: Low-frequency thump simulation
     audioRef.current?.play().catch(() => {}); 
     setTimeout(() => setPulseActive(false), 600);
   };
 
   useEffect(() => {
     audioRef.current = new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3');
-    audioRef.current.volume = 0.2;
+    audioRef.current.volume = 0.15;
   }, []);
 
   const handleAuth = () => {
@@ -108,7 +108,7 @@ const App: React.FC = () => {
     }
   };
 
-  // --- UI FRAGMENTS ---
+  // --- REUSABLE COMPONENTS ---
   const TacticalSelect = ({ value, onChange, options, placeholder }: any) => (
     <div className="relative group/select">
       <select 
@@ -121,7 +121,6 @@ const App: React.FC = () => {
           <option key={opt} value={opt}>{opt}</option>
         ))}
       </select>
-      {/* Tactical Chevron Indicator */}
       <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none flex flex-col items-center gap-0.5 opacity-40 group-focus-within/select:opacity-100 group-hover/select:opacity-100 transition-all">
         <svg className={`w-2.5 h-2.5 transition-transform duration-500 group-focus-within/select:rotate-180 ${themeColor}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="square" strokeWidth="3" d="M5 15l7-7 7 7" />
@@ -131,6 +130,12 @@ const App: React.FC = () => {
         </svg>
       </div>
     </div>
+  );
+
+  const TacticalLabel = ({ children }: { children: React.ReactNode }) => (
+    <label className={`text-[9px] font-black uppercase tracking-[0.3em] ${themeColor} mb-2 block`}>
+      {children}
+    </label>
   );
 
   if (isLocked) {
@@ -150,7 +155,7 @@ const App: React.FC = () => {
   return (
     <div className={`min-h-screen bg-[#020202] text-zinc-300 font-orbitron relative pb-24 overflow-x-hidden transition-all duration-500 ${shake ? 'animate-shake' : ''}`}>
       
-      {/* CHROMATIC PULSE OVERLAY */}
+      {/* HUD PULSE OVERLAY */}
       <div className={`fixed inset-0 pointer-events-none z-0 transition-opacity duration-700 ${pulseActive ? 'opacity-100' : 'opacity-[0.03]'}`}>
         <div className={`absolute inset-0 ${themeBg}`} />
         <div className="absolute inset-0 bg-[radial-gradient(#000_1px,transparent_1px)] [background-size:20px_20px]" />
@@ -160,53 +165,51 @@ const App: React.FC = () => {
         {/* --- HEADER --- */}
         <header className="flex justify-between items-end border-b border-zinc-900 pb-8 pt-4">
           <div className="flex items-center gap-6">
-            <div className={`w-16 h-16 rounded-2xl flex flex-col items-center justify-center font-black transition-all duration-700 border-2 ${isGLX ? 'bg-green-500 text-black border-green-400' : isBST ? 'bg-blue-600 text-white border-blue-400' : 'bg-zinc-900 text-zinc-700 border-zinc-800'}`}>
+            <div className={`w-16 h-16 rounded-2xl flex flex-col items-center justify-center font-black transition-all duration-700 border-2 ${isGLX ? 'bg-green-500 text-black border-green-400 shadow-[0_0_20px_rgba(34,197,94,0.3)]' : isBST ? 'bg-blue-600 text-white border-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.3)]' : 'bg-zinc-900 text-zinc-700 border-zinc-800'}`}>
               <span className="text-xl">{isGLX ? 'GLX' : isBST ? 'BST' : '?'}</span>
             </div>
             <div className="space-y-1">
-              <h1 className={`text-2xl font-black tracking-tighter uppercase ${themeColor}`}>Terminal v1.6</h1>
-              <p className="text-[8px] text-zinc-600 tracking-[0.5em] font-bold uppercase">Sectional_Sync_Enabled</p>
+              <h1 className={`text-2xl font-black tracking-tighter uppercase ${themeColor}`}>Terminal v1.7</h1>
+              <p className="text-[8px] text-zinc-600 tracking-[0.5em] font-bold uppercase">Uplink_Structural_Verified</p>
             </div>
           </div>
         </header>
 
-        {/* --- IDENTITY --- */}
-        <section className={`transition-all duration-500 p-1 rounded-2xl ${sectionStatus.identity ? 'bg-zinc-900/20' : ''}`}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label className={`text-[9px] font-black uppercase tracking-[0.3em] ${themeColor}`}>Carrier Identity</label>
-              <TacticalSelect 
-                value={company} 
-                onChange={(e: any) => setCompany(e.target.value)} 
-                options={['GLX', 'BST']} 
-                placeholder="-- SELECT CARRIER --" 
-              />
-            </div>
-            <div className="space-y-2">
-              <label className={`text-[9px] font-black uppercase tracking-[0.3em] ${themeColor}`}>Operator Name</label>
-              <input type="text" placeholder="ENTER NAME" className="w-full bg-black border border-zinc-900 p-3.5 text-xs rounded-xl outline-none text-white focus:border-zinc-600 transition-all font-mono" value={driverName} onChange={(e) => setDriverName(e.target.value)} />
-            </div>
+        {/* --- SECTION 01: IDENTITY --- */}
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <TacticalLabel>Carrier Identity</TacticalLabel>
+            <TacticalSelect 
+              value={company} 
+              onChange={(e: any) => setCompany(e.target.value)} 
+              options={['GLX', 'BST']} 
+              placeholder="-- SELECT CARRIER --" 
+            />
+          </div>
+          <div>
+            <TacticalLabel>Operator Name</TacticalLabel>
+            <input type="text" placeholder="ENTER NAME" className="w-full bg-black border border-zinc-900 p-3.5 text-xs rounded-xl outline-none text-white focus:border-zinc-600 transition-all font-mono placeholder-zinc-800" value={driverName} onChange={(e) => setDriverName(e.target.value)} />
           </div>
         </section>
 
-        {/* --- SHIPMENT DATA --- */}
-        <section className="bg-zinc-950/50 p-6 rounded-3xl border border-zinc-900/50 space-y-6 relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-4 opacity-10">
-            <svg className="w-20 h-20" fill="currentColor" viewBox="0 0 24 24"><path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9l-7-7z"/></svg>
+        {/* --- SECTION 02: SHIPMENT DATA (HUD STYLE) --- */}
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <TacticalLabel>REFERENCED LOAD #</TacticalLabel>
+            <input type="text" placeholder="LOAD-XXXXX" className="w-full bg-black border border-zinc-900 p-3.5 text-xs rounded-xl outline-none text-white focus:border-zinc-600 transition-all font-mono placeholder-zinc-800" value={loadNum} onChange={(e) => setLoadNum(e.target.value)} />
           </div>
-          <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-600">Shipment_Reference</h2>
-          <div className="grid grid-cols-2 gap-6">
-            <input type="text" placeholder="LOAD #" className="bg-black border border-zinc-900 p-3.5 text-xs rounded-xl outline-none text-white focus:border-zinc-600 transition-all font-mono" value={loadNum} onChange={(e) => setLoadNum(e.target.value)} />
-            <input type="text" placeholder="BOL #" className="bg-black border border-zinc-900 p-3.5 text-xs rounded-xl outline-none text-white focus:border-zinc-600 transition-all font-mono" value={bolNum} onChange={(e) => setBolNum(e.target.value)} />
+          <div>
+            <TacticalLabel>REFERENCED BOL #</TacticalLabel>
+            <input type="text" placeholder="BOL-XXXXX" className="w-full bg-black border border-zinc-900 p-3.5 text-xs rounded-xl outline-none text-white focus:border-zinc-600 transition-all font-mono placeholder-zinc-800" value={bolNum} onChange={(e) => setBolNum(e.target.value)} />
           </div>
         </section>
 
-        {/* --- LOGISTICS ROUTE --- */}
-        <section className="space-y-6">
+        {/* --- SECTION 03: LOGISTICS ROUTE --- */}
+        <section className="space-y-8">
           <div className="grid grid-cols-3 gap-4">
              <div className="col-span-2">
-               <label className={`text-[9px] font-black uppercase tracking-[0.3em] ${themeColor} mb-2 block`}>Pickup Origin</label>
-               <input type="text" placeholder="CITY" className="w-full bg-black border border-zinc-900 p-3.5 text-xs rounded-xl outline-none text-white focus:border-zinc-600 transition-all font-mono" value={puCity} onChange={(e) => setPuCity(e.target.value)} />
+               <TacticalLabel>Pickup Origin</TacticalLabel>
+               <input type="text" placeholder="CITY" className="w-full bg-black border border-zinc-900 p-3.5 text-xs rounded-xl outline-none text-white focus:border-zinc-600 transition-all font-mono placeholder-zinc-800" value={puCity} onChange={(e) => setPuCity(e.target.value)} />
              </div>
              <div className="pt-5">
                <TacticalSelect value={puState} onChange={(e: any) => setPuState(e.target.value)} options={states} placeholder="STATE" />
@@ -214,8 +217,8 @@ const App: React.FC = () => {
           </div>
           <div className="grid grid-cols-3 gap-4">
              <div className="col-span-2">
-               <label className={`text-[9px] font-black uppercase tracking-[0.3em] ${themeColor} mb-2 block`}>Delivery Destination</label>
-               <input type="text" placeholder="CITY" className="w-full bg-black border border-zinc-900 p-3.5 text-xs rounded-xl outline-none text-white focus:border-zinc-600 transition-all font-mono" value={delCity} onChange={(e) => setDelCity(e.target.value)} />
+               <TacticalLabel>Delivery Destination</TacticalLabel>
+               <input type="text" placeholder="CITY" className="w-full bg-black border border-zinc-900 p-3.5 text-xs rounded-xl outline-none text-white focus:border-zinc-600 transition-all font-mono placeholder-zinc-800" value={delCity} onChange={(e) => setDelCity(e.target.value)} />
              </div>
              <div className="pt-5">
                <TacticalSelect value={delState} onChange={(e: any) => setDelState(e.target.value)} options={states} placeholder="STATE" />
@@ -223,21 +226,21 @@ const App: React.FC = () => {
           </div>
         </section>
 
-        {/* --- NEURAL IMAGING (BOL) --- */}
+        {/* --- SECTION 04: NEURAL IMAGING (BOL) --- */}
         <section className="space-y-6">
-          <div className={`flex justify-between items-center border-b pb-4 transition-colors duration-500 ${sectionStatus.imaging ? themeColor.replace('text-', 'border-').replace('500', '500/50') : 'border-zinc-900'}`}>
-            <h2 className={`text-[11px] font-black uppercase tracking-[0.4em] ${themeColor}`}>Neural Imaging</h2>
+          <div className="flex justify-between items-center border-b border-zinc-900 pb-4">
+            <h2 className={`text-[11px] font-black uppercase tracking-[0.4em] ${themeColor}`}>BOL Imaging</h2>
             <div className="flex gap-6">
                <label className="flex items-center gap-3 text-[9px] font-bold cursor-pointer group uppercase">
                  <input type="radio" name="bol" className="hidden" onChange={() => setBolType('pickup')} />
                  <span className={`w-4 h-4 rounded-full border border-zinc-700 transition-all flex items-center justify-center ${bolType === 'pickup' ? 'border-white shadow-[0_0_15px_rgba(255,255,255,0.3)]' : 'group-hover:border-zinc-500'}`}>
-                    {bolType === 'pickup' && <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />}
+                    {bolType === 'pickup' && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
                  </span> PU BOL
                </label>
                <label className="flex items-center gap-3 text-[9px] font-bold cursor-pointer group uppercase">
                  <input type="radio" name="bol" className="hidden" onChange={() => setBolType('delivery')} />
                  <span className={`w-4 h-4 rounded-full border border-zinc-700 transition-all flex items-center justify-center ${bolType === 'delivery' ? 'border-white shadow-[0_0_15px_rgba(255,255,255,0.3)]' : 'group-hover:border-zinc-500'}`}>
-                    {bolType === 'delivery' && <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />}
+                    {bolType === 'delivery' && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
                  </span> DEL POD
                </label>
             </div>
@@ -263,17 +266,16 @@ const App: React.FC = () => {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-5 mt-6 animate-in zoom-in-95 duration-500">
               {uploadedFiles.filter(f => f.category === 'bol').map(f => (
                 <div key={f.id} className="relative aspect-[3/4] border border-zinc-800 rounded-2xl overflow-hidden group shadow-2xl">
-                  <img src={f.preview} className="w-full h-full object-cover grayscale opacity-50 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-700" alt="BOL" />
+                  <img src={f.preview} className="w-full h-full object-cover grayscale opacity-50 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-700" alt="doc" />
                   <div className={`absolute top-0 left-0 w-full h-[3px] animate-scan ${themeBg}`} />
                   <button onClick={() => setUploadedFiles(p => p.filter(i => i.id !== f.id))} className="absolute top-3 right-3 w-7 h-7 bg-red-600/90 text-white rounded-full text-[10px] font-black opacity-0 group-hover:opacity-100 transition-all hover:scale-110">✕</button>
-                  <div className="absolute bottom-0 inset-x-0 p-2 bg-black/60 backdrop-blur-sm text-[7px] text-zinc-400 font-mono truncate">{f.file.name}</div>
                 </div>
               ))}
             </div>
           )}
         </section>
 
-        {/* --- FREIGHT --- */}
+        {/* --- SECTION 05: FREIGHT --- */}
         <section className="space-y-6">
           <h2 className={`text-[11px] font-black uppercase tracking-[0.4em] ${themeColor} border-b border-zinc-900 pb-4`}>Freight Inspection</h2>
           <button 
@@ -295,7 +297,7 @@ const App: React.FC = () => {
             className={`w-full py-9 rounded-[2.5rem] font-black text-sm uppercase tracking-[1.2em] transition-all duration-700 relative overflow-hidden group ${isGLX ? 'bg-green-600 text-black shadow-lg shadow-green-500/20' : isBST ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'bg-zinc-900 text-zinc-700 border border-zinc-800'}`}
           >
             <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-500 opacity-20" />
-            <span className="relative z-10">{isSubmitting ? 'UPLOADING_ENCRYPTED_PACKET...' : 'Execute_Transmission'}</span>
+            <span className="relative z-10">{isSubmitting ? 'UPLOADING...' : 'Execute_Transmission'}</span>
             {isSubmitting && <div className="absolute inset-0 bg-white/10 animate-pulse" />}
           </button>
         </div>
