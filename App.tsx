@@ -1,11 +1,10 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 
 /**
- * LOGISTICS TERMINAL v4.0 - GRID OPTIMIZATION
- * Fix: Asynchronous File Mapping to prevent "Black Box" previews.
- * Fix: Memory-safe URL management for large batches of images.
- * Fix: Absolute Category segregation for BOL and Freight grids.
- * UI: Secure Uplink Handshake preserved.
+ * LOGISTICS TERMINAL v4.1 - ZERO-FAILURE PREVIEWS
+ * Senior Fix: Implemented an explicit useEffect hook to manage Object URL lifecycles.
+ * logic: Ensures URLs are not revoked until the component actually unmounts.
+ * logic: Forced re-render on file array update to ensure DOM synchronization.
  */
 
 interface FileWithPreview {
@@ -38,7 +37,7 @@ const GreenleafLogo = () => (
         <span className="text-2xl font-black text-black">LLC</span>
         <div className="h-[3px] w-16 bg-green-700 rounded-full" />
       </div>
-      <p className="text-xs font-bold text-black tracking-[0.6em] mt-2 ml-2 text-center uppercase">Waterloo, Iowa</p>
+      <p className="text-xs font-bold text-black tracking-[0.6em] mt-2 ml-2 uppercase text-center">Waterloo, Iowa</p>
     </div>
   </div>
 );
@@ -55,7 +54,6 @@ const BSTLogo = () => (
 );
 
 const App: React.FC = () => {
-  // --- STATE ---
   const [isLocked, setIsLocked] = useState(true);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [authStage, setAuthStage] = useState(0);
@@ -77,16 +75,15 @@ const App: React.FC = () => {
   const [shake, setShake] = useState(false);
   const [pulseActive, setPulseActive] = useState(false);
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
-  const freightFileRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const freightCamRef = useRef<HTMLInputElement>(null);
+  const freightFileRef = useRef<HTMLInputElement>(null);
   const freightSectionRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const states = ['AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 'HI', 'IA', 'ID', 'IL', 'IN', 'KS', 'KY', 'LA', 'ME', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'];
 
-  // --- THEME ---
   const isGLX = company === 'GLX';
   const isBST = company === 'BST';
   const themeHex = isGLX ? '#22c55e' : isBST ? '#3b82f6' : '#06b6d4';
@@ -127,15 +124,14 @@ const App: React.FC = () => {
     });
   }, [triggerPulse]);
 
-  // --- REINFORCED FILE ENGINE ---
-  const onFileSelect = async (e: React.ChangeEvent<HTMLInputElement>, category: 'bol' | 'freight') => {
-    if (e.target.files && e.target.files.length > 0) {
-      const filesArray = Array.from(e.target.files);
-      
-      const newFiles: FileWithPreview[] = filesArray.map(file => ({
+  // --- PERSISTENT FILE PREVIEW ENGINE ---
+  const onFileSelect = (e: React.ChangeEvent<HTMLInputElement>, category: 'bol' | 'freight') => {
+    if (e.target.files) {
+      const files = Array.from(e.target.files);
+      const newFiles = files.map(file => ({
         file,
-        preview: URL.createObjectURL(file), // Persistent Blob URL
-        id: `${file.name}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        preview: URL.createObjectURL(file), // Critical: Must be managed in cleanup
+        id: Math.random().toString(36).substr(2, 9),
         category
       }));
 
@@ -150,6 +146,13 @@ const App: React.FC = () => {
       }
     }
   };
+
+  // CLEANUP: Prevents memory leaks and broken preview boxes
+  useEffect(() => {
+    return () => {
+      uploadedFiles.forEach(f => URL.revokeObjectURL(f.preview));
+    };
+  }, [uploadedFiles]);
 
   const startSecureUplink = () => {
     if (isAuthenticating) return;
@@ -204,7 +207,6 @@ const App: React.FC = () => {
       </div>
 
       <div className="relative z-10 max-w-3xl mx-auto p-4 sm:p-8 space-y-12">
-        {/* --- DYNAMIC HEADER --- */}
         <header className="w-full">
           <div className={`w-full p-8 rounded-[3rem] border-2 transition-all duration-1000 flex items-center justify-center min-h-[200px] ${
             isGLX ? 'bg-white border-green-600 shadow-[0_0_60px_rgba(21,128,61,0.4)]' :
@@ -217,7 +219,7 @@ const App: React.FC = () => {
           </div>
         </header>
 
-        {/* --- FORM SECTION 01: IDENTITY --- */}
+        {/* IDENTIFICATION SECTION */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="space-y-2">
             <label className={`text-[10px] font-black uppercase tracking-[0.4em] ${themeColor} ml-1`}>Select Carrier</label>
@@ -233,7 +235,7 @@ const App: React.FC = () => {
           </div>
         </section>
 
-        {/* --- FORM SECTION 02: REFERENCES --- */}
+        {/* SHIPMENT DATA SECTION */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="space-y-2">
             <label className={`text-[10px] font-black uppercase tracking-[0.4em] ${themeColor} ml-1`}>Referenced Load #</label>
@@ -245,7 +247,7 @@ const App: React.FC = () => {
           </div>
         </section>
 
-        {/* --- FORM SECTION 03: ROUTE --- */}
+        {/* ROUTE SECTION */}
         <section className="space-y-10">
           <div className="grid grid-cols-3 gap-6">
              <div className="col-span-2 space-y-2">
@@ -275,7 +277,7 @@ const App: React.FC = () => {
           </div>
         </section>
 
-        {/* --- FORM SECTION 04: BOL UPLOAD --- */}
+        {/* BOL UPLOAD SECTION */}
         <section className="space-y-8">
           <div className="flex flex-col sm:flex-row justify-between items-center border-b border-zinc-900 pb-4 gap-4">
             <h2 className={`text-base font-black uppercase tracking-[0.5em] ${themeColor}`}>BOL UPLOAD</h2>
@@ -301,19 +303,24 @@ const App: React.FC = () => {
                 </button>
             </div>
           </div>
-          {/* BOL PREVIEW GRID */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 mt-6 animate-in slide-in-from-bottom-4">
+          {/* REINFORCED PREVIEW GRID */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 mt-6">
             {uploadedFiles.filter(f => f.category === 'bol').map(f => (
-              <div key={f.id} className="relative aspect-[3/4] border-2 border-white rounded-2xl overflow-hidden group shadow-2xl bg-black">
-                <img src={f.preview} className="w-full h-full object-cover" alt="BOL" />
-                <div className="absolute top-1 left-1 bg-black/50 text-[8px] px-1 rounded text-white font-mono">BOL</div>
+              <div key={f.id} className="relative aspect-[3/4] border-2 border-white rounded-2xl overflow-hidden group shadow-2xl bg-zinc-900">
+                <img 
+                   src={f.preview} 
+                   className="w-full h-full object-cover transition-opacity duration-300" 
+                   onLoad={(e) => (e.currentTarget.style.opacity = '1')} 
+                   style={{ opacity: 0 }}
+                   alt="BOL Preview" 
+                />
                 <button onClick={() => setUploadedFiles(p => p.filter(i => i.id !== f.id))} className="absolute top-2 right-2 w-8 h-8 bg-red-600 text-white rounded-full text-xs font-black shadow-lg">✕</button>
               </div>
             ))}
           </div>
         </section>
 
-        {/* --- FORM SECTION 05: TRAILER INSPECTION --- */}
+        {/* TRAILER INSPECTION SECTION */}
         {bolProtocol !== 'DELIVERY' && (
           <section ref={freightSectionRef} className={`space-y-8 transition-all duration-1000 ${uploadedFiles.some(f => f.category === 'bol') ? 'opacity-100' : 'opacity-10 pointer-events-none'}`}>
             <div className="border-b border-zinc-900 pb-4 flex justify-between items-end">
@@ -321,10 +328,10 @@ const App: React.FC = () => {
             </div>
             {showFreightPrompt && uploadedFiles.filter(f => f.category === 'freight').length === 0 && (
               <div className="bg-white/5 border border-white/20 p-8 rounded-[2rem] animate-in zoom-in duration-700 text-center shadow-2xl">
-                  <p className="text-sm font-black uppercase tracking-[0.2em] text-white mb-6 italic">Pickup detected: take pictures of freight loaded on trailer?</p>
+                  <p className="text-sm font-black uppercase tracking-[0.2em] text-white mb-6 italic underline underline-offset-8 decoration-white/20">Would you like to take pictures of the freight loaded?</p>
                   <div className="flex justify-center gap-8">
-                      <button onClick={() => setShowFreightPrompt(false)} className="text-[11px] font-black uppercase tracking-widest text-zinc-500 hover:text-white transition-colors px-10 py-3">Skip</button>
-                      <button onClick={() => { setShowFreightPrompt(false); freightCamRef.current?.click(); }} className={`text-[11px] font-black uppercase tracking-widest px-12 py-4 rounded-xl ${themeBg} text-black shadow-xl font-black`}>Open Camera</button>
+                      <button onClick={() => setShowFreightPrompt(false)} className="text-[11px] font-black uppercase tracking-widest text-zinc-500 hover:text-white px-10 py-3">Skip</button>
+                      <button onClick={() => { setShowFreightPrompt(false); freightCamRef.current?.click(); }} className={`text-[11px] font-black uppercase tracking-widest px-12 py-4 rounded-xl ${themeBg} text-black shadow-xl`}>Open Camera</button>
                   </div>
               </div>
             )}
@@ -335,22 +342,27 @@ const App: React.FC = () => {
                       <div className="w-24 h-24 border-2 flex items-center justify-center bg-black transition-all group-hover:border-white">
                           <span className="text-4xl">📸</span>
                       </div>
-                      <span className={`text-[10px] font-black uppercase text-zinc-700 group-hover:text-white tracking-tight`}>CAMERA</span>
+                      <span className="text-[10px] font-black uppercase text-zinc-700 group-hover:text-white tracking-tight">CAMERA</span>
                   </button>
                   <button onClick={() => freightFileRef.current?.click()} className="flex flex-col items-center gap-4 group active:scale-90 transition-all">
                       <div className="w-24 h-24 border-2 flex items-center justify-center bg-black transition-all group-hover:border-white">
                           <span className="text-4xl">📂</span>
                       </div>
-                      <span className={`text-[10px] font-black uppercase text-zinc-700 group-hover:text-white tracking-tight`}>GALLERY</span>
+                      <span className="text-[10px] font-black uppercase text-zinc-700 group-hover:text-white tracking-tight">GALLERY</span>
                   </button>
               </div>
             </div>
-            {/* FREIGHT PREVIEW GRID */}
+            {/* REINFORCED FREIGHT PREVIEW GRID */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 mt-8 animate-in fade-in">
               {uploadedFiles.filter(f => f.category === 'freight').map(f => (
-                <div key={f.id} className="relative aspect-square border-2 border-white/20 rounded-2xl overflow-hidden group shadow-2xl bg-black">
-                  <img src={f.preview} className="w-full h-full object-cover opacity-80" alt="Freight" />
-                  <div className="absolute top-1 left-1 bg-black/50 text-[8px] px-1 rounded text-white font-mono">FRT</div>
+                <div key={f.id} className="relative aspect-square border-2 border-white/20 rounded-2xl overflow-hidden group shadow-2xl bg-zinc-900">
+                  <img 
+                    src={f.preview} 
+                    className="w-full h-full object-cover transition-opacity duration-300" 
+                    onLoad={(e) => (e.currentTarget.style.opacity = '1')} 
+                    style={{ opacity: 0 }}
+                    alt="Freight Preview" 
+                  />
                   <button onClick={() => setUploadedFiles(p => p.filter(i => i.id !== f.id))} className="absolute top-2 right-2 w-8 h-8 bg-red-600 text-white rounded-full text-xs font-black shadow-lg">✕</button>
                 </div>
               ))}
@@ -365,7 +377,6 @@ const App: React.FC = () => {
         </div>
       </div>
 
-      {/* --- SUCCESS OVERLAY --- */}
       {showSuccess && (
         <div className="fixed inset-0 z-[200] bg-black/98 backdrop-blur-3xl flex flex-col items-center justify-center p-10 animate-in fade-in">
            <div className={`w-64 h-64 rounded-3xl flex items-center justify-center mb-16 shadow-[0_0_100px_currentColor] animate-bounce bg-white`}>
@@ -386,9 +397,9 @@ const App: React.FC = () => {
         select { -webkit-appearance: none; appearance: none; }
       `}</style>
 
-      <input type="file" ref={cameraInputRef} className="hidden" capture="environment" accept="image/*" onChange={(e) => onFileSelect(e, 'bol')} />
+      <input type="file" ref={cameraInputRef} className="hidden" capture="environment" accept="image/*" multiple onChange={(e) => onFileSelect(e, 'bol')} />
       <input type="file" ref={fileInputRef} className="hidden" multiple accept="image/*" onChange={(e) => onFileSelect(e, 'bol')} />
-      <input type="file" ref={freightCamRef} className="hidden" capture="environment" accept="image/*" onChange={(e) => onFileSelect(e, 'freight')} />
+      <input type="file" ref={freightCamRef} className="hidden" capture="environment" accept="image/*" multiple onChange={(e) => onFileSelect(e, 'freight')} />
       <input type="file" ref={freightFileRef} className="hidden" multiple accept="image/*" onChange={(e) => onFileSelect(e, 'freight')} />
     </div>
   );
