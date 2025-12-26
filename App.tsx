@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 
 /**
- * LOGISTICS TERMINAL v3.5 - DEFINITIVE PROTOCOL
- * Fix: Final placeholder alignment (ENTER PICKUP/DELIVERY CITY).
- * Fix: Capitalized "Enter" for Load and BOL reference fields.
+ * LOGISTICS TERMINAL v3.6 - TACTICAL UNIFORMITY
+ * UI: Scaled BOL Upload buttons to match Freight Inspection dimensions.
+ * Alignment: Uniform icon sizing (w-24 h-24) across all imaging modules.
  * Branding: High-Fidelity SVG Greenleaf Xpress Integration preserved.
  */
 
@@ -241,6 +241,7 @@ const App: React.FC = () => {
           </div>
         </section>
 
+        {/* --- BOL UPLOAD SECTION (UPDATED BUTTON SIZE) --- */}
         <section className="space-y-8">
           <div className="flex flex-col sm:flex-row justify-between items-center border-b border-zinc-900 pb-4 gap-4">
             <h2 className={`text-base font-black uppercase tracking-[0.5em] ${themeColor}`}>BOL UPLOAD</h2>
@@ -249,18 +250,18 @@ const App: React.FC = () => {
                 <button onClick={() => { setBolProtocol('DELIVERY'); triggerPulse(); setShowFreightPrompt(false); }} className={`px-8 py-3 text-[10px] font-black uppercase tracking-widest border-2 transition-all duration-500 rounded-xl ${bolProtocol === 'DELIVERY' ? `${themeBg} text-black border-white shadow-lg scale-105` : 'border-zinc-900 text-zinc-600'}`}>DELIVERY BOL</button>
             </div>
           </div>
-          <div className={`p-12 border-2 transition-all duration-1000 flex flex-col md:flex-row items-center justify-around gap-12 relative overflow-hidden rounded-[3rem] ${bolProtocol ? `${themeBg} border-white shadow-2xl opacity-100` : 'border-zinc-900 bg-zinc-950 opacity-30'}`}>
-            <button onClick={() => cameraInputRef.current?.click()} disabled={!bolProtocol} className="flex flex-col items-center gap-6 group active:scale-90 transition-all z-10">
-              <div className={`w-32 h-32 border-2 flex items-center justify-center bg-black transition-all ${bolProtocol ? 'border-white shadow-lg' : 'border-zinc-800'}`}>
-                <span className="text-6xl">📸</span>
+          <div className={`p-10 border-2 transition-all duration-1000 flex flex-col md:flex-row items-center justify-around gap-12 relative overflow-hidden rounded-[3rem] ${bolProtocol ? `${themeBg} border-white shadow-2xl opacity-100` : 'border-zinc-900 bg-zinc-950 opacity-30'}`}>
+            <button onClick={() => cameraInputRef.current?.click()} disabled={!bolProtocol} className="flex flex-col items-center gap-4 group active:scale-90 transition-all z-10">
+              <div className={`w-24 h-24 border-2 flex items-center justify-center bg-black transition-all ${bolProtocol ? 'border-white shadow-lg' : 'border-zinc-800'}`}>
+                <span className="text-4xl">📸</span>
               </div>
-              <span className={`text-[11px] font-black tracking-[0.8em] uppercase ${bolProtocol ? 'text-white' : 'text-zinc-800'}`}>CAMERA</span>
+              <span className={`text-[10px] font-black tracking-[0.8em] uppercase ${bolProtocol ? 'text-white' : 'text-zinc-800'}`}>CAMERA</span>
             </button>
-            <button onClick={() => fileInputRef.current?.click()} disabled={!bolProtocol} className="flex flex-col items-center gap-6 group active:scale-90 transition-all z-10">
-              <div className={`w-32 h-32 border-2 flex items-center justify-center bg-black transition-all ${bolProtocol ? 'border-white shadow-lg' : 'border-zinc-800'}`}>
-                <span className="text-6xl">📂</span>
+            <button onClick={() => fileInputRef.current?.click()} disabled={!bolProtocol} className="flex flex-col items-center gap-4 group active:scale-90 transition-all z-10">
+              <div className={`w-24 h-24 border-2 flex items-center justify-center bg-black transition-all ${bolProtocol ? 'border-white shadow-lg' : 'border-zinc-800'}`}>
+                <span className="text-4xl">📂</span>
               </div>
-              <span className={`text-[11px] font-black tracking-[0.8em] uppercase ${bolProtocol ? 'text-white' : 'text-zinc-800'}`}>GALLERY</span>
+              <span className={`text-[10px] font-black tracking-[0.8em] uppercase ${bolProtocol ? 'text-white' : 'text-zinc-800'}`}>GALLERY</span>
             </button>
           </div>
           {uploadedFiles.filter(f => f.category === 'bol').length > 0 && (
@@ -283,12 +284,12 @@ const App: React.FC = () => {
             <div className="bg-white/5 border border-white/20 p-8 rounded-[2rem] animate-in zoom-in duration-700 text-center shadow-2xl">
                 <p className="text-sm font-black uppercase tracking-[0.2em] text-white mb-6 italic">Pickup detected: take pictures of freight loaded on trailer?</p>
                 <div className="flex justify-center gap-8">
-                    <button onClick={() => setShowFreightPrompt(false)} className="text-[11px] font-black uppercase tracking-widest text-zinc-500 hover:text-white px-10 py-3">Skip</button>
+                    <button onClick={() => setShowFreightPrompt(false)} className="text-[11px] font-black uppercase tracking-widest text-zinc-500 hover:text-white transition-colors px-10 py-3">Skip</button>
                     <button onClick={() => { setShowFreightPrompt(false); freightCamRef.current?.click(); }} className={`text-[11px] font-black uppercase tracking-widest px-12 py-4 rounded-xl ${themeBg} text-black shadow-xl font-black`}>Open Camera</button>
                 </div>
             </div>
           )}
-          <div className="p-12 border-2 border-dashed border-zinc-900 rounded-[3rem] bg-zinc-950/20 text-center space-y-10">
+          <div className="p-10 border-2 border-dashed border-zinc-900 rounded-[3rem] bg-zinc-950/20 text-center space-y-10">
             <p className="text-[11px] font-black uppercase tracking-[0.4em] text-zinc-600 italic">Click to capture or upload images of freight loaded</p>
             <div className="flex justify-center gap-16">
                 <button onClick={() => freightCamRef.current?.click()} className="flex flex-col items-center gap-4 group active:scale-90 transition-all">
