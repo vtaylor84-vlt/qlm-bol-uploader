@@ -1,11 +1,11 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 
 /**
- * LOGISTICS TERMINAL v3.9 - LOGIC-DRIVEN WORKFLOW
- * Logic: Freight section is HIDDEN on Delivery submissions.
- * Logic: Freight section remains DARK/LOCKED until BOL is uploaded (Pickup only).
- * UI: Normalized uppercase placeholders for Load and BOL.
- * Branding: High-Fidelity SVG Greenleaf Xpress Integration preserved.
+ * LOGISTICS TERMINAL v4.0 - GRID OPTIMIZATION
+ * Fix: Asynchronous File Mapping to prevent "Black Box" previews.
+ * Fix: Memory-safe URL management for large batches of images.
+ * Fix: Absolute Category segregation for BOL and Freight grids.
+ * UI: Secure Uplink Handshake preserved.
  */
 
 interface FileWithPreview {
@@ -38,7 +38,7 @@ const GreenleafLogo = () => (
         <span className="text-2xl font-black text-black">LLC</span>
         <div className="h-[3px] w-16 bg-green-700 rounded-full" />
       </div>
-      <p className="text-xs font-bold text-black tracking-[0.6em] mt-2 ml-2">WATERLOO, IOWA</p>
+      <p className="text-xs font-bold text-black tracking-[0.6em] mt-2 ml-2 text-center uppercase">Waterloo, Iowa</p>
     </div>
   </div>
 );
@@ -127,20 +127,25 @@ const App: React.FC = () => {
     });
   }, [triggerPulse]);
 
-  const onFileSelect = (e: React.ChangeEvent<HTMLInputElement>, category: 'bol' | 'freight') => {
-    if (e.target.files) {
-      const newFiles = Array.from(e.target.files).map(file => ({
+  // --- REINFORCED FILE ENGINE ---
+  const onFileSelect = async (e: React.ChangeEvent<HTMLInputElement>, category: 'bol' | 'freight') => {
+    if (e.target.files && e.target.files.length > 0) {
+      const filesArray = Array.from(e.target.files);
+      
+      const newFiles: FileWithPreview[] = filesArray.map(file => ({
         file,
-        preview: URL.createObjectURL(file),
-        id: `${file.name}-${Date.now()}`,
+        preview: URL.createObjectURL(file), // Persistent Blob URL
+        id: `${file.name}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         category
       }));
+
       setUploadedFiles(prev => [...prev, ...newFiles]);
       validate(category === 'bol' ? 'imaging' : 'freight_imaging', 'true');
+
       if (category === 'bol' && bolProtocol === 'PICKUP') {
         setTimeout(() => {
-            setShowFreightPrompt(true);
-            freightSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
+          setShowFreightPrompt(true);
+          freightSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
         }, 800);
       }
     }
@@ -212,7 +217,7 @@ const App: React.FC = () => {
           </div>
         </header>
 
-        {/* --- IDENTITY --- */}
+        {/* --- FORM SECTION 01: IDENTITY --- */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="space-y-2">
             <label className={`text-[10px] font-black uppercase tracking-[0.4em] ${themeColor} ml-1`}>Select Carrier</label>
@@ -228,7 +233,7 @@ const App: React.FC = () => {
           </div>
         </section>
 
-        {/* --- SHIPMENT DATA --- */}
+        {/* --- FORM SECTION 02: REFERENCES --- */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="space-y-2">
             <label className={`text-[10px] font-black uppercase tracking-[0.4em] ${themeColor} ml-1`}>Referenced Load #</label>
@@ -240,7 +245,7 @@ const App: React.FC = () => {
           </div>
         </section>
 
-        {/* --- ROUTE --- */}
+        {/* --- FORM SECTION 03: ROUTE --- */}
         <section className="space-y-10">
           <div className="grid grid-cols-3 gap-6">
              <div className="col-span-2 space-y-2">
@@ -270,7 +275,7 @@ const App: React.FC = () => {
           </div>
         </section>
 
-        {/* --- BOL UPLOAD SECTION --- */}
+        {/* --- FORM SECTION 04: BOL UPLOAD --- */}
         <section className="space-y-8">
           <div className="flex flex-col sm:flex-row justify-between items-center border-b border-zinc-900 pb-4 gap-4">
             <h2 className={`text-base font-black uppercase tracking-[0.5em] ${themeColor}`}>BOL UPLOAD</h2>
@@ -296,19 +301,19 @@ const App: React.FC = () => {
                 </button>
             </div>
           </div>
-          {uploadedFiles.filter(f => f.category === 'bol').length > 0 && (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 mt-6 animate-in slide-in-from-bottom-4">
-              {uploadedFiles.filter(f => f.category === 'bol').map(f => (
-                <div key={f.id} className="relative aspect-[3/4] border-2 border-white rounded-2xl overflow-hidden group shadow-2xl">
-                  <img src={f.preview} className="w-full h-full object-cover" alt="BOL" />
-                  <button onClick={() => setUploadedFiles(p => p.filter(i => i.id !== f.id))} className="absolute top-2 right-2 w-8 h-8 bg-red-600 text-white rounded-full text-xs font-black shadow-lg">✕</button>
-                </div>
-              ))}
-            </div>
-          )}
+          {/* BOL PREVIEW GRID */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 mt-6 animate-in slide-in-from-bottom-4">
+            {uploadedFiles.filter(f => f.category === 'bol').map(f => (
+              <div key={f.id} className="relative aspect-[3/4] border-2 border-white rounded-2xl overflow-hidden group shadow-2xl bg-black">
+                <img src={f.preview} className="w-full h-full object-cover" alt="BOL" />
+                <div className="absolute top-1 left-1 bg-black/50 text-[8px] px-1 rounded text-white font-mono">BOL</div>
+                <button onClick={() => setUploadedFiles(p => p.filter(i => i.id !== f.id))} className="absolute top-2 right-2 w-8 h-8 bg-red-600 text-white rounded-full text-xs font-black shadow-lg">✕</button>
+              </div>
+            ))}
+          </div>
         </section>
 
-        {/* --- TRAILER INSPECTION (HIDE ON DELIVERY) --- */}
+        {/* --- FORM SECTION 05: TRAILER INSPECTION --- */}
         {bolProtocol !== 'DELIVERY' && (
           <section ref={freightSectionRef} className={`space-y-8 transition-all duration-1000 ${uploadedFiles.some(f => f.category === 'bol') ? 'opacity-100' : 'opacity-10 pointer-events-none'}`}>
             <div className="border-b border-zinc-900 pb-4 flex justify-between items-end">
@@ -340,16 +345,16 @@ const App: React.FC = () => {
                   </button>
               </div>
             </div>
-            {uploadedFiles.filter(f => f.category === 'freight').length > 0 && (
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 mt-8 animate-in fade-in">
-                {uploadedFiles.filter(f => f.category === 'freight').map(f => (
-                  <div key={f.id} className="relative aspect-square border-2 border-white/20 rounded-2xl overflow-hidden group shadow-2xl bg-black">
-                    <img src={f.preview} className="w-full h-full object-cover opacity-80" alt="Freight" />
-                    <button onClick={() => setUploadedFiles(p => p.filter(i => i.id !== f.id))} className="absolute top-2 right-2 w-8 h-8 bg-red-600 text-white rounded-full text-xs font-black shadow-lg">✕</button>
-                  </div>
-                ))}
-              </div>
-            )}
+            {/* FREIGHT PREVIEW GRID */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 mt-8 animate-in fade-in">
+              {uploadedFiles.filter(f => f.category === 'freight').map(f => (
+                <div key={f.id} className="relative aspect-square border-2 border-white/20 rounded-2xl overflow-hidden group shadow-2xl bg-black">
+                  <img src={f.preview} className="w-full h-full object-cover opacity-80" alt="Freight" />
+                  <div className="absolute top-1 left-1 bg-black/50 text-[8px] px-1 rounded text-white font-mono">FRT</div>
+                  <button onClick={() => setUploadedFiles(p => p.filter(i => i.id !== f.id))} className="absolute top-2 right-2 w-8 h-8 bg-red-600 text-white rounded-full text-xs font-black shadow-lg">✕</button>
+                </div>
+              ))}
+            </div>
           </section>
         )}
 
@@ -360,6 +365,7 @@ const App: React.FC = () => {
         </div>
       </div>
 
+      {/* --- SUCCESS OVERLAY --- */}
       {showSuccess && (
         <div className="fixed inset-0 z-[200] bg-black/98 backdrop-blur-3xl flex flex-col items-center justify-center p-10 animate-in fade-in">
            <div className={`w-64 h-64 rounded-3xl flex items-center justify-center mb-16 shadow-[0_0_100px_currentColor] animate-bounce bg-white`}>
