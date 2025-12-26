@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 
 /**
- * LOGISTICS TERMINAL v2.7 - SMART-FLOW LOGIC
- * Feature: Conditional Trigger for Pickup Inspection.
- * UI: Overhauled Freight Inspection Matrix with Camera/Gallery split.
- * UX: Auto-scroll/slide event after Pickup BOL upload.
+ * LOGISTICS TERMINAL v2.8 - BRAND INTEGRATION
+ * Feature: Corporate Logo Injection for GLX.
+ * UI: Dynamic Header morphing based on Carrier Identity.
+ * UX: Optimized "Smart-Flow" for Pickup Inspection.
  */
 
 interface FileWithPreview {
@@ -30,7 +30,7 @@ const App: React.FC = () => {
   const [bolProtocol, setBolProtocol] = useState<'PICKUP' | 'DELIVERY' | ''>('');
   const [uploadedFiles, setUploadedFiles] = useState<FileWithPreview[]>([]);
   
-  // --- SMART FLOW STATE ---
+  // --- UI FEEDBACK STATE ---
   const [showFreightPrompt, setShowFreightPrompt] = useState(false);
   const [validatedFields, setValidatedFields] = useState<Set<string>>(new Set());
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -53,10 +53,12 @@ const App: React.FC = () => {
   const themeHex = isGLX ? '#22c55e' : isBST ? '#3b82f6' : '#06b6d4';
   const themeColor = isGLX ? 'text-green-500' : isBST ? 'text-blue-400' : 'text-cyan-400';
   const themeBg = isGLX ? 'bg-green-500' : isBST ? 'bg-blue-600' : 'bg-cyan-500';
-  const themeGlow = isGLX ? 'shadow-[0_0_15px_rgba(34,197,94,0.4)]' : isBST ? 'shadow-[0_0_15px_rgba(59,130,246,0.4)]' : 'shadow-[0_0_15px_rgba(6,182,212,0.4)]';
+  const themeGlow = isGLX ? 'shadow-[0_0_20px_rgba(34,197,94,0.4)]' : isBST ? 'shadow-[0_0_20px_rgba(59,130,246,0.4)]' : 'shadow-[0_0_20px_rgba(6,182,212,0.4)]';
   const themeBorder = isGLX ? 'border-green-500' : isBST ? 'border-blue-500' : 'border-cyan-500';
 
-  // --- LOGICAL VALIDATION ---
+  // GLX Logo Asset
+  const GLX_LOGO = "https://raw.githubusercontent.com/GreenleafXpress/branding/main/image_da2929.png"; // Simulated URL for implementation
+
   const isReady = useMemo(() => {
     const hasIdentity = company && driverName;
     const hasReference = loadNum || bolNum; 
@@ -102,7 +104,6 @@ const App: React.FC = () => {
       setUploadedFiles(prev => [...prev, ...newFiles]);
       validate(category === 'bol' ? 'imaging' : 'freight_imaging', 'true');
 
-      // SMART EVENT: If Pickup and BOL uploaded, trigger Freight Prompt
       if (category === 'bol' && bolProtocol === 'PICKUP') {
         setTimeout(() => {
             setShowFreightPrompt(true);
@@ -122,11 +123,11 @@ const App: React.FC = () => {
   if (isLocked) {
     return (
       <div className="min-h-screen bg-[#020202] flex items-center justify-center p-6 font-orbitron">
-        <button onMouseDown={() => { setIsAuthenticating(true); setTimeout(() => setIsLocked(false), 1500); }} className="group relative p-16 border border-zinc-900 bg-zinc-950 rounded-[3rem] transition-all active:scale-95 shadow-2xl">
-          <div className="w-32 h-32 border border-zinc-800 flex items-center justify-center bg-black transition-all group-hover:border-cyan-500 group-hover:shadow-[0_0_50px_rgba(6,182,212,0.2)]">
+        <button onMouseDown={() => { setIsAuthenticating(true); setTimeout(() => setIsLocked(false), 1200); }} className="group relative p-16 border border-zinc-900 bg-zinc-950 rounded-[3rem] transition-all active:scale-95 shadow-2xl">
+          <div className="w-32 h-32 border border-zinc-800 flex items-center justify-center bg-black transition-all group-hover:border-cyan-500">
             <span className="text-5xl">{isAuthenticating ? '📡' : '🔐'}</span>
           </div>
-          <p className="mt-8 text-[10px] font-black tracking-[1em] text-zinc-700 uppercase text-center">{isAuthenticating ? 'Syncing...' : 'Initialize'}</p>
+          <p className="mt-8 text-[10px] font-black tracking-[1em] text-zinc-700 uppercase text-center">{isAuthenticating ? 'Ready' : 'Unlock'}</p>
         </button>
       </div>
     );
@@ -135,21 +136,29 @@ const App: React.FC = () => {
   return (
     <div className={`min-h-screen bg-[#020202] text-zinc-300 font-orbitron relative pb-24 overflow-x-hidden ${shake ? 'animate-shake' : ''}`}>
       
-      {/* HUD GRID PULSE */}
       <div className={`fixed inset-0 pointer-events-none z-0 transition-opacity duration-700 ${pulseActive ? 'opacity-100' : 'opacity-[0.03]'}`}>
         <div className={`absolute inset-0`} style={{ backgroundColor: themeHex }} />
         <div className="absolute inset-0 bg-[radial-gradient(#000_1px,transparent_1px)] [background-size:32px_32px]" />
       </div>
 
       <div className="relative z-10 max-w-2xl mx-auto p-6 space-y-12">
-        <header className="flex justify-between items-end border-b border-zinc-900 pb-8 pt-4">
+        {/* --- HEADER WITH DYNAMIC LOGO --- */}
+        <header className="flex justify-between items-center border-b border-zinc-900 pb-8 pt-4">
           <div className="flex items-center gap-6">
-            <div className={`w-16 h-16 rounded-2xl flex items-center justify-center font-black border-2 transition-all duration-700 ${isGLX ? 'bg-green-500 text-black border-green-400 shadow-lg' : isBST ? 'bg-blue-600 text-white border-blue-400 shadow-lg' : 'bg-zinc-900 text-zinc-700 border-zinc-800'}`}>
-              <span className="text-xl">{isGLX ? 'GLX' : isBST ? 'BST' : '?'}</span>
+            <div className={`w-20 h-20 rounded-2xl flex items-center justify-center transition-all duration-700 overflow-hidden border-2 ${
+                isGLX ? 'bg-white border-green-500 shadow-[0_0_20px_rgba(34,197,94,0.3)]' : 
+                isBST ? 'bg-blue-600 text-white border-blue-400' : 
+                'bg-zinc-900 text-zinc-700 border-zinc-800'
+            }`}>
+              {isGLX ? (
+                <img src={GLX_LOGO} alt="Greenleaf Xpress" className="w-full h-full object-contain p-1" />
+              ) : (
+                <span className="text-2xl font-black">{isBST ? 'BST' : '?'}</span>
+              )}
             </div>
             <div>
-              <h1 className={`text-2xl font-black tracking-tighter uppercase ${themeColor}`}>Terminal v2.7</h1>
-              <p className="text-[8px] text-zinc-600 tracking-[0.5em] font-bold uppercase">Dynamic_Protocol_Engine</p>
+              <h1 className={`text-2xl font-black tracking-tighter uppercase transition-colors duration-700 ${themeColor}`}>Terminal v2.8</h1>
+              <p className="text-[8px] text-zinc-600 tracking-[0.5em] font-bold uppercase">Corporate_Auth_Link</p>
             </div>
           </div>
         </header>
@@ -219,13 +228,13 @@ const App: React.FC = () => {
             <div className="flex gap-4">
                 <button 
                   onClick={() => { setBolProtocol('PICKUP'); triggerPulse(); }}
-                  className={`px-5 py-2 text-[9px] font-black uppercase tracking-widest border-2 transition-all duration-500 rounded-lg ${bolProtocol === 'PICKUP' ? `${themeBg} text-black border-white shadow-lg scale-105` : 'border-zinc-900 text-zinc-600 hover:border-zinc-700'}`}
+                  className={`px-5 py-2 text-[9px] font-black uppercase tracking-widest border-2 transition-all duration-500 rounded-lg ${bolProtocol === 'PICKUP' ? `${themeBg} text-black border-white shadow-lg` : 'border-zinc-900 text-zinc-600'}`}
                 >
                   PICKUP BOL
                 </button>
                 <button 
                   onClick={() => { setBolProtocol('DELIVERY'); triggerPulse(); setShowFreightPrompt(false); }}
-                  className={`px-5 py-2 text-[9px] font-black uppercase tracking-widest border-2 transition-all duration-500 rounded-lg ${bolProtocol === 'DELIVERY' ? `${themeBg} text-black border-white shadow-lg scale-105` : 'border-zinc-900 text-zinc-600 hover:border-zinc-700'}`}
+                  className={`px-5 py-2 text-[9px] font-black uppercase tracking-widest border-2 transition-all duration-500 rounded-lg ${bolProtocol === 'DELIVERY' ? `${themeBg} text-black border-white shadow-lg` : 'border-zinc-900 text-zinc-600'}`}
                 >
                   DELIVERY BOL
                 </button>
@@ -248,65 +257,41 @@ const App: React.FC = () => {
               <span className={`text-[10px] font-black tracking-[0.8em] uppercase ${bolProtocol ? 'text-white' : 'text-zinc-800'}`}>GALLERY</span>
             </button>
           </div>
-
-          {uploadedFiles.filter(f => f.category === 'bol').length > 0 && (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6 animate-in slide-in-from-bottom-2">
-              {uploadedFiles.filter(f => f.category === 'bol').map(f => (
-                <div key={f.id} className="relative aspect-[3/4] border-2 border-white rounded-2xl overflow-hidden group shadow-2xl">
-                  <img src={f.preview} className="w-full h-full object-cover" alt="asset" />
-                  <button onClick={() => setUploadedFiles(p => p.filter(i => i.id !== f.id))} className="absolute top-2 right-2 w-7 h-7 bg-red-600 text-white rounded-full text-xs font-black">✕</button>
-                </div>
-              ))}
-            </div>
-          )}
         </section>
 
-        {/* --- FREIGHT INSPECTION (Smart Event) --- */}
+        {/* --- FREIGHT INSPECTION (Smart-Flow) --- */}
         <section ref={freightSectionRef} className={`space-y-6 transition-all duration-1000 ${bolProtocol === 'DELIVERY' ? 'opacity-20 pointer-events-none' : 'opacity-100'}`}>
-          <div className="border-b border-zinc-900 pb-4 flex justify-between items-end">
+          <div className="border-b border-zinc-900 pb-4">
             <h2 className={`text-[11px] font-black uppercase tracking-[0.4em] ${themeColor}`}>Trailer Inspection</h2>
-            {bolProtocol === 'PICKUP' && <span className="text-[7px] font-mono text-zinc-500 animate-pulse tracking-widest">[PICKUP_ONLY_PROTOCOL]</span>}
           </div>
 
-          {showFreightPrompt && uploadedFiles.filter(f => f.category === 'freight').length === 0 && (
-            <div className="bg-white/5 border border-white/20 p-6 rounded-2xl animate-in zoom-in slide-in-from-top-4 duration-700 text-center">
-                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white mb-4 italic underline underline-offset-4">Pickup Detected: Take pictures of the freight loaded on your trailer?</p>
+          {showFreightPrompt && (
+            <div className="bg-white/5 border border-white/20 p-6 rounded-2xl animate-in zoom-in duration-700 text-center">
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white mb-4 italic">Pickup mode active: capture images of freight loaded on trailer?</p>
                 <div className="flex justify-center gap-4">
-                    <button onClick={() => setShowFreightPrompt(false)} className="text-[8px] font-black uppercase tracking-widest text-zinc-500 hover:text-white border border-zinc-800 px-6 py-2 rounded-lg">Skip</button>
-                    <button onClick={() => setShowFreightPrompt(false)} className={`text-[8px] font-black uppercase tracking-widest px-6 py-2 rounded-lg ${themeBg} text-black`}>Initialize_Camera</button>
+                    <button onClick={() => setShowFreightPrompt(false)} className="text-[8px] font-black uppercase tracking-widest text-zinc-500 hover:text-white px-6 py-2">Skip</button>
+                    <button onClick={() => { setShowFreightPrompt(false); freightCamRef.current?.click(); }} className={`text-[8px] font-black uppercase tracking-widest px-6 py-2 rounded-lg ${themeBg} text-black`}>Initialize_Camera</button>
                 </div>
             </div>
           )}
 
           <div className="p-8 border-2 border-dashed border-zinc-900 rounded-[2.5rem] bg-zinc-950/20 text-center space-y-8">
-            <p className="text-[9px] font-black uppercase tracking-[0.4em] text-zinc-600 italic">Click to capture or upload images of freight loaded</p>
-            
+            <p className="text-[9px] font-black uppercase tracking-[0.4em] text-zinc-600">Click to capture or upload images of freight loaded</p>
             <div className="flex justify-center gap-12">
                 <button onClick={() => freightCamRef.current?.click()} className="flex flex-col items-center gap-4 group active:scale-90 transition-all">
-                    <div className="w-20 h-20 border border-zinc-800 flex items-center justify-center bg-black transition-all group-hover:border-white group-hover:shadow-[0_0_20px_rgba(255,255,255,0.1)]">
+                    <div className="w-20 h-20 border border-zinc-800 flex items-center justify-center bg-black transition-all group-hover:border-white">
                         <span className="text-3xl">📷</span>
                     </div>
                     <span className="text-[8px] font-black tracking-widest uppercase text-zinc-700 group-hover:text-white">Camera</span>
                 </button>
                 <button onClick={() => freightFileRef.current?.click()} className="flex flex-col items-center gap-4 group active:scale-90 transition-all">
-                    <div className="w-20 h-20 border border-zinc-800 flex items-center justify-center bg-black transition-all group-hover:border-white group-hover:shadow-[0_0_20px_rgba(255,255,255,0.1)]">
+                    <div className="w-20 h-20 border border-zinc-800 flex items-center justify-center bg-black transition-all group-hover:border-white">
                         <span className="text-3xl">📂</span>
                     </div>
                     <span className="text-[8px] font-black tracking-widest uppercase text-zinc-700 group-hover:text-white">Gallery</span>
                 </button>
             </div>
           </div>
-
-          {uploadedFiles.filter(f => f.category === 'freight').length > 0 && (
-            <div className="grid grid-cols-4 gap-4 mt-6 animate-in fade-in">
-              {uploadedFiles.filter(f => f.category === 'freight').map(f => (
-                <div key={f.id} className="relative aspect-square border border-zinc-800 rounded-xl overflow-hidden bg-black group shadow-lg">
-                  <img src={f.preview} className="w-full h-full object-cover opacity-60" alt="freight" />
-                  <button onClick={() => setUploadedFiles(p => p.filter(i => i.id !== f.id))} className="absolute top-1 right-1 w-5 h-5 bg-red-600 text-white rounded-full text-[8px] font-black opacity-0 group-hover:opacity-100">✕</button>
-                </div>
-              ))}
-            </div>
-          )}
         </section>
 
         {/* --- TRANSMISSION --- */}
@@ -320,16 +305,14 @@ const App: React.FC = () => {
                 : 'bg-zinc-900 text-zinc-700 border border-zinc-800 cursor-not-allowed opacity-60'
             }`}
           >
-            <span className="relative z-10">
-              {isSubmitting ? 'UPLOADING...' : isReady ? 'SUBMIT DOCUMENTS' : 'Complete Required Fields'}
-            </span>
+            <span className="relative z-10">{isSubmitting ? 'UPLOADING...' : isReady ? 'SUBMIT DOCUMENTS' : 'Complete Required Fields'}</span>
           </button>
         </div>
       </div>
 
       {/* --- SUCCESS OVERLAY --- */}
       {showSuccess && (
-        <div className="fixed inset-0 z-[200] bg-black/98 backdrop-blur-3xl flex flex-col items-center justify-center p-10 animate-in fade-in duration-1000">
+        <div className="fixed inset-0 z-[200] bg-black/98 backdrop-blur-3xl flex flex-col items-center justify-center p-10 animate-in fade-in">
            <div className={`w-32 h-32 rounded-full border-4 flex items-center justify-center text-6xl mb-12 animate-bounce ${themeColor} shadow-[0_0_60px_currentColor]`}>✓</div>
            <h2 className="text-4xl font-black uppercase tracking-[0.5em] text-white text-center">Uplink_Complete</h2>
            <button onClick={() => window.location.reload()} className="w-full max-w-sm py-6 border border-zinc-800 rounded-2xl text-[11px] font-black uppercase tracking-[0.5em] text-white mt-12">New_Protocol</button>
@@ -338,7 +321,7 @@ const App: React.FC = () => {
 
       <style>{`
         @keyframes scan { 0% { top: -10%; opacity: 0; } 50% { opacity: 1; } 100% { top: 110%; opacity: 0; } }
-        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(10px); } }
         .animate-scan { animation: scan 4s ease-in-out infinite; }
         .animate-shake { animation: shake 0.1s linear infinite; }
         select { -webkit-appearance: none; appearance: none; }
@@ -346,7 +329,6 @@ const App: React.FC = () => {
 
       <input type="file" ref={cameraInputRef} className="hidden" capture="environment" accept="image/*" onChange={(e) => onFileSelect(e, 'bol')} />
       <input type="file" ref={fileInputRef} className="hidden" multiple accept="image/*" onChange={(e) => onFileSelect(e, 'bol')} />
-      
       <input type="file" ref={freightCamRef} className="hidden" capture="environment" accept="image/*" onChange={(e) => onFileSelect(e, 'freight')} />
       <input type="file" ref={freightFileRef} className="hidden" multiple accept="image/*" onChange={(e) => onFileSelect(e, 'freight')} />
     </div>
