@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 
 /**
- * LOGISTICS TERMINAL v2.1 - NEURAL GRID
- * Logic: Field-Level Inversion (Dark -> Active Brand Glow)
- * UI: Kinetic "Circuit" Validation
- * UX: Total terminal illumination upon completion
+ * LOGISTICS TERMINAL v2.2 - CONTROLLED INVERSION
+ * Fix: Removed focus-loss bug by decoupling input change from validation render.
+ * Logic: Validation & Inversion now trigger exclusively 'onBlur' (field exit).
+ * UX: High-fidelity "Lock-in" effect upon completing a data point.
  */
 
 interface FileWithPreview {
@@ -15,11 +15,15 @@ interface FileWithPreview {
 }
 
 const App: React.FC = () => {
-  // --- STATE SYSTEM ---
+  // --- STATE SYSTEM (Internal Input Buffers) ---
   const [isLocked, setIsLocked] = useState(true);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [authStage, setAuthStage] = useState(0);
+  
+  // Carrier is immediate because it's a selection
   const [company, setCompany] = useState<'GLX' | 'BST' | ''>('');
+  
+  // All text fields
   const [driverName, setDriverName] = useState('');
   const [loadNum, setLoadNum] = useState('');
   const [bolNum, setBolNum] = useState('');
@@ -29,12 +33,14 @@ const App: React.FC = () => {
   const [delState, setDelState] = useState('');
   const [bolProtocol, setBolProtocol] = useState<'PICKUP' | 'DELIVERY' | ''>('');
   const [uploadedFiles, setUploadedFiles] = useState<FileWithPreview[]>([]);
+  
+  // --- VALIDATION VISUAL STATE ---
+  // These states only flip to true onBlur to prevent re-render focus loss
+  const [validatedFields, setValidatedFields] = useState<Record<string, boolean>>({});
+
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
   const [showSuccess, setShowSuccess] = useState(false);
   const [shake, setShake] = useState(false);
-
-  // --- KINETIC FEEDBACK ---
   const [pulseActive, setPulseActive] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -47,15 +53,18 @@ const App: React.FC = () => {
   // --- THEME ENGINE ---
   const isGLX = company === 'GLX';
   const isBST = company === 'BST';
-  const themeHex = isGLX ? '#22c55e' : isBST ? '#3b82f6' : '#06b6d4';
   const themeColor = isGLX ? 'text-green-500' : isBST ? 'text-blue-400' : 'text-cyan-400';
   const themeBg = isGLX ? 'bg-green-500' : isBST ? 'bg-blue-600' : 'bg-cyan-500';
-  const themeShadow = isGLX ? 'shadow-[0_0_20px_rgba(34,197,94,0.3)]' : 'shadow-[0_0_20px_rgba(59,130,246,0.3)]';
+  const themeShadow = isGLX ? 'shadow-[0_0_20px_rgba(34,197,94,0.4)]' : 'shadow-[0_0_20px_rgba(59,130,246,0.4)]';
 
-  // --- VALIDATION INTELLIGENCE ---
   const isReady = useMemo(() => (
     company && driverName && loadNum && bolNum && puCity && puState && delCity && delState && bolProtocol && uploadedFiles.length > 0
   ), [company, driverName, loadNum, bolNum, puCity, puState, delCity, delState, bolProtocol, uploadedFiles]);
+
+  useEffect(() => {
+    audioRef.current = new Audio('https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3');
+    audioRef.current.volume = 0.15;
+  }, []);
 
   const triggerPulse = () => {
     setPulseActive(true);
@@ -63,13 +72,16 @@ const App: React.FC = () => {
     setTimeout(() => setPulseActive(false), 500);
   };
 
-  useEffect(() => {
-    audioRef.current = new Audio('https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3');
-    audioRef.current.volume = 0.15;
-  }, []);
+  const handleBlur = (fieldId: string, value: string) => {
+    if (value.trim() !== "") {
+      setValidatedFields(prev => ({ ...prev, [fieldId]: true }));
+      triggerPulse();
+    } else {
+      setValidatedFields(prev => ({ ...prev, [fieldId]: false }));
+    }
+  };
 
   const handleAuth = () => {
-    if (isAuthenticating) return;
     setIsAuthenticating(true);
     let stage = 0;
     const interval = setInterval(() => {
@@ -77,7 +89,7 @@ const App: React.FC = () => {
       setAuthStage(stage);
       if (stage >= 4) {
         clearInterval(interval);
-        setTimeout(() => setIsLocked(false), 500);
+        setTimeout(() => setIsLocked(false), 400);
       }
     }, 400);
   };
@@ -91,21 +103,25 @@ const App: React.FC = () => {
         category
       }));
       setUploadedFiles(prev => [...prev, ...newFiles]);
+      setValidatedFields(prev => ({ ...prev, imaging: true }));
       triggerPulse();
     }
   };
 
-  // --- KINETIC COMPONENT WRAPPERS ---
-  const KineticField = ({ label, value, children }: any) => (
-    <div className="space-y-2">
-      <label className={`text-[9px] font-black uppercase tracking-[0.3em] transition-all duration-500 ${value ? 'text-white translate-x-1' : themeColor}`}>
-        {label} {value && '✓'}
-      </label>
-      <div className={`p-1 rounded-2xl transition-all duration-700 ${value ? `${themeBg} ${themeShadow}` : 'bg-transparent'}`}>
-        {children}
+  // --- REFINED KINETIC WRAPPER ---
+  const KineticField = ({ label, fieldId, value, children }: any) => {
+    const isValidated = validatedFields[fieldId];
+    return (
+      <div className="space-y-2">
+        <label className={`text-[9px] font-black uppercase tracking-[0.3em] transition-all duration-500 ${isValidated ? 'text-white' : themeColor}`}>
+          {label} {isValidated && '✓'}
+        </label>
+        <div className={`p-1 rounded-2xl transition-all duration-700 ${isValidated ? `${themeBg} ${themeShadow}` : 'bg-transparent'}`}>
+          {children}
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   if (isLocked) {
     return (
@@ -114,7 +130,7 @@ const App: React.FC = () => {
           <div className="w-32 h-32 border border-zinc-800 flex items-center justify-center bg-black transition-all group-hover:border-cyan-500 group-hover:shadow-[0_0_50px_rgba(6,182,212,0.2)]">
             <span className="text-5xl">🔐</span>
           </div>
-          <p className="mt-8 text-[10px] font-black tracking-[1em] text-zinc-700 uppercase text-center">Protocol_Sync</p>
+          <p className="mt-8 text-[10px] font-black tracking-[1em] text-zinc-700 uppercase text-center">Sync_Initialize</p>
         </button>
       </div>
     );
@@ -123,7 +139,6 @@ const App: React.FC = () => {
   return (
     <div className={`min-h-screen bg-[#020202] text-zinc-300 font-orbitron relative pb-24 overflow-x-hidden transition-all duration-500 ${shake ? 'animate-shake' : ''}`}>
       
-      {/* KINETIC HUD GRID */}
       <div className={`fixed inset-0 pointer-events-none z-0 transition-opacity duration-700 ${pulseActive ? 'opacity-100' : 'opacity-[0.03]'}`}>
         <div className={`absolute inset-0 ${themeBg}`} />
         <div className="absolute inset-0 bg-[radial-gradient(#000_1px,transparent_1px)] [background-size:32px_32px]" />
@@ -137,75 +152,75 @@ const App: React.FC = () => {
               <span className="text-xl">{isGLX ? 'GLX' : isBST ? 'BST' : '?'}</span>
             </div>
             <div className="space-y-1">
-              <h1 className={`text-2xl font-black tracking-tighter uppercase ${themeColor}`}>Terminal v2.1</h1>
-              <p className="text-[8px] text-zinc-600 tracking-[0.5em] font-bold uppercase">Active_Neural_Observer</p>
+              <h1 className={`text-2xl font-black tracking-tighter uppercase ${themeColor}`}>Terminal v2.2</h1>
+              <p className="text-[8px] text-zinc-600 tracking-[0.5em] font-bold uppercase">Optimized_Input_Engine</p>
             </div>
           </div>
         </header>
 
-        {/* --- SECTION 01: IDENTITY --- */}
+        {/* --- IDENTITY --- */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <KineticField label="Carrier Identity" value={company}>
-            <div className="relative group">
-                <select 
-                    className={`w-full bg-black border border-transparent p-3.5 pr-10 text-xs rounded-xl outline-none text-white transition-all font-mono appearance-none`}
-                    value={company}
-                    onChange={(e) => { setCompany(e.target.value as any); triggerPulse(); }}
-                >
-                    <option value="">-- SELECT CARRIER --</option>
-                    <option value="GLX">GREENLEAF XPRESS (GLX)</option>
-                    <option value="BST">BST EXPEDITE (BST)</option>
-                </select>
-                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-600">▼</div>
-            </div>
+          <KineticField label="Carrier Identity" fieldId="company" value={company}>
+            <select 
+              className="w-full bg-black border border-transparent p-3.5 pr-10 text-xs rounded-xl outline-none text-white font-mono appearance-none"
+              value={company}
+              onChange={(e) => { 
+                const val = e.target.value as any;
+                setCompany(val); 
+                if(val) handleBlur('company', val);
+              }}
+            >
+              <option value="">-- SELECT CARRIER --</option>
+              <option value="GLX">GREENLEAF XPRESS (GLX)</option>
+              <option value="BST">BST EXPEDITE (BST)</option>
+            </select>
           </KineticField>
 
-          <KineticField label="Operator Name" value={driverName}>
+          <KineticField label="Operator Name" fieldId="driverName" value={driverName}>
             <input 
               type="text" 
               placeholder="ENTER NAME" 
-              className="w-full bg-black border border-transparent p-3.5 text-xs rounded-xl outline-none text-white transition-all font-mono placeholder-zinc-800"
+              className="w-full bg-black border border-transparent p-3.5 text-xs rounded-xl outline-none text-white font-mono"
               value={driverName} 
               onChange={(e) => setDriverName(e.target.value)}
-              onBlur={() => driverName && triggerPulse()}
+              onBlur={(e) => handleBlur('driverName', e.target.value)}
             />
           </KineticField>
         </section>
 
-        {/* --- SECTION 02: SHIPMENT --- */}
+        {/* --- SHIPMENT DATA --- */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <KineticField label="REFERENCED LOAD #" value={loadNum}>
-            <input type="text" placeholder="LOAD-XXXXX" className="w-full bg-black border border-transparent p-3.5 text-xs rounded-xl outline-none text-white transition-all font-mono" value={loadNum} onChange={(e) => setLoadNum(e.target.value)} onBlur={() => loadNum && triggerPulse()} />
+          <KineticField label="REFERENCED LOAD #" fieldId="loadNum" value={loadNum}>
+            <input type="text" placeholder="LOAD-XXXXX" className="w-full bg-black border border-transparent p-3.5 text-xs rounded-xl outline-none text-white font-mono" value={loadNum} onChange={(e) => setLoadNum(e.target.value)} onBlur={(e) => handleBlur('loadNum', e.target.value)} />
           </KineticField>
-          <KineticField label="REFERENCED BOL #" value={bolNum}>
-            <input type="text" placeholder="BOL-XXXXX" className="w-full bg-black border border-transparent p-3.5 text-xs rounded-xl outline-none text-white transition-all font-mono" value={bolNum} onChange={(e) => setBolNum(e.target.value)} onBlur={() => bolNum && triggerPulse()} />
+          <KineticField label="REFERENCED BOL #" fieldId="bolNum" value={bolNum}>
+            <input type="text" placeholder="BOL-XXXXX" className="w-full bg-black border border-transparent p-3.5 text-xs rounded-xl outline-none text-white font-mono" value={bolNum} onChange={(e) => setBolNum(e.target.value)} onBlur={(e) => handleBlur('bolNum', e.target.value)} />
           </KineticField>
         </section>
 
-        {/* --- SECTION 03: ROUTE --- */}
+        {/* --- LOGISTICS ROUTE --- */}
         <section className="space-y-6">
           <div className="grid grid-cols-3 gap-4">
              <div className="col-span-2">
-               <KineticField label="ORIGIN: PICKUP CITY" value={puCity}>
-                 <input type="text" placeholder="ENTER CITY" className="w-full bg-black border border-transparent p-3.5 text-xs rounded-xl outline-none text-white transition-all font-mono" value={puCity} onChange={(e) => setPuCity(e.target.value)} onBlur={() => puCity && triggerPulse()} />
+               <KineticField label="ORIGIN: PICKUP CITY" fieldId="puCity" value={puCity}>
+                 <input type="text" placeholder="ENTER CITY" className="w-full bg-black border border-transparent p-3.5 text-xs rounded-xl outline-none text-white font-mono" value={puCity} onChange={(e) => setPuCity(e.target.value)} onBlur={(e) => handleBlur('puCity', e.target.value)} />
                </KineticField>
              </div>
-             <KineticField label="STATE" value={puState}>
-                <select className="w-full bg-black border border-transparent p-3.5 text-xs rounded-xl outline-none text-white font-mono appearance-none" value={puState} onChange={(e) => { setPuState(e.target.value); triggerPulse(); }}>
+             <KineticField label="STATE" fieldId="puState" value={puState}>
+                <select className="w-full bg-black border border-transparent p-3.5 text-xs rounded-xl outline-none text-white font-mono appearance-none" value={puState} onChange={(e) => { setPuState(e.target.value); handleBlur('puState', e.target.value); }}>
                     <option value="">--</option>
                     {states.map(s => <option key={`p-${s}`} value={s}>{s}</option>)}
                 </select>
              </KineticField>
           </div>
-          
           <div className="grid grid-cols-3 gap-4">
              <div className="col-span-2">
-               <KineticField label="DESTINATION: DELIVERY CITY" value={delCity}>
-                 <input type="text" placeholder="ENTER CITY" className="w-full bg-black border border-transparent p-3.5 text-xs rounded-xl outline-none text-white transition-all font-mono" value={delCity} onChange={(e) => setDelCity(e.target.value)} onBlur={() => delCity && triggerPulse()} />
+               <KineticField label="DESTINATION: DELIVERY CITY" fieldId="delCity" value={delCity}>
+                 <input type="text" placeholder="ENTER CITY" className="w-full bg-black border border-transparent p-3.5 text-xs rounded-xl outline-none text-white font-mono" value={delCity} onChange={(e) => setDelCity(e.target.value)} onBlur={(e) => handleBlur('delCity', e.target.value)} />
                </KineticField>
              </div>
-             <KineticField label="STATE" value={delState}>
-                <select className="w-full bg-black border border-transparent p-3.5 text-xs rounded-xl outline-none text-white font-mono appearance-none" value={delState} onChange={(e) => { setDelState(e.target.value); triggerPulse(); }}>
+             <KineticField label="STATE" fieldId="delState" value={delState}>
+                <select className="w-full bg-black border border-transparent p-3.5 text-xs rounded-xl outline-none text-white font-mono appearance-none" value={delState} onChange={(e) => { setDelState(e.target.value); handleBlur('delState', e.target.value); }}>
                     <option value="">--</option>
                     {states.map(s => <option key={`d-${s}`} value={s}>{s}</option>)}
                 </select>
@@ -213,20 +228,20 @@ const App: React.FC = () => {
           </div>
         </section>
 
-        {/* --- SECTION 04: BOL IMAGING --- */}
+        {/* --- BOL IMAGING --- */}
         <section className="space-y-6">
           <div className="flex justify-between items-center border-b border-zinc-900 pb-4">
             <h2 className={`text-[11px] font-black uppercase tracking-[0.4em] ${themeColor}`}>Imaging Protocol</h2>
             <div className="flex gap-4">
                 <button 
                   onClick={() => { setBolProtocol('PICKUP'); triggerPulse(); }}
-                  className={`px-5 py-2 text-[9px] font-black uppercase tracking-widest border-2 transition-all duration-500 rounded-lg ${bolProtocol === 'PICKUP' ? `${themeBg} text-black border-white shadow-[0_0_20px_white] scale-105` : 'border-zinc-900 text-zinc-600 hover:border-zinc-700'}`}
+                  className={`px-5 py-2 text-[9px] font-black uppercase tracking-widest border-2 transition-all duration-500 rounded-lg ${bolProtocol === 'PICKUP' ? `${themeBg} text-black border-white shadow-[0_0_20px_white]` : 'border-zinc-900 text-zinc-600'}`}
                 >
                   PICKUP BOL
                 </button>
                 <button 
                   onClick={() => { setBolProtocol('DELIVERY'); triggerPulse(); }}
-                  className={`px-5 py-2 text-[9px] font-black uppercase tracking-widest border-2 transition-all duration-500 rounded-lg ${bolProtocol === 'DELIVERY' ? `${themeBg} text-black border-white shadow-[0_0_20px_white] scale-105` : 'border-zinc-900 text-zinc-600 hover:border-zinc-700'}`}
+                  className={`px-5 py-2 text-[9px] font-black uppercase tracking-widest border-2 transition-all duration-500 rounded-lg ${bolProtocol === 'DELIVERY' ? `${themeBg} text-black border-white shadow-[0_0_20px_white]` : 'border-zinc-900 text-zinc-600'}`}
                 >
                   DELIVERY BOL
                 </button>
