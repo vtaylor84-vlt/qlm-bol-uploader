@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 
 /**
- * LOGISTICS TERMINAL v2.4 - TACTICAL BORDER HUD
- * Design Choice: Reverted to matte-black fields with High-Intensity Border Glow.
- * Engineering: Persistent DOM nodes for zero-latency typing.
- * UX: Validation "Ignition" occurs onBlur.
+ * LOGISTICS TERMINAL v2.5 - OPERATIONAL AUTHORITY
+ * Logic: Conditional Validation (Load # OR BOL # satisfies section)
+ * UI: High-Luminance Imaging Buttons restored.
+ * UX: Driver-centric Freight Inspection labeling.
  */
 
 interface FileWithPreview {
@@ -49,12 +49,18 @@ const App: React.FC = () => {
   const isBST = company === 'BST';
   const themeHex = isGLX ? '#22c55e' : isBST ? '#3b82f6' : '#06b6d4';
   const themeColor = isGLX ? 'text-green-500' : isBST ? 'text-blue-400' : 'text-cyan-400';
+  const themeBg = isGLX ? 'bg-green-500' : isBST ? 'bg-blue-600' : 'bg-cyan-500';
   const themeGlow = isGLX ? 'shadow-[0_0_15px_rgba(34,197,94,0.4)]' : isBST ? 'shadow-[0_0_15px_rgba(59,130,246,0.4)]' : 'shadow-[0_0_15px_rgba(6,182,212,0.4)]';
   const themeBorder = isGLX ? 'border-green-500' : isBST ? 'border-blue-500' : 'border-cyan-500';
 
-  const isReady = useMemo(() => (
-    company && driverName && loadNum && bolNum && puCity && puState && delCity && delState && bolProtocol && uploadedFiles.length > 0
-  ), [company, driverName, loadNum, bolNum, puCity, puState, delCity, delState, bolProtocol, uploadedFiles]);
+  // --- LOGICAL GATEKEEPER ---
+  const isReady = useMemo(() => {
+    const hasIdentity = company && driverName;
+    const hasReference = loadNum || bolNum; // EITHER LOAD # OR BOL #
+    const hasRoute = puCity && puState && delCity && delState;
+    const hasDocs = bolProtocol && uploadedFiles.some(f => f.category === 'bol');
+    return hasIdentity && hasReference && hasRoute && hasDocs;
+  }, [company, driverName, loadNum, bolNum, puCity, puState, delCity, delState, bolProtocol, uploadedFiles]);
 
   useEffect(() => {
     audioRef.current = new Audio('https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3');
@@ -104,17 +110,14 @@ const App: React.FC = () => {
         category
       }));
       setUploadedFiles(prev => [...prev, ...newFiles]);
-      validate('imaging', 'true');
+      validate(category === 'bol' ? 'imaging' : 'freight_imaging', 'true');
     }
   };
 
-  // --- STYLES ---
   const getTacticalStyles = (fieldId: string) => {
     const isValid = validatedFields.has(fieldId);
     return `w-full bg-black p-3.5 text-xs rounded-xl outline-none font-mono transition-all duration-500 border-2 ${
-      isValid 
-        ? `${themeBorder} ${themeGlow} text-white` 
-        : `border-zinc-900 text-zinc-400 focus:border-zinc-600`
+      isValid ? `${themeBorder} ${themeGlow} text-white` : `border-zinc-900 text-zinc-400 focus:border-zinc-600`
     }`;
   };
 
@@ -134,7 +137,6 @@ const App: React.FC = () => {
   return (
     <div className={`min-h-screen bg-[#020202] text-zinc-300 font-orbitron relative pb-24 overflow-x-hidden ${shake ? 'animate-shake' : ''}`}>
       
-      {/* HUD GRID PULSE */}
       <div className={`fixed inset-0 pointer-events-none z-0 transition-opacity duration-700 ${pulseActive ? 'opacity-100' : 'opacity-[0.03]'}`}>
         <div className={`absolute inset-0`} style={{ backgroundColor: themeHex }} />
         <div className="absolute inset-0 bg-[radial-gradient(#000_1px,transparent_1px)] [background-size:32px_32px]" />
@@ -147,8 +149,8 @@ const App: React.FC = () => {
               <span className="text-xl">{isGLX ? 'GLX' : isBST ? 'BST' : '?'}</span>
             </div>
             <div className="space-y-1">
-              <h1 className={`text-2xl font-black tracking-tighter uppercase ${themeColor}`}>Terminal v2.4</h1>
-              <p className="text-[8px] text-zinc-600 tracking-[0.5em] font-bold uppercase underline underline-offset-4 decoration-zinc-800">Tactical_Border_Uplink</p>
+              <h1 className={`text-2xl font-black tracking-tighter uppercase ${themeColor}`}>Terminal v2.5</h1>
+              <p className="text-[8px] text-zinc-600 tracking-[0.5em] font-bold uppercase underline underline-offset-4 decoration-zinc-800">Operational_Uplink</p>
             </div>
           </div>
         </header>
@@ -169,8 +171,8 @@ const App: React.FC = () => {
           </div>
         </section>
 
-        {/* --- SHIPMENT --- */}
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* --- SHIPMENT DATA (Either/Or Logic) --- */}
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-6 border-l-2 border-zinc-900 pl-4">
           <div className="space-y-2">
             <label className={`text-[9px] font-black uppercase tracking-[0.3em] ${themeColor} ml-1`}>REFERENCED LOAD #</label>
             <input type="text" placeholder="LOAD-XXXXX" className={getTacticalStyles('loadNum')} value={loadNum} onChange={(e) => setLoadNum(e.target.value)} onBlur={(e) => validate('loadNum', e.target.value)} />
@@ -179,6 +181,7 @@ const App: React.FC = () => {
             <label className={`text-[9px] font-black uppercase tracking-[0.3em] ${themeColor} ml-1`}>REFERENCED BOL #</label>
             <input type="text" placeholder="BOL-XXXXX" className={getTacticalStyles('bolNum')} value={bolNum} onChange={(e) => setBolNum(e.target.value)} onBlur={(e) => validate('bolNum', e.target.value)} />
           </div>
+          <p className="col-span-full text-[7px] text-zinc-600 font-bold uppercase tracking-widest mt-1 italic">* Mandatory: At least one reference number required</p>
         </section>
 
         {/* --- ROUTE --- */}
@@ -211,20 +214,20 @@ const App: React.FC = () => {
           </div>
         </section>
 
-        {/* --- BOL IMAGING --- */}
+        {/* --- BOL IMAGING (Inversion UI Restored) --- */}
         <section className="space-y-6">
           <div className="flex justify-between items-center border-b border-zinc-900 pb-4">
             <h2 className={`text-[11px] font-black uppercase tracking-[0.4em] ${themeColor}`}>Imaging Protocol</h2>
             <div className="flex gap-4">
                 <button 
                   onClick={() => { setBolProtocol('PICKUP'); triggerPulse(); }}
-                  className={`px-5 py-2 text-[9px] font-black uppercase tracking-widest border-2 transition-all duration-500 rounded-lg ${bolProtocol === 'PICKUP' ? `bg-white text-black border-white shadow-lg` : 'border-zinc-900 text-zinc-600 hover:border-zinc-700'}`}
+                  className={`px-5 py-2 text-[9px] font-black uppercase tracking-widest border-2 transition-all duration-500 rounded-lg ${bolProtocol === 'PICKUP' ? `${themeBg} text-black border-white shadow-lg` : 'border-zinc-900 text-zinc-600 hover:border-zinc-700'}`}
                 >
                   PICKUP BOL
                 </button>
                 <button 
                   onClick={() => { setBolProtocol('DELIVERY'); triggerPulse(); }}
-                  className={`px-5 py-2 text-[9px] font-black uppercase tracking-widest border-2 transition-all duration-500 rounded-lg ${bolProtocol === 'DELIVERY' ? `bg-white text-black border-white shadow-lg` : 'border-zinc-900 text-zinc-600 hover:border-zinc-700'}`}
+                  className={`px-5 py-2 text-[9px] font-black uppercase tracking-widest border-2 transition-all duration-500 rounded-lg ${bolProtocol === 'DELIVERY' ? `${themeBg} text-black border-white shadow-lg` : 'border-zinc-900 text-zinc-600 hover:border-zinc-700'}`}
                 >
                   DELIVERY BOL
                 </button>
@@ -232,7 +235,7 @@ const App: React.FC = () => {
           </div>
 
           <div className={`p-12 border-2 transition-all duration-1000 flex flex-col md:flex-row items-center justify-around gap-12 relative overflow-hidden rounded-[2.5rem] ${
-            bolProtocol ? `border-white bg-zinc-950 shadow-2xl opacity-100` : 'border-zinc-900 bg-zinc-950 opacity-40 grayscale'
+            bolProtocol ? `${themeBg} border-white shadow-2xl` : 'border-zinc-900 bg-zinc-950 opacity-40'
           }`}>
             <button onClick={() => cameraInputRef.current?.click()} disabled={!bolProtocol} className="flex flex-col items-center gap-6 group active:scale-90 transition-all z-10">
               <div className={`w-32 h-32 border flex items-center justify-center bg-black transition-all ${bolProtocol ? 'border-white shadow-lg' : 'border-zinc-800'}`}>
@@ -247,6 +250,34 @@ const App: React.FC = () => {
               <span className={`text-[10px] font-black tracking-[0.8em] uppercase ${bolProtocol ? 'text-white' : 'text-zinc-800'}`}>GALLERY</span>
             </button>
           </div>
+
+          {uploadedFiles.filter(f => f.category === 'bol').length > 0 && (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6 animate-in slide-in-from-bottom-2">
+              {uploadedFiles.filter(f => f.category === 'bol').map(f => (
+                <div key={f.id} className="relative aspect-[3/4] border-2 border-white rounded-2xl overflow-hidden group">
+                  <img src={f.preview} className="w-full h-full object-cover" alt="asset" />
+                  <button onClick={() => setUploadedFiles(p => p.filter(i => i.id !== f.id))} className="absolute top-2 right-2 w-6 h-6 bg-red-600 text-white rounded-full text-[10px] font-black">✕</button>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* --- FREIGHT INSPECTION (Restored) --- */}
+        <section className="space-y-6">
+          <h2 className={`text-[11px] font-black uppercase tracking-[0.4em] ${themeColor} border-b border-zinc-900 pb-4`}>Images of freight loaded on the trailer</h2>
+          <button onClick={() => freightInputRef.current?.click()} className="w-full py-16 border-2 border-dashed border-zinc-900 rounded-[2rem] text-[10px] font-black uppercase tracking-[0.6em] text-zinc-700 hover:text-white transition-all bg-zinc-950/30">
+            + Upload Inspection Assets (Optional)
+          </button>
+          {uploadedFiles.filter(f => f.category === 'freight').length > 0 && (
+            <div className="grid grid-cols-4 gap-4 mt-6">
+              {uploadedFiles.filter(f => f.category === 'freight').map(f => (
+                <div key={f.id} className="relative aspect-square border border-zinc-800 rounded-lg overflow-hidden bg-black">
+                  <img src={f.preview} className="w-full h-full object-cover opacity-60" alt="freight" />
+                </div>
+              ))}
+            </div>
+          )}
         </section>
 
         {/* --- TRANSMISSION --- */}
@@ -256,7 +287,7 @@ const App: React.FC = () => {
             disabled={isSubmitting}
             className={`w-full py-9 rounded-[2.5rem] font-black text-xs uppercase tracking-[1.5em] transition-all duration-700 relative overflow-hidden shadow-2xl ${
               isReady 
-                ? `${isGLX ? 'bg-green-500 text-black' : 'bg-blue-600 text-white'}` 
+                ? `${isGLX ? 'bg-green-500 text-black shadow-green-500/40' : 'bg-blue-600 text-white shadow-blue-500/40'}` 
                 : 'bg-zinc-900 text-zinc-700 border border-zinc-800 cursor-not-allowed opacity-60'
             }`}
           >
