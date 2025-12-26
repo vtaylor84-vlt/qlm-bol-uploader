@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 
 /**
- * LOGISTICS TERMINAL v2.3 - PERSISTENT INPUT ENGINE
- * Senior Level Fix: Memoized validation to prevent focus-theft re-renders.
- * Logic: Decoupled visual state from input buffer.
- * UI: High-Luminance "Lock-In" only occurs onBlur.
+ * LOGISTICS TERMINAL v2.4 - TACTICAL BORDER HUD
+ * Design Choice: Reverted to matte-black fields with High-Intensity Border Glow.
+ * Engineering: Persistent DOM nodes for zero-latency typing.
+ * UX: Validation "Ignition" occurs onBlur.
  */
 
 interface FileWithPreview {
@@ -30,7 +30,7 @@ const App: React.FC = () => {
   const [bolProtocol, setBolProtocol] = useState<'PICKUP' | 'DELIVERY' | ''>('');
   const [uploadedFiles, setUploadedFiles] = useState<FileWithPreview[]>([]);
   
-  // --- VALIDATION VISUALS (Separated to prevent focus loss) ---
+  // --- VALIDATION VISUALS ---
   const [validatedFields, setValidatedFields] = useState<Set<string>>(new Set());
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -47,9 +47,10 @@ const App: React.FC = () => {
   // --- THEME ENGINE ---
   const isGLX = company === 'GLX';
   const isBST = company === 'BST';
+  const themeHex = isGLX ? '#22c55e' : isBST ? '#3b82f6' : '#06b6d4';
   const themeColor = isGLX ? 'text-green-500' : isBST ? 'text-blue-400' : 'text-cyan-400';
-  const themeBg = isGLX ? 'bg-green-500' : isBST ? 'bg-blue-600' : 'bg-cyan-500';
-  const themeShadow = isGLX ? 'shadow-[0_0_20px_rgba(34,197,94,0.4)]' : 'shadow-[0_0_20px_rgba(59,130,246,0.4)]';
+  const themeGlow = isGLX ? 'shadow-[0_0_15px_rgba(34,197,94,0.4)]' : isBST ? 'shadow-[0_0_15px_rgba(59,130,246,0.4)]' : 'shadow-[0_0_15px_rgba(6,182,212,0.4)]';
+  const themeBorder = isGLX ? 'border-green-500' : isBST ? 'border-blue-500' : 'border-cyan-500';
 
   const isReady = useMemo(() => (
     company && driverName && loadNum && bolNum && puCity && puState && delCity && delState && bolProtocol && uploadedFiles.length > 0
@@ -66,10 +67,10 @@ const App: React.FC = () => {
     setTimeout(() => setPulseActive(false), 500);
   }, []);
 
-  const handleFieldValidation = useCallback((fieldId: string, hasValue: boolean) => {
+  const validate = useCallback((fieldId: string, value: string) => {
     setValidatedFields(prev => {
       const next = new Set(prev);
-      if (hasValue) {
+      if (value.trim() !== "") {
         if (!next.has(fieldId)) {
           next.add(fieldId);
           triggerPulse();
@@ -103,17 +104,17 @@ const App: React.FC = () => {
         category
       }));
       setUploadedFiles(prev => [...prev, ...newFiles]);
-      handleFieldValidation('imaging', true);
+      validate('imaging', 'true');
     }
   };
 
   // --- STYLES ---
-  const getInputStyles = (fieldId: string) => {
+  const getTacticalStyles = (fieldId: string) => {
     const isValid = validatedFields.has(fieldId);
-    return `w-full p-3.5 text-xs rounded-xl outline-none font-mono transition-all duration-700 ${
+    return `w-full bg-black p-3.5 text-xs rounded-xl outline-none font-mono transition-all duration-500 border-2 ${
       isValid 
-        ? `${themeBg} text-black border-transparent ${themeShadow}` 
-        : `bg-black border border-zinc-900 text-white focus:border-zinc-600`
+        ? `${themeBorder} ${themeGlow} text-white` 
+        : `border-zinc-900 text-zinc-400 focus:border-zinc-600`
     }`;
   };
 
@@ -124,7 +125,7 @@ const App: React.FC = () => {
           <div className="w-32 h-32 border border-zinc-800 flex items-center justify-center bg-black transition-all group-hover:border-cyan-500">
             <span className="text-5xl">🔐</span>
           </div>
-          <p className="mt-8 text-[10px] font-black tracking-[1em] text-zinc-700 uppercase text-center">Auth_Protocol</p>
+          <p className="mt-8 text-[10px] font-black tracking-[1em] text-zinc-700 uppercase text-center">Decrypting_Node</p>
         </button>
       </div>
     );
@@ -135,7 +136,7 @@ const App: React.FC = () => {
       
       {/* HUD GRID PULSE */}
       <div className={`fixed inset-0 pointer-events-none z-0 transition-opacity duration-700 ${pulseActive ? 'opacity-100' : 'opacity-[0.03]'}`}>
-        <div className={`absolute inset-0 ${themeBg}`} />
+        <div className={`absolute inset-0`} style={{ backgroundColor: themeHex }} />
         <div className="absolute inset-0 bg-[radial-gradient(#000_1px,transparent_1px)] [background-size:32px_32px]" />
       </div>
 
@@ -146,8 +147,8 @@ const App: React.FC = () => {
               <span className="text-xl">{isGLX ? 'GLX' : isBST ? 'BST' : '?'}</span>
             </div>
             <div className="space-y-1">
-              <h1 className={`text-2xl font-black tracking-tighter uppercase ${themeColor}`}>Terminal v2.3</h1>
-              <p className="text-[8px] text-zinc-600 tracking-[0.5em] font-bold uppercase underline underline-offset-4 decoration-zinc-800">Operational_Uplink</p>
+              <h1 className={`text-2xl font-black tracking-tighter uppercase ${themeColor}`}>Terminal v2.4</h1>
+              <p className="text-[8px] text-zinc-600 tracking-[0.5em] font-bold uppercase underline underline-offset-4 decoration-zinc-800">Tactical_Border_Uplink</p>
             </div>
           </div>
         </header>
@@ -155,56 +156,41 @@ const App: React.FC = () => {
         {/* --- IDENTITY --- */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
-            <label className={`text-[9px] font-black uppercase tracking-[0.3em] ${themeColor}`}>Carrier Identity</label>
-            <select 
-              className={getInputStyles('company')}
-              value={company}
-              onChange={(e) => {
-                const val = e.target.value as any;
-                setCompany(val);
-                handleFieldValidation('company', !!val);
-              }}
-            >
-              <option value="">-- SELECT CARRIER --</option>
-              <option value="GLX">GREENLEAF XPRESS (GLX)</option>
-              <option value="BST">BST EXPEDITE (BST)</option>
+            <label className={`text-[9px] font-black uppercase tracking-[0.3em] ${themeColor} ml-1`}>Carrier Identity</label>
+            <select className={getTacticalStyles('company')} value={company} onChange={(e) => { const v = e.target.value as any; setCompany(v); validate('company', v); }}>
+                <option value="">-- SELECT CARRIER --</option>
+                <option value="GLX">GREENLEAF XPRESS (GLX)</option>
+                <option value="BST">BST EXPEDITE (BST)</option>
             </select>
           </div>
           <div className="space-y-2">
-            <label className={`text-[9px] font-black uppercase tracking-[0.3em] ${themeColor}`}>Operator Name</label>
-            <input 
-              type="text" 
-              placeholder="ENTER NAME" 
-              className={getInputStyles('driverName')}
-              value={driverName} 
-              onChange={(e) => setDriverName(e.target.value)}
-              onBlur={(e) => handleFieldValidation('driverName', !!e.target.value)}
-            />
+            <label className={`text-[9px] font-black uppercase tracking-[0.3em] ${themeColor} ml-1`}>Operator Name</label>
+            <input type="text" placeholder="ENTER NAME" className={getTacticalStyles('driverName')} value={driverName} onChange={(e) => setDriverName(e.target.value)} onBlur={(e) => validate('driverName', e.target.value)} />
           </div>
         </section>
 
-        {/* --- SHIPMENT DATA --- */}
+        {/* --- SHIPMENT --- */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
-            <label className={`text-[9px] font-black uppercase tracking-[0.3em] ${themeColor}`}>REFERENCED LOAD #</label>
-            <input type="text" placeholder="LOAD-XXXXX" className={getInputStyles('loadNum')} value={loadNum} onChange={(e) => setLoadNum(e.target.value)} onBlur={(e) => handleFieldValidation('loadNum', !!e.target.value)} />
+            <label className={`text-[9px] font-black uppercase tracking-[0.3em] ${themeColor} ml-1`}>REFERENCED LOAD #</label>
+            <input type="text" placeholder="LOAD-XXXXX" className={getTacticalStyles('loadNum')} value={loadNum} onChange={(e) => setLoadNum(e.target.value)} onBlur={(e) => validate('loadNum', e.target.value)} />
           </div>
           <div className="space-y-2">
-            <label className={`text-[9px] font-black uppercase tracking-[0.3em] ${themeColor}`}>REFERENCED BOL #</label>
-            <input type="text" placeholder="BOL-XXXXX" className={getInputStyles('bolNum')} value={bolNum} onChange={(e) => setBolNum(e.target.value)} onBlur={(e) => handleFieldValidation('bolNum', !!e.target.value)} />
+            <label className={`text-[9px] font-black uppercase tracking-[0.3em] ${themeColor} ml-1`}>REFERENCED BOL #</label>
+            <input type="text" placeholder="BOL-XXXXX" className={getTacticalStyles('bolNum')} value={bolNum} onChange={(e) => setBolNum(e.target.value)} onBlur={(e) => validate('bolNum', e.target.value)} />
           </div>
         </section>
 
-        {/* --- LOGISTICS ROUTE --- */}
+        {/* --- ROUTE --- */}
         <section className="space-y-8">
           <div className="grid grid-cols-3 gap-4">
              <div className="col-span-2 space-y-2">
-               <label className={`text-[9px] font-black uppercase tracking-[0.3em] ${themeColor}`}>ORIGIN: PICKUP CITY</label>
-               <input type="text" placeholder="ENTER CITY" className={getInputStyles('puCity')} value={puCity} onChange={(e) => setPuCity(e.target.value)} onBlur={(e) => handleFieldValidation('puCity', !!e.target.value)} />
+               <label className={`text-[9px] font-black uppercase tracking-[0.3em] ${themeColor} ml-1`}>ORIGIN: PICKUP CITY</label>
+               <input type="text" placeholder="ENTER CITY" className={getTacticalStyles('puCity')} value={puCity} onChange={(e) => setPuCity(e.target.value)} onBlur={(e) => validate('puCity', e.target.value)} />
              </div>
              <div className="space-y-2">
-               <label className={`text-[9px] font-black uppercase tracking-[0.3em] ${themeColor}`}>STATE</label>
-               <select className={getInputStyles('puState')} value={puState} onChange={(e) => { setPuState(e.target.value); handleFieldValidation('puState', !!e.target.value); }}>
+               <label className={`text-[9px] font-black uppercase tracking-[0.3em] ${themeColor} ml-1`}>STATE</label>
+               <select className={getTacticalStyles('puState')} value={puState} onChange={(e) => { setPuState(e.target.value); validate('puState', e.target.value); }}>
                   <option value="">--</option>
                   {states.map(s => <option key={`p-${s}`} value={s}>{s}</option>)}
                </select>
@@ -212,12 +198,12 @@ const App: React.FC = () => {
           </div>
           <div className="grid grid-cols-3 gap-4">
              <div className="col-span-2 space-y-2">
-               <label className={`text-[9px] font-black uppercase tracking-[0.3em] ${themeColor}`}>DESTINATION: DELIVERY CITY</label>
-               <input type="text" placeholder="ENTER CITY" className={getInputStyles('delCity')} value={delCity} onChange={(e) => setDelCity(e.target.value)} onBlur={(e) => handleFieldValidation('delCity', !!e.target.value)} />
+               <label className={`text-[9px] font-black uppercase tracking-[0.3em] ${themeColor} ml-1`}>DESTINATION: DELIVERY CITY</label>
+               <input type="text" placeholder="ENTER CITY" className={getTacticalStyles('delCity')} value={delCity} onChange={(e) => setDelCity(e.target.value)} onBlur={(e) => validate('delCity', e.target.value)} />
              </div>
              <div className="space-y-2">
-               <label className={`text-[9px] font-black uppercase tracking-[0.3em] ${themeColor}`}>STATE</label>
-               <select className={getInputStyles('delState')} value={delState} onChange={(e) => { setDelState(e.target.value); handleFieldValidation('delState', !!e.target.value); }}>
+               <label className={`text-[9px] font-black uppercase tracking-[0.3em] ${themeColor} ml-1`}>STATE</label>
+               <select className={getTacticalStyles('delState')} value={delState} onChange={(e) => { setDelState(e.target.value); validate('delState', e.target.value); }}>
                   <option value="">--</option>
                   {states.map(s => <option key={`d-${s}`} value={s}>{s}</option>)}
                </select>
@@ -232,13 +218,13 @@ const App: React.FC = () => {
             <div className="flex gap-4">
                 <button 
                   onClick={() => { setBolProtocol('PICKUP'); triggerPulse(); }}
-                  className={`px-5 py-2 text-[9px] font-black uppercase tracking-widest border-2 transition-all rounded-lg ${bolProtocol === 'PICKUP' ? `${themeBg} text-black border-white shadow-lg` : 'border-zinc-900 text-zinc-600'}`}
+                  className={`px-5 py-2 text-[9px] font-black uppercase tracking-widest border-2 transition-all duration-500 rounded-lg ${bolProtocol === 'PICKUP' ? `bg-white text-black border-white shadow-lg` : 'border-zinc-900 text-zinc-600 hover:border-zinc-700'}`}
                 >
                   PICKUP BOL
                 </button>
                 <button 
                   onClick={() => { setBolProtocol('DELIVERY'); triggerPulse(); }}
-                  className={`px-5 py-2 text-[9px] font-black uppercase tracking-widest border-2 transition-all rounded-lg ${bolProtocol === 'DELIVERY' ? `${themeBg} text-black border-white shadow-lg` : 'border-zinc-900 text-zinc-600'}`}
+                  className={`px-5 py-2 text-[9px] font-black uppercase tracking-widest border-2 transition-all duration-500 rounded-lg ${bolProtocol === 'DELIVERY' ? `bg-white text-black border-white shadow-lg` : 'border-zinc-900 text-zinc-600 hover:border-zinc-700'}`}
                 >
                   DELIVERY BOL
                 </button>
@@ -246,7 +232,7 @@ const App: React.FC = () => {
           </div>
 
           <div className={`p-12 border-2 transition-all duration-1000 flex flex-col md:flex-row items-center justify-around gap-12 relative overflow-hidden rounded-[2.5rem] ${
-            bolProtocol ? `${themeBg} border-white shadow-2xl` : 'border-zinc-900 bg-zinc-950 opacity-40'
+            bolProtocol ? `border-white bg-zinc-950 shadow-2xl opacity-100` : 'border-zinc-900 bg-zinc-950 opacity-40 grayscale'
           }`}>
             <button onClick={() => cameraInputRef.current?.click()} disabled={!bolProtocol} className="flex flex-col items-center gap-6 group active:scale-90 transition-all z-10">
               <div className={`w-32 h-32 border flex items-center justify-center bg-black transition-all ${bolProtocol ? 'border-white shadow-lg' : 'border-zinc-800'}`}>
@@ -270,7 +256,7 @@ const App: React.FC = () => {
             disabled={isSubmitting}
             className={`w-full py-9 rounded-[2.5rem] font-black text-xs uppercase tracking-[1.5em] transition-all duration-700 relative overflow-hidden shadow-2xl ${
               isReady 
-                ? `${isGLX ? 'bg-green-500 text-black shadow-green-500/40' : 'bg-blue-600 text-white shadow-blue-500/40'}` 
+                ? `${isGLX ? 'bg-green-500 text-black' : 'bg-blue-600 text-white'}` 
                 : 'bg-zinc-900 text-zinc-700 border border-zinc-800 cursor-not-allowed opacity-60'
             }`}
           >
