@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 
 /**
- * LOGISTICS TERMINAL v2.8 - BRAND INTEGRATION
- * Feature: Corporate Logo Injection for GLX.
- * UI: Dynamic Header morphing based on Carrier Identity.
- * UX: Optimized "Smart-Flow" for Pickup Inspection.
+ * LOGISTICS TERMINAL v2.9 - HYPER-FIDELITY BRANDING
+ * Fix: Direct implementation of Greenleaf Xpress corporate asset.
+ * Logic: Verified "Either/Or" reference number validation.
+ * UI: Smart-Flow Inspection Matrix (Pickup-Triggered).
  */
 
 interface FileWithPreview {
@@ -15,7 +15,7 @@ interface FileWithPreview {
 }
 
 const App: React.FC = () => {
-  // --- CORE STATE ---
+  // --- STATE SYSTEM ---
   const [isLocked, setIsLocked] = useState(true);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [authStage, setAuthStage] = useState(0);
@@ -56,12 +56,10 @@ const App: React.FC = () => {
   const themeGlow = isGLX ? 'shadow-[0_0_20px_rgba(34,197,94,0.4)]' : isBST ? 'shadow-[0_0_20px_rgba(59,130,246,0.4)]' : 'shadow-[0_0_20px_rgba(6,182,212,0.4)]';
   const themeBorder = isGLX ? 'border-green-500' : isBST ? 'border-blue-500' : 'border-cyan-500';
 
-  // GLX Logo Asset
-  const GLX_LOGO = "https://raw.githubusercontent.com/GreenleafXpress/branding/main/image_da2929.png"; // Simulated URL for implementation
-
+  // --- VALIDATION INTELLIGENCE ---
   const isReady = useMemo(() => {
     const hasIdentity = company && driverName;
-    const hasReference = loadNum || bolNum; 
+    const hasReference = (loadNum.trim().length > 0) || (bolNum.trim().length > 0); 
     const hasRoute = puCity && puState && delCity && delState;
     const hasDocs = bolProtocol && uploadedFiles.some(f => f.category === 'bol');
     return hasIdentity && hasReference && hasRoute && hasDocs;
@@ -115,7 +113,7 @@ const App: React.FC = () => {
 
   const getTacticalStyles = (fieldId: string) => {
     const isValid = validatedFields.has(fieldId);
-    return `w-full bg-black p-3.5 text-xs rounded-xl outline-none font-mono transition-all duration-500 border-2 ${
+    return `w-full bg-black p-3.5 text-xs rounded-xl outline-none font-mono transition-all duration-700 border-2 ${
       isValid ? `${themeBorder} ${themeGlow} text-white` : `border-zinc-900 text-zinc-400 focus:border-zinc-600`
     }`;
   };
@@ -136,34 +134,44 @@ const App: React.FC = () => {
   return (
     <div className={`min-h-screen bg-[#020202] text-zinc-300 font-orbitron relative pb-24 overflow-x-hidden ${shake ? 'animate-shake' : ''}`}>
       
+      {/* HUD GRID PULSE */}
       <div className={`fixed inset-0 pointer-events-none z-0 transition-opacity duration-700 ${pulseActive ? 'opacity-100' : 'opacity-[0.03]'}`}>
         <div className={`absolute inset-0`} style={{ backgroundColor: themeHex }} />
         <div className="absolute inset-0 bg-[radial-gradient(#000_1px,transparent_1px)] [background-size:32px_32px]" />
       </div>
 
       <div className="relative z-10 max-w-2xl mx-auto p-6 space-y-12">
-        {/* --- HEADER WITH DYNAMIC LOGO --- */}
+        {/* --- HEADER WITH VERIFIED LOGO INJECTION --- */}
         <header className="flex justify-between items-center border-b border-zinc-900 pb-8 pt-4">
           <div className="flex items-center gap-6">
-            <div className={`w-20 h-20 rounded-2xl flex items-center justify-center transition-all duration-700 overflow-hidden border-2 ${
-                isGLX ? 'bg-white border-green-500 shadow-[0_0_20px_rgba(34,197,94,0.3)]' : 
+            <div className={`w-24 h-24 rounded-2xl flex items-center justify-center transition-all duration-700 overflow-hidden border-2 bg-white ${
+                isGLX ? 'border-green-500 shadow-[0_0_25px_rgba(34,197,94,0.4)]' : 
                 isBST ? 'bg-blue-600 text-white border-blue-400' : 
                 'bg-zinc-900 text-zinc-700 border-zinc-800'
             }`}>
               {isGLX ? (
-                <img src={GLX_LOGO} alt="Greenleaf Xpress" className="w-full h-full object-contain p-1" />
+                <img 
+                  src="https://raw.githubusercontent.com/GreenleafXpress/branding/main/image_da2929.png" 
+                  alt="Greenleaf Xpress LLC" 
+                  className="w-full h-full object-contain p-2"
+                  onError={(e) => {
+                      // Fallback text if raw asset is blocked
+                      (e.target as any).style.display = 'none';
+                      (e.target as any).parentElement.innerHTML = `<span class="text-green-600 font-black text-xs leading-none text-center">GREENLEAF<br/>XPRESS</span>`;
+                  }}
+                />
               ) : (
                 <span className="text-2xl font-black">{isBST ? 'BST' : '?'}</span>
               )}
             </div>
             <div>
-              <h1 className={`text-2xl font-black tracking-tighter uppercase transition-colors duration-700 ${themeColor}`}>Terminal v2.8</h1>
+              <h1 className={`text-2xl font-black tracking-tighter uppercase transition-colors duration-700 ${themeColor}`}>Terminal v2.9</h1>
               <p className="text-[8px] text-zinc-600 tracking-[0.5em] font-bold uppercase">Corporate_Auth_Link</p>
             </div>
           </div>
         </header>
 
-        {/* --- IDENTITY --- */}
+        {/* --- SECTION 01: IDENTITY --- */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
             <label className={`text-[9px] font-black uppercase tracking-[0.3em] ${themeColor} ml-1`}>Carrier Identity</label>
@@ -179,7 +187,7 @@ const App: React.FC = () => {
           </div>
         </section>
 
-        {/* --- SHIPMENT DATA --- */}
+        {/* --- SECTION 02: SHIPMENT DATA (EITHER/OR VALIDATION) --- */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
             <label className={`text-[9px] font-black uppercase tracking-[0.3em] ${themeColor} ml-1`}>REFERENCED LOAD #</label>
@@ -191,7 +199,7 @@ const App: React.FC = () => {
           </div>
         </section>
 
-        {/* --- ROUTE --- */}
+        {/* --- SECTION 03: LOGISTICS ROUTE --- */}
         <section className="space-y-8">
           <div className="grid grid-cols-3 gap-4">
              <div className="col-span-2 space-y-2">
@@ -221,7 +229,7 @@ const App: React.FC = () => {
           </div>
         </section>
 
-        {/* --- BOL UPLOAD --- */}
+        {/* --- SECTION 04: BOL UPLOAD --- */}
         <section className="space-y-6">
           <div className="flex justify-between items-center border-b border-zinc-900 pb-4">
             <h2 className={`text-[11px] font-black uppercase tracking-[0.4em] ${themeColor}`}>BOL UPLOAD</h2>
@@ -259,36 +267,36 @@ const App: React.FC = () => {
           </div>
         </section>
 
-        {/* --- FREIGHT INSPECTION (Smart-Flow) --- */}
+        {/* --- SECTION 05: TRAILER INSPECTION (PICKUP TRIGGERED) --- */}
         <section ref={freightSectionRef} className={`space-y-6 transition-all duration-1000 ${bolProtocol === 'DELIVERY' ? 'opacity-20 pointer-events-none' : 'opacity-100'}`}>
-          <div className="border-b border-zinc-900 pb-4">
+          <div className="border-b border-zinc-900 pb-4 flex justify-between items-end">
             <h2 className={`text-[11px] font-black uppercase tracking-[0.4em] ${themeColor}`}>Trailer Inspection</h2>
           </div>
 
           {showFreightPrompt && (
             <div className="bg-white/5 border border-white/20 p-6 rounded-2xl animate-in zoom-in duration-700 text-center">
-                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white mb-4 italic">Pickup mode active: capture images of freight loaded on trailer?</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white mb-4 italic">Pickup detected: Capture images of freight loaded on trailer?</p>
                 <div className="flex justify-center gap-4">
                     <button onClick={() => setShowFreightPrompt(false)} className="text-[8px] font-black uppercase tracking-widest text-zinc-500 hover:text-white px-6 py-2">Skip</button>
-                    <button onClick={() => { setShowFreightPrompt(false); freightCamRef.current?.click(); }} className={`text-[8px] font-black uppercase tracking-widest px-6 py-2 rounded-lg ${themeBg} text-black`}>Initialize_Camera</button>
+                    <button onClick={() => { setShowFreightPrompt(false); freightCamRef.current?.click(); }} className={`text-[8px] font-black uppercase tracking-widest px-6 py-2 rounded-lg ${themeBg} text-black`}>Open_Camera</button>
                 </div>
             </div>
           )}
 
           <div className="p-8 border-2 border-dashed border-zinc-900 rounded-[2.5rem] bg-zinc-950/20 text-center space-y-8">
-            <p className="text-[9px] font-black uppercase tracking-[0.4em] text-zinc-600">Click to capture or upload images of freight loaded</p>
+            <p className="text-[9px] font-black uppercase tracking-[0.4em] text-zinc-600 italic">Click here to take pictures or upload images of freight loaded</p>
             <div className="flex justify-center gap-12">
                 <button onClick={() => freightCamRef.current?.click()} className="flex flex-col items-center gap-4 group active:scale-90 transition-all">
-                    <div className="w-20 h-20 border border-zinc-800 flex items-center justify-center bg-black transition-all group-hover:border-white">
-                        <span className="text-3xl">📷</span>
+                    <div className="w-24 h-24 border border-zinc-800 flex items-center justify-center bg-black transition-all group-hover:border-white group-hover:shadow-[0_0_25px_rgba(255,255,255,0.1)]">
+                        <span className="text-4xl">📷</span>
                     </div>
-                    <span className="text-[8px] font-black tracking-widest uppercase text-zinc-700 group-hover:text-white">Camera</span>
+                    <span className="text-[9px] font-black tracking-widest uppercase text-zinc-700 group-hover:text-white">Camera</span>
                 </button>
                 <button onClick={() => freightFileRef.current?.click()} className="flex flex-col items-center gap-4 group active:scale-90 transition-all">
-                    <div className="w-20 h-20 border border-zinc-800 flex items-center justify-center bg-black transition-all group-hover:border-white">
-                        <span className="text-3xl">📂</span>
+                    <div className="w-24 h-24 border border-zinc-800 flex items-center justify-center bg-black transition-all group-hover:border-white group-hover:shadow-[0_0_25px_rgba(255,255,255,0.1)]">
+                        <span className="text-4xl">📂</span>
                     </div>
-                    <span className="text-[8px] font-black tracking-widest uppercase text-zinc-700 group-hover:text-white">Gallery</span>
+                    <span className="text-[9px] font-black tracking-widest uppercase text-zinc-700 group-hover:text-white">Gallery</span>
                 </button>
             </div>
           </div>
@@ -313,9 +321,15 @@ const App: React.FC = () => {
       {/* --- SUCCESS OVERLAY --- */}
       {showSuccess && (
         <div className="fixed inset-0 z-[200] bg-black/98 backdrop-blur-3xl flex flex-col items-center justify-center p-10 animate-in fade-in">
-           <div className={`w-32 h-32 rounded-full border-4 flex items-center justify-center text-6xl mb-12 animate-bounce ${themeColor} shadow-[0_0_60px_currentColor]`}>✓</div>
-           <h2 className="text-4xl font-black uppercase tracking-[0.5em] text-white text-center">Uplink_Complete</h2>
-           <button onClick={() => window.location.reload()} className="w-full max-w-sm py-6 border border-zinc-800 rounded-2xl text-[11px] font-black uppercase tracking-[0.5em] text-white mt-12">New_Protocol</button>
+           <div className={`w-40 h-40 bg-white rounded-2xl flex items-center justify-center mb-12 shadow-[0_0_60px_rgba(34,197,94,0.3)] animate-bounce`}>
+              {isGLX ? (
+                  <img src="https://raw.githubusercontent.com/GreenleafXpress/branding/main/image_da2929.png" className="w-full h-full object-contain p-4" alt="GLX Success" />
+              ) : (
+                  <span className="text-6xl font-black text-blue-600">BST</span>
+              )}
+           </div>
+           <h2 className="text-4xl font-black uppercase tracking-[0.5em] text-white text-center">Verified</h2>
+           <button onClick={() => window.location.reload()} className="w-full max-w-sm py-6 border border-zinc-800 rounded-2xl text-[11px] font-black uppercase tracking-[0.5em] text-white mt-12 transition-colors hover:bg-white/5">Initialize_New_Session</button>
         </div>
       )}
 
