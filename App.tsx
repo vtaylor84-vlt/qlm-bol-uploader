@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 
 /**
- * LOGISTICS TERMINAL v3.6 - TACTICAL UNIFORMITY
- * UI: Scaled BOL Upload buttons to match Freight Inspection dimensions.
- * Alignment: Uniform icon sizing (w-24 h-24) across all imaging modules.
- * Branding: High-Fidelity SVG Greenleaf Xpress Integration preserved.
+ * LOGISTICS TERMINAL v3.7 - VISUAL PARITY
+ * UI Sync: BOL Upload now mirrors Trailer Inspection structure exactly.
+ * Typography: Normalized letter spacing for "CAMERA" and "GALLERY".
+ * UX: Identical instructional prompts across all imaging modules.
  */
 
 interface FileWithPreview {
@@ -241,7 +241,7 @@ const App: React.FC = () => {
           </div>
         </section>
 
-        {/* --- BOL UPLOAD SECTION (UPDATED BUTTON SIZE) --- */}
+        {/* --- BOL UPLOAD SECTION --- */}
         <section className="space-y-8">
           <div className="flex flex-col sm:flex-row justify-between items-center border-b border-zinc-900 pb-4 gap-4">
             <h2 className={`text-base font-black uppercase tracking-[0.5em] ${themeColor}`}>BOL UPLOAD</h2>
@@ -251,18 +251,23 @@ const App: React.FC = () => {
             </div>
           </div>
           <div className={`p-10 border-2 transition-all duration-1000 flex flex-col md:flex-row items-center justify-around gap-12 relative overflow-hidden rounded-[3rem] ${bolProtocol ? `${themeBg} border-white shadow-2xl opacity-100` : 'border-zinc-900 bg-zinc-950 opacity-30'}`}>
-            <button onClick={() => cameraInputRef.current?.click()} disabled={!bolProtocol} className="flex flex-col items-center gap-4 group active:scale-90 transition-all z-10">
-              <div className={`w-24 h-24 border-2 flex items-center justify-center bg-black transition-all ${bolProtocol ? 'border-white shadow-lg' : 'border-zinc-800'}`}>
-                <span className="text-4xl">📸</span>
-              </div>
-              <span className={`text-[10px] font-black tracking-[0.8em] uppercase ${bolProtocol ? 'text-white' : 'text-zinc-800'}`}>CAMERA</span>
-            </button>
-            <button onClick={() => fileInputRef.current?.click()} disabled={!bolProtocol} className="flex flex-col items-center gap-4 group active:scale-90 transition-all z-10">
-              <div className={`w-24 h-24 border-2 flex items-center justify-center bg-black transition-all ${bolProtocol ? 'border-white shadow-lg' : 'border-zinc-800'}`}>
-                <span className="text-4xl">📂</span>
-              </div>
-              <span className={`text-[10px] font-black tracking-[0.8em] uppercase ${bolProtocol ? 'text-white' : 'text-zinc-800'}`}>GALLERY</span>
-            </button>
+            <p className={`text-[11px] font-black uppercase tracking-[0.4em] absolute top-8 left-1/2 -translate-x-1/2 transition-opacity duration-500 ${bolProtocol ? 'text-white opacity-40' : 'opacity-0'}`}>
+                Click to capture or upload images of BOL
+            </p>
+            <div className="flex justify-center gap-16 mt-12 md:mt-4">
+                <button onClick={() => cameraInputRef.current?.click()} disabled={!bolProtocol} className="flex flex-col items-center gap-4 group active:scale-90 transition-all z-10">
+                <div className={`w-24 h-24 border-2 flex items-center justify-center bg-black transition-all ${bolProtocol ? 'border-white shadow-lg' : 'border-zinc-800'}`}>
+                    <span className="text-4xl">📸</span>
+                </div>
+                <span className={`text-[10px] font-black uppercase transition-colors ${bolProtocol ? 'text-white' : 'text-zinc-800'}`}>CAMERA</span>
+                </button>
+                <button onClick={() => fileInputRef.current?.click()} disabled={!bolProtocol} className="flex flex-col items-center gap-4 group active:scale-90 transition-all z-10">
+                <div className={`w-24 h-24 border-2 flex items-center justify-center bg-black transition-all ${bolProtocol ? 'border-white shadow-lg' : 'border-zinc-800'}`}>
+                    <span className="text-4xl">📂</span>
+                </div>
+                <span className={`text-[10px] font-black uppercase transition-colors ${bolProtocol ? 'text-white' : 'text-zinc-800'}`}>GALLERY</span>
+                </button>
+            </div>
           </div>
           {uploadedFiles.filter(f => f.category === 'bol').length > 0 && (
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 mt-6">
@@ -276,8 +281,9 @@ const App: React.FC = () => {
           )}
         </section>
 
+        {/* --- TRAILER INSPECTION SECTION --- */}
         <section ref={freightSectionRef} className={`space-y-8 transition-all duration-1000 ${bolProtocol === 'DELIVERY' ? 'opacity-10 pointer-events-none' : 'opacity-100'}`}>
-          <div className="border-b border-zinc-900 pb-4">
+          <div className="border-b border-zinc-900 pb-4 flex justify-between items-end">
             <h2 className={`text-base font-black uppercase tracking-[0.4em] ${themeColor}`}>Images of freight loaded on the trailer</h2>
           </div>
           {showFreightPrompt && (
@@ -289,20 +295,20 @@ const App: React.FC = () => {
                 </div>
             </div>
           )}
-          <div className="p-10 border-2 border-dashed border-zinc-900 rounded-[3rem] bg-zinc-950/20 text-center space-y-10">
+          <div className="p-10 border-2 border-dashed border-zinc-900 rounded-[3rem] bg-zinc-950/20 text-center space-y-10 relative">
             <p className="text-[11px] font-black uppercase tracking-[0.4em] text-zinc-600 italic">Click to capture or upload images of freight loaded</p>
             <div className="flex justify-center gap-16">
                 <button onClick={() => freightCamRef.current?.click()} className="flex flex-col items-center gap-4 group active:scale-90 transition-all">
                     <div className="w-24 h-24 border border-zinc-800 flex items-center justify-center bg-black transition-all group-hover:border-white">
                         <span className="text-4xl">📸</span>
                     </div>
-                    <span className="text-[10px] font-black tracking-widest uppercase text-zinc-700 group-hover:text-white">Camera</span>
+                    <span className="text-[10px] font-black uppercase text-zinc-700 group-hover:text-white">CAMERA</span>
                 </button>
                 <button onClick={() => freightFileRef.current?.click()} className="flex flex-col items-center gap-4 group active:scale-90 transition-all">
                     <div className="w-24 h-24 border border-zinc-800 flex items-center justify-center bg-black transition-all group-hover:border-white">
                         <span className="text-4xl">📂</span>
                     </div>
-                    <span className="text-[10px] font-black tracking-widest uppercase text-zinc-700 group-hover:text-white">Gallery</span>
+                    <span className="text-[10px] font-black uppercase text-zinc-700 group-hover:text-white">GALLERY</span>
                 </button>
             </div>
           </div>
