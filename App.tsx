@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 
 /**
- * LOGISTICS TERMINAL v3.7 - VISUAL PARITY
- * UI Sync: BOL Upload now mirrors Trailer Inspection structure exactly.
- * Typography: Normalized letter spacing for "CAMERA" and "GALLERY".
- * UX: Identical instructional prompts across all imaging modules.
+ * LOGISTICS TERMINAL v3.8 - SECURE PROTOCOL
+ * Feature: Tactical Security Uplink (IP Logging / Handshake Simulation).
+ * UI Sync: BOL Upload mirrored to Trailer Inspection with shared instruction logic.
+ * Typography: Condensed tracking for imaging labels.
+ * Branding: High-Fidelity SVG Greenleaf Xpress Integration.
  */
 
 interface FileWithPreview {
@@ -54,8 +55,10 @@ const BSTLogo = () => (
 );
 
 const App: React.FC = () => {
+  // --- STATE ---
   const [isLocked, setIsLocked] = useState(true);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const [authStage, setAuthStage] = useState(0);
   const [company, setCompany] = useState<'GLX' | 'BST' | ''>('');
   const [driverName, setDriverName] = useState('');
   const [loadNum, setLoadNum] = useState('');
@@ -83,6 +86,7 @@ const App: React.FC = () => {
 
   const states = ['AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 'HI', 'IA', 'ID', 'IL', 'IN', 'KS', 'KY', 'LA', 'ME', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'];
 
+  // --- THEME ---
   const isGLX = company === 'GLX';
   const isBST = company === 'BST';
   const themeHex = isGLX ? '#22c55e' : isBST ? '#3b82f6' : '#06b6d4';
@@ -142,6 +146,20 @@ const App: React.FC = () => {
     }
   };
 
+  const startSecureUplink = () => {
+    if (isAuthenticating) return;
+    setIsAuthenticating(true);
+    let stage = 0;
+    const interval = setInterval(() => {
+      stage++;
+      setAuthStage(stage);
+      if (stage >= 4) {
+        clearInterval(interval);
+        setTimeout(() => setIsLocked(false), 600);
+      }
+    }, 600);
+  };
+
   const getTacticalStyles = (fieldId: string) => {
     const isValid = validatedFields.has(fieldId);
     return `w-full bg-black p-4 text-xs rounded-xl outline-none font-mono transition-all duration-500 border-2 ${
@@ -151,13 +169,33 @@ const App: React.FC = () => {
 
   if (isLocked) {
     return (
-      <div className="min-h-screen bg-[#020202] flex items-center justify-center p-6 font-orbitron">
-        <button onMouseDown={() => { setIsAuthenticating(true); setTimeout(() => setIsLocked(false), 1000); }} className="group relative p-20 border border-zinc-900 bg-zinc-950 rounded-[3rem] transition-all active:scale-95 shadow-2xl overflow-hidden">
-          <div className="w-32 h-32 border border-zinc-800 flex items-center justify-center bg-black transition-all group-hover:border-cyan-500">
-            <span className="text-5xl">{isAuthenticating ? '⚡' : '🛰️'}</span>
-          </div>
-          <p className="mt-8 text-[11px] font-black tracking-[1em] text-zinc-700 uppercase text-center">INITIALIZE</p>
-        </button>
+      <div className="min-h-screen bg-[#020202] flex items-center justify-center p-6 font-orbitron overflow-hidden">
+        <div className="z-10 w-full max-w-md bg-zinc-950/50 p-10 border border-zinc-900 rounded-[3rem] backdrop-blur-xl shadow-2xl">
+            <div className="flex flex-col items-center gap-10">
+                <button 
+                    onMouseDown={startSecureUplink} 
+                    className={`relative w-40 h-40 border-2 rounded-full flex items-center justify-center transition-all duration-1000 ${isAuthenticating ? 'border-cyan-500 shadow-[0_0_40px_rgba(6,182,212,0.3)]' : 'border-zinc-800 hover:border-zinc-600'}`}
+                >
+                    <div className={`absolute inset-0 border border-dashed border-zinc-800 rounded-full ${isAuthenticating ? 'animate-spin-slow' : ''}`} />
+                    <span className={`text-6xl ${isAuthenticating ? 'animate-pulse' : ''}`}>{isAuthenticating ? '🔒' : '🛡️'}</span>
+                </button>
+                
+                <div className="w-full space-y-4 font-mono">
+                    {[
+                        { label: 'LOGGING IP...', done: authStage >= 1 },
+                        { label: 'AUTHENTICATING...', done: authStage >= 2 },
+                        { label: 'ESTABLISHING UPLINK...', done: authStage >= 3 },
+                        { label: 'HANDSHAKE SECURE', done: authStage >= 4, color: 'text-green-500' }
+                    ].map((step, i) => (
+                        <div key={i} className={`text-[9px] flex justify-between tracking-widest ${step.done ? (step.color || 'text-cyan-400') : 'text-zinc-800'}`}>
+                            <span>{`> ${step.label}`}</span>
+                            <span>{step.done ? '[OK]' : '[--]'}</span>
+                        </div>
+                    ))}
+                </div>
+                {!isAuthenticating && <p className="text-[10px] font-black tracking-[0.5em] text-zinc-600 animate-pulse">HOLD TO SECURE LINK</p>}
+            </div>
+        </div>
       </div>
     );
   }
@@ -170,22 +208,20 @@ const App: React.FC = () => {
       </div>
 
       <div className="relative z-10 max-w-3xl mx-auto p-4 sm:p-8 space-y-12">
+        {/* --- DYNAMIC HEADER --- */}
         <header className="w-full">
           <div className={`w-full p-8 rounded-[3rem] border-2 transition-all duration-1000 flex items-center justify-center min-h-[200px] ${
             isGLX ? 'bg-white border-green-600 shadow-[0_0_60px_rgba(21,128,61,0.4)]' :
             isBST ? 'bg-gradient-to-br from-zinc-950 to-blue-900 border-blue-500 shadow-[0_0_60px_rgba(59,130,246,0.3)]' :
             'bg-zinc-950 border-zinc-900'
           }`}>
-            {!company && (
-               <div className="text-center space-y-4 animate-in fade-in zoom-in duration-700">
-                 <h1 className="text-5xl sm:text-7xl font-black tracking-[0.3em] text-white uppercase italic">BOL Uploader</h1>
-               </div>
-            )}
+            {!company && <h1 className="text-5xl sm:text-7xl font-black tracking-[0.3em] text-white uppercase italic">BOL Uploader</h1>}
             {isGLX && <GreenleafLogo />}
             {isBST && <BSTLogo />}
           </div>
         </header>
 
+        {/* --- IDENTITY --- */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="space-y-2">
             <label className={`text-[10px] font-black uppercase tracking-[0.4em] ${themeColor} ml-1`}>Select Carrier</label>
@@ -201,6 +237,7 @@ const App: React.FC = () => {
           </div>
         </section>
 
+        {/* --- SHIPMENT DATA --- */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="space-y-2">
             <label className={`text-[10px] font-black uppercase tracking-[0.4em] ${themeColor} ml-1`}>Referenced Load #</label>
@@ -212,6 +249,7 @@ const App: React.FC = () => {
           </div>
         </section>
 
+        {/* --- ROUTE --- */}
         <section className="space-y-10">
           <div className="grid grid-cols-3 gap-6">
              <div className="col-span-2 space-y-2">
@@ -250,27 +288,27 @@ const App: React.FC = () => {
                 <button onClick={() => { setBolProtocol('DELIVERY'); triggerPulse(); setShowFreightPrompt(false); }} className={`px-8 py-3 text-[10px] font-black uppercase tracking-widest border-2 transition-all duration-500 rounded-xl ${bolProtocol === 'DELIVERY' ? `${themeBg} text-black border-white shadow-lg scale-105` : 'border-zinc-900 text-zinc-600'}`}>DELIVERY BOL</button>
             </div>
           </div>
-          <div className={`p-10 border-2 transition-all duration-1000 flex flex-col md:flex-row items-center justify-around gap-12 relative overflow-hidden rounded-[3rem] ${bolProtocol ? `${themeBg} border-white shadow-2xl opacity-100` : 'border-zinc-900 bg-zinc-950 opacity-30'}`}>
-            <p className={`text-[11px] font-black uppercase tracking-[0.4em] absolute top-8 left-1/2 -translate-x-1/2 transition-opacity duration-500 ${bolProtocol ? 'text-white opacity-40' : 'opacity-0'}`}>
+          <div className={`p-10 border-2 transition-all duration-1000 flex flex-col items-center justify-around gap-12 relative overflow-hidden rounded-[3rem] ${bolProtocol ? `${themeBg} border-white shadow-2xl opacity-100` : 'border-zinc-900 bg-zinc-950 opacity-30'}`}>
+            <p className={`text-[11px] font-black uppercase tracking-[0.4em] transition-opacity duration-500 ${bolProtocol ? 'text-white opacity-40' : 'opacity-0'}`}>
                 Click to capture or upload images of BOL
             </p>
-            <div className="flex justify-center gap-16 mt-12 md:mt-4">
+            <div className="flex justify-center gap-16 w-full">
                 <button onClick={() => cameraInputRef.current?.click()} disabled={!bolProtocol} className="flex flex-col items-center gap-4 group active:scale-90 transition-all z-10">
-                <div className={`w-24 h-24 border-2 flex items-center justify-center bg-black transition-all ${bolProtocol ? 'border-white shadow-lg' : 'border-zinc-800'}`}>
-                    <span className="text-4xl">📸</span>
-                </div>
-                <span className={`text-[10px] font-black uppercase transition-colors ${bolProtocol ? 'text-white' : 'text-zinc-800'}`}>CAMERA</span>
+                    <div className={`w-24 h-24 border-2 flex items-center justify-center bg-black transition-all ${bolProtocol ? 'border-white shadow-lg' : 'border-zinc-800'}`}>
+                        <span className="text-4xl">📸</span>
+                    </div>
+                    <span className={`text-[10px] font-black uppercase transition-colors tracking-tight ${bolProtocol ? 'text-white' : 'text-zinc-800'}`}>CAMERA</span>
                 </button>
                 <button onClick={() => fileInputRef.current?.click()} disabled={!bolProtocol} className="flex flex-col items-center gap-4 group active:scale-90 transition-all z-10">
-                <div className={`w-24 h-24 border-2 flex items-center justify-center bg-black transition-all ${bolProtocol ? 'border-white shadow-lg' : 'border-zinc-800'}`}>
-                    <span className="text-4xl">📂</span>
-                </div>
-                <span className={`text-[10px] font-black uppercase transition-colors ${bolProtocol ? 'text-white' : 'text-zinc-800'}`}>GALLERY</span>
+                    <div className={`w-24 h-24 border-2 flex items-center justify-center bg-black transition-all ${bolProtocol ? 'border-white shadow-lg' : 'border-zinc-800'}`}>
+                        <span className="text-4xl">📂</span>
+                    </div>
+                    <span className={`text-[10px] font-black uppercase transition-colors tracking-tight ${bolProtocol ? 'text-white' : 'text-zinc-800'}`}>GALLERY</span>
                 </button>
             </div>
           </div>
           {uploadedFiles.filter(f => f.category === 'bol').length > 0 && (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 mt-6">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 mt-6 animate-in slide-in-from-bottom-4">
               {uploadedFiles.filter(f => f.category === 'bol').map(f => (
                 <div key={f.id} className="relative aspect-[3/4] border-2 border-white rounded-2xl overflow-hidden group shadow-2xl">
                   <img src={f.preview} className="w-full h-full object-cover" alt="BOL" />
@@ -281,7 +319,7 @@ const App: React.FC = () => {
           )}
         </section>
 
-        {/* --- TRAILER INSPECTION SECTION --- */}
+        {/* --- TRAILER INSPECTION --- */}
         <section ref={freightSectionRef} className={`space-y-8 transition-all duration-1000 ${bolProtocol === 'DELIVERY' ? 'opacity-10 pointer-events-none' : 'opacity-100'}`}>
           <div className="border-b border-zinc-900 pb-4 flex justify-between items-end">
             <h2 className={`text-base font-black uppercase tracking-[0.4em] ${themeColor}`}>Images of freight loaded on the trailer</h2>
@@ -302,13 +340,13 @@ const App: React.FC = () => {
                     <div className="w-24 h-24 border border-zinc-800 flex items-center justify-center bg-black transition-all group-hover:border-white">
                         <span className="text-4xl">📸</span>
                     </div>
-                    <span className="text-[10px] font-black uppercase text-zinc-700 group-hover:text-white">CAMERA</span>
+                    <span className="text-[10px] font-black uppercase text-zinc-700 group-hover:text-white tracking-tight">CAMERA</span>
                 </button>
                 <button onClick={() => freightFileRef.current?.click()} className="flex flex-col items-center gap-4 group active:scale-90 transition-all">
                     <div className="w-24 h-24 border border-zinc-800 flex items-center justify-center bg-black transition-all group-hover:border-white">
                         <span className="text-4xl">📂</span>
                     </div>
-                    <span className="text-[10px] font-black uppercase text-zinc-700 group-hover:text-white">GALLERY</span>
+                    <span className="text-[10px] font-black uppercase text-zinc-700 group-hover:text-white tracking-tight">GALLERY</span>
                 </button>
             </div>
           </div>
@@ -337,6 +375,7 @@ const App: React.FC = () => {
         </div>
       </div>
 
+      {/* --- SUCCESS OVERLAY --- */}
       {showSuccess && (
         <div className="fixed inset-0 z-[200] bg-black/98 backdrop-blur-3xl flex flex-col items-center justify-center p-10 animate-in fade-in">
            <div className={`w-64 h-64 rounded-3xl flex items-center justify-center mb-16 shadow-[0_0_100px_currentColor] animate-bounce bg-white`}>
@@ -350,6 +389,8 @@ const App: React.FC = () => {
       <style>{`
         @keyframes scan { 0% { top: -10%; opacity: 0; } 50% { opacity: 1; } 100% { top: 110%; opacity: 0; } }
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+        @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .animate-spin-slow { animation: spin-slow 8s linear infinite; }
         .animate-scan { animation: scan 4s ease-in-out infinite; }
         .animate-shake { animation: shake 0.1s linear infinite; }
         select { -webkit-appearance: none; appearance: none; }
