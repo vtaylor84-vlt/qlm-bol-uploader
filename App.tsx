@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 
 /**
- * LOGISTICS TERMINAL v4.1 - ZERO-FAILURE PREVIEWS
- * Senior Fix: Implemented an explicit useEffect hook to manage Object URL lifecycles.
- * logic: Ensures URLs are not revoked until the component actually unmounts.
- * logic: Forced re-render on file array update to ensure DOM synchronization.
+ * LOGISTICS TERMINAL v4.2 - SOVEREIGN EDITION
+ * Logic: Atomic state updates for grid previews.
+ * Logic: Conditional rendering for Pickup vs. Delivery protocols.
+ * Branding: High-Fidelity SVG assets for GLX and BST.
  */
 
 interface FileWithPreview {
@@ -37,19 +37,32 @@ const GreenleafLogo = () => (
         <span className="text-2xl font-black text-black">LLC</span>
         <div className="h-[3px] w-16 bg-green-700 rounded-full" />
       </div>
-      <p className="text-xs font-bold text-black tracking-[0.6em] mt-2 ml-2 uppercase text-center">Waterloo, Iowa</p>
+      <p className="text-xs font-bold text-black tracking-[0.6em] mt-2 ml-2 uppercase">Waterloo, Iowa</p>
     </div>
   </div>
 );
 
 const BSTLogo = () => (
-  <div className="relative group flex items-center gap-8 animate-in slide-in-from-top-12 duration-1000">
-    <div className="flex flex-col items-end">
-      <span className="text-6xl sm:text-8xl font-black text-white italic tracking-tighter leading-none shadow-blue-500/20 drop-shadow-lg">BST</span>
-      <span className="text-[14px] font-black text-blue-400 tracking-[1.2em] uppercase -mr-6 mt-2">Expedite</span>
-    </div>
-    <div className="h-20 sm:h-32 w-[3px] bg-gradient-to-b from-transparent via-blue-500 to-transparent shadow-[0_0_15px_#3b82f6]"></div>
-    <span className="text-5xl sm:text-7xl drop-shadow-[0_0_15px_rgba(59,130,246,0.5)]">🚀</span>
+  <div className="flex items-center justify-center animate-in fade-in zoom-in duration-1000 p-4">
+    <svg width="340" height="200" viewBox="0 0 400 240" fill="none" xmlns="http://www.w3.org/2000/svg" className="drop-shadow-[0_0_25px_rgba(59,130,246,0.5)]">
+      <path d="M200 10L380 110L200 210L20 110L200 10Z" fill="url(#metalGradient)" stroke="#3b82f6" strokeWidth="2" strokeOpacity="0.5"/>
+      <g filter="url(#glow)">
+        <path d="M50 110H150" stroke="#f59e0b" strokeWidth="3" strokeLinecap="round" className="animate-pulse" />
+        <path d="M40 120H130" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" />
+        <path d="M60 100H140" stroke="#06b6d4" strokeWidth="2" strokeLinecap="round" />
+      </g>
+      <path d="M150 120V90H210L230 110H300V140H150V120Z" fill="#18181b" stroke="#3b82f6" strokeWidth="1.5"/>
+      <circle cx="175" cy="145" r="8" fill="#18181b" stroke="#3b82f6" strokeWidth="2" />
+      <circle cx="275" cy="145" r="8" fill="#18181b" stroke="#3b82f6" strokeWidth="2" />
+      <text x="200" y="185" textAnchor="middle" className="font-black italic" style={{ fontSize: '56px', fill: 'white', letterSpacing: '-2px' }}>BST</text>
+      <text x="200" y="205" textAnchor="middle" className="font-bold" style={{ fontSize: '12px', fill: '#60a5fa', letterSpacing: '4px', textTransform: 'uppercase' }}>EXPEDITE INC</text>
+      <defs>
+        <linearGradient id="metalGradient" x1="20" y1="10" x2="380" y2="210" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#27272a"/><stop offset="0.5" stopColor="#3f3f46"/><stop offset="1" stopColor="#18181b"/>
+        </linearGradient>
+        <filter id="glow"><feGaussianBlur stdDeviation="4" result="blur" /><feComposite in="SourceGraphic" in2="blur" operator="over" /></filter>
+      </defs>
+    </svg>
   </div>
 );
 
@@ -98,46 +111,16 @@ const App: React.FC = () => {
     return hasIdentity && hasReference && hasRoute && hasDocs;
   }, [company, driverName, loadNum, bolNum, puCity, puState, delCity, delState, bolProtocol, uploadedFiles]);
 
-  useEffect(() => {
-    audioRef.current = new Audio('https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3');
-    audioRef.current.volume = 0.15;
-  }, []);
-
-  const triggerPulse = useCallback(() => {
-    setPulseActive(true);
-    audioRef.current?.play().catch(() => {}); 
-    setTimeout(() => setPulseActive(false), 500);
-  }, []);
-
-  const validate = useCallback((fieldId: string, value: string) => {
-    setValidatedFields(prev => {
-      const next = new Set(prev);
-      if (value.trim() !== "") {
-        if (!next.has(fieldId)) {
-          next.add(fieldId);
-          triggerPulse();
-        }
-      } else {
-        next.delete(fieldId);
-      }
-      return next;
-    });
-  }, [triggerPulse]);
-
-  // --- PERSISTENT FILE PREVIEW ENGINE ---
-  const onFileSelect = (e: React.ChangeEvent<HTMLInputElement>, category: 'bol' | 'freight') => {
+  const onFileSelect = async (e: React.ChangeEvent<HTMLInputElement>, category: 'bol' | 'freight') => {
     if (e.target.files) {
       const files = Array.from(e.target.files);
       const newFiles = files.map(file => ({
         file,
-        preview: URL.createObjectURL(file), // Critical: Must be managed in cleanup
+        preview: URL.createObjectURL(file),
         id: Math.random().toString(36).substr(2, 9),
         category
       }));
-
       setUploadedFiles(prev => [...prev, ...newFiles]);
-      validate(category === 'bol' ? 'imaging' : 'freight_imaging', 'true');
-
       if (category === 'bol' && bolProtocol === 'PICKUP') {
         setTimeout(() => {
           setShowFreightPrompt(true);
@@ -147,13 +130,6 @@ const App: React.FC = () => {
     }
   };
 
-  // CLEANUP: Prevents memory leaks and broken preview boxes
-  useEffect(() => {
-    return () => {
-      uploadedFiles.forEach(f => URL.revokeObjectURL(f.preview));
-    };
-  }, [uploadedFiles]);
-
   const startSecureUplink = () => {
     if (isAuthenticating) return;
     setIsAuthenticating(true);
@@ -161,10 +137,7 @@ const App: React.FC = () => {
     const interval = setInterval(() => {
       stage++;
       setAuthStage(stage);
-      if (stage >= 4) {
-        clearInterval(interval);
-        setTimeout(() => setIsLocked(false), 600);
-      }
+      if (stage >= 4) { clearInterval(interval); setTimeout(() => setIsLocked(false), 600); }
     }, 600);
   };
 
@@ -177,7 +150,7 @@ const App: React.FC = () => {
 
   if (isLocked) {
     return (
-      <div className="min-h-screen bg-[#020202] flex items-center justify-center p-6 font-orbitron overflow-hidden">
+      <div className="min-h-screen bg-[#020202] flex items-center justify-center p-6 font-orbitron overflow-hidden text-zinc-300">
         <div className="z-10 w-full max-w-md bg-zinc-950/50 p-10 border border-zinc-900 rounded-[3rem] backdrop-blur-xl shadow-2xl">
             <div className="flex flex-col items-center gap-10">
                 <button onMouseDown={startSecureUplink} className={`relative w-40 h-40 border-2 rounded-full flex items-center justify-center transition-all duration-1000 ${isAuthenticating ? 'border-cyan-500 shadow-[0_0_40px_rgba(6,182,212,0.3)]' : 'border-zinc-800 hover:border-zinc-600'}`}>
@@ -187,8 +160,7 @@ const App: React.FC = () => {
                 <div className="w-full space-y-4 font-mono">
                     {[{ label: 'LOGGING IP...', done: authStage >= 1 }, { label: 'AUTHENTICATING...', done: authStage >= 2 }, { label: 'ESTABLISHING UPLINK...', done: authStage >= 3 }, { label: 'HANDSHAKE SECURE', done: authStage >= 4, color: 'text-green-500' }].map((step, i) => (
                         <div key={i} className={`text-[9px] flex justify-between tracking-widest ${step.done ? (step.color || 'text-cyan-400') : 'text-zinc-800'}`}>
-                            <span>{`> ${step.label}`}</span>
-                            <span>{step.done ? '[OK]' : '[--]'}</span>
+                            <span>{`> ${step.label}`}</span><span>{step.done ? '[OK]' : '[--]'}</span>
                         </div>
                     ))}
                 </div>
@@ -201,168 +173,130 @@ const App: React.FC = () => {
 
   return (
     <div className={`min-h-screen bg-[#020202] text-zinc-300 font-orbitron relative pb-24 overflow-x-hidden ${shake ? 'animate-shake' : ''}`}>
-      <div className={`fixed inset-0 pointer-events-none z-0 transition-opacity duration-700 ${pulseActive ? 'opacity-100' : 'opacity-[0.03]'}`}>
-        <div className={`absolute inset-0`} style={{ backgroundColor: themeHex }} />
-        <div className="absolute inset-0 bg-[radial-gradient(#000_1px,transparent_1px)] [background-size:32px_32px]" />
-      </div>
-
+      <div className={`fixed inset-0 pointer-events-none z-0 transition-opacity duration-700 ${pulseActive ? 'opacity-100' : 'opacity-[0.03]'}`} style={{ backgroundColor: themeHex }} />
+      
       <div className="relative z-10 max-w-3xl mx-auto p-4 sm:p-8 space-y-12">
         <header className="w-full">
-          <div className={`w-full p-8 rounded-[3rem] border-2 transition-all duration-1000 flex items-center justify-center min-h-[200px] ${
-            isGLX ? 'bg-white border-green-600 shadow-[0_0_60px_rgba(21,128,61,0.4)]' :
-            isBST ? 'bg-gradient-to-br from-zinc-950 to-blue-900 border-blue-500 shadow-[0_0_60px_rgba(59,130,246,0.3)]' :
-            'bg-zinc-950 border-zinc-900'
-          }`}>
+          <div className={`w-full p-8 rounded-[3rem] border-2 transition-all duration-1000 flex items-center justify-center min-h-[200px] ${isGLX ? 'bg-white border-green-600 shadow-[0_0_60px_rgba(21,128,61,0.4)]' : isBST ? 'bg-zinc-950 border-blue-500 shadow-[0_0_60px_rgba(59,130,246,0.3)]' : 'bg-zinc-950 border-zinc-900'}`}>
             {!company && <h1 className="text-5xl sm:text-7xl font-black tracking-[0.3em] text-white uppercase italic">BOL Uploader</h1>}
             {isGLX && <GreenleafLogo />}
             {isBST && <BSTLogo />}
           </div>
         </header>
 
-        {/* IDENTIFICATION SECTION */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="space-y-2">
-            <label className={`text-[10px] font-black uppercase tracking-[0.4em] ${themeColor} ml-1`}>Select Carrier</label>
-            <select className={getTacticalStyles('company')} value={company} onChange={(e) => { const v = e.target.value as any; setCompany(v); validate('company', v); }}>
+            <label className={`text-[10px] font-black uppercase tracking-[0.4em] ${themeColor}`}>Select Carrier</label>
+            <select className={getTacticalStyles('company')} value={company} onChange={(e) => setCompany(e.target.value as any)}>
                 <option value="">-- SELECT CARRIER --</option>
                 <option value="GLX">GREENLEAF XPRESS (GLX)</option>
                 <option value="BST">BST EXPEDITE (BST)</option>
             </select>
           </div>
           <div className="space-y-2">
-            <label className={`text-[10px] font-black uppercase tracking-[0.4em] ${themeColor} ml-1`}>Operator Name</label>
-            <input type="text" placeholder="ENTER NAME" className={getTacticalStyles('driverName')} value={driverName} onChange={(e) => setDriverName(e.target.value)} onBlur={(e) => validate('driverName', e.target.value)} />
+            <label className={`text-[10px] font-black uppercase tracking-[0.4em] ${themeColor}`}>Operator Name</label>
+            <input type="text" placeholder="ENTER NAME" className={getTacticalStyles('driverName')} value={driverName} onChange={(e) => setDriverName(e.target.value)} />
           </div>
         </section>
 
-        {/* SHIPMENT DATA SECTION */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="space-y-2">
-            <label className={`text-[10px] font-black uppercase tracking-[0.4em] ${themeColor} ml-1`}>Referenced Load #</label>
-            <input type="text" placeholder="ENTER LOAD #" className={getTacticalStyles('loadNum')} value={loadNum} onChange={(e) => setLoadNum(e.target.value)} onBlur={(e) => validate('loadNum', e.target.value)} />
+            <label className={`text-[10px] font-black uppercase tracking-[0.4em] ${themeColor}`}>Referenced Load #</label>
+            <input type="text" placeholder="ENTER LOAD #" className={getTacticalStyles('loadNum')} value={loadNum} onChange={(e) => setLoadNum(e.target.value)} />
           </div>
           <div className="space-y-2">
-            <label className={`text-[10px] font-black uppercase tracking-[0.4em] ${themeColor} ml-1`}>Referenced BOL #</label>
-            <input type="text" placeholder="ENTER BOL #" className={getTacticalStyles('bolNum')} value={bolNum} onChange={(e) => setBolNum(e.target.value)} onBlur={(e) => validate('bolNum', e.target.value)} />
+            <label className={`text-[10px] font-black uppercase tracking-[0.4em] ${themeColor}`}>Referenced BOL #</label>
+            <input type="text" placeholder="ENTER BOL #" className={getTacticalStyles('bolNum')} value={bolNum} onChange={(e) => setBolNum(e.target.value)} />
           </div>
         </section>
 
-        {/* ROUTE SECTION */}
         <section className="space-y-10">
           <div className="grid grid-cols-3 gap-6">
              <div className="col-span-2 space-y-2">
-               <label className={`text-[10px] font-black uppercase tracking-[0.4em] ${themeColor} ml-1`}>ORIGIN: PICKUP CITY</label>
-               <input type="text" placeholder="ENTER PICKUP CITY" className={getTacticalStyles('puCity')} value={puCity} onChange={(e) => setPuCity(e.target.value)} onBlur={(e) => validate('puCity', e.target.value)} />
+               <label className={`text-[10px] font-black uppercase tracking-[0.4em] ${themeColor}`}>ORIGIN: PICKUP CITY</label>
+               <input type="text" placeholder="ENTER PICKUP CITY" className={getTacticalStyles('puCity')} value={puCity} onChange={(e) => setPuCity(e.target.value)} />
              </div>
              <div className="space-y-2">
-               <label className={`text-[10px] font-black uppercase tracking-[0.4em] ${themeColor} ml-1`}>STATE</label>
-               <select className={getTacticalStyles('puState')} value={puState} onChange={(e) => { setPuState(e.target.value); validate('puState', e.target.value); }}>
-                  <option value="">SELECT STATE</option>
-                  {states.map(s => <option key={`p-${s}`} value={s}>{s}</option>)}
+               <label className={`text-[10px] font-black uppercase tracking-[0.4em] ${themeColor}`}>STATE</label>
+               <select className={getTacticalStyles('puState')} value={puState} onChange={(e) => setPuState(e.target.value)}>
+                  <option value="">SELECT STATE</option>{states.map(s => <option key={s} value={s}>{s}</option>)}
                </select>
              </div>
           </div>
           <div className="grid grid-cols-3 gap-6">
              <div className="col-span-2 space-y-2">
-               <label className={`text-[10px] font-black uppercase tracking-[0.4em] ${themeColor} ml-1`}>DESTINATION: DELIVERY CITY</label>
-               <input type="text" placeholder="ENTER DELIVERY CITY" className={getTacticalStyles('delCity')} value={delCity} onChange={(e) => setDelCity(e.target.value)} onBlur={(e) => validate('delCity', e.target.value)} />
+               <label className={`text-[10px] font-black uppercase tracking-[0.4em] ${themeColor}`}>DESTINATION: DELIVERY CITY</label>
+               <input type="text" placeholder="ENTER DELIVERY CITY" className={getTacticalStyles('delCity')} value={delCity} onChange={(e) => setDelCity(e.target.value)} />
              </div>
              <div className="space-y-2">
-               <label className={`text-[10px] font-black uppercase tracking-[0.4em] ${themeColor} ml-1`}>STATE</label>
-               <select className={getTacticalStyles('delState')} value={delState} onChange={(e) => { setDelState(e.target.value); validate('delState', e.target.value); }}>
-                  <option value="">SELECT STATE</option>
-                  {states.map(s => <option key={`d-${s}`} value={s}>{s}</option>)}
+               <label className={`text-[10px] font-black uppercase tracking-[0.4em] ${themeColor}`}>STATE</label>
+               <select className={getTacticalStyles('delState')} value={delState} onChange={(e) => setDelState(e.target.value)}>
+                  <option value="">SELECT STATE</option>{states.map(s => <option key={s} value={s}>{s}</option>)}
                </select>
              </div>
           </div>
         </section>
 
-        {/* BOL UPLOAD SECTION */}
         <section className="space-y-8">
           <div className="flex flex-col sm:flex-row justify-between items-center border-b border-zinc-900 pb-4 gap-4">
             <h2 className={`text-base font-black uppercase tracking-[0.5em] ${themeColor}`}>BOL UPLOAD</h2>
             <div className="flex gap-4">
-                <button onClick={() => { setBolProtocol('PICKUP'); triggerPulse(); }} className={`px-8 py-3 text-[10px] font-black uppercase tracking-widest border-2 transition-all duration-500 rounded-xl ${bolProtocol === 'PICKUP' ? `${themeBg} text-black border-white shadow-lg scale-105` : 'border-zinc-900 text-zinc-600'}`}>PICKUP BOL</button>
-                <button onClick={() => { setBolProtocol('DELIVERY'); triggerPulse(); setShowFreightPrompt(false); }} className={`px-8 py-3 text-[10px] font-black uppercase tracking-widest border-2 transition-all duration-500 rounded-xl ${bolProtocol === 'DELIVERY' ? `${themeBg} text-black border-white shadow-lg scale-105` : 'border-zinc-900 text-zinc-600'}`}>DELIVERY BOL</button>
+                <button onClick={() => setBolProtocol('PICKUP')} className={`px-8 py-3 text-[10px] font-black uppercase tracking-widest border-2 transition-all rounded-xl ${bolProtocol === 'PICKUP' ? `${themeBg} text-black border-white shadow-lg` : 'border-zinc-900 text-zinc-600'}`}>PICKUP BOL</button>
+                <button onClick={() => { setBolProtocol('DELIVERY'); setShowFreightPrompt(false); }} className={`px-8 py-3 text-[10px] font-black uppercase tracking-widest border-2 transition-all rounded-xl ${bolProtocol === 'DELIVERY' ? `${themeBg} text-black border-white shadow-lg` : 'border-zinc-900 text-zinc-600'}`}>DELIVERY BOL</button>
             </div>
           </div>
-          <div className={`p-10 border-2 transition-all duration-1000 flex flex-col items-center justify-around gap-12 relative overflow-hidden rounded-[3rem] ${bolProtocol ? `${themeBg} border-white shadow-2xl opacity-100` : 'border-zinc-900 bg-zinc-950 opacity-30'}`}>
+          <div className={`p-10 border-2 transition-all flex flex-col items-center justify-around gap-12 relative overflow-hidden rounded-[3rem] ${bolProtocol ? `${themeBg} border-white shadow-2xl opacity-100` : 'border-zinc-900 bg-zinc-950 opacity-30'}`}>
             <p className={`text-[11px] font-black uppercase tracking-[0.4em] transition-opacity duration-500 ${bolProtocol ? 'text-white opacity-40' : 'opacity-0'}`}>Click to capture or upload images of BOL</p>
             <div className="flex justify-center gap-16 w-full">
-                <button onClick={() => cameraInputRef.current?.click()} disabled={!bolProtocol} className="flex flex-col items-center gap-4 group active:scale-90 transition-all z-10">
-                    <div className={`w-24 h-24 border-2 flex items-center justify-center bg-black transition-all ${bolProtocol ? 'border-white shadow-lg' : 'border-zinc-800'}`}>
-                        <span className="text-4xl">📸</span>
-                    </div>
+                <button onClick={() => cameraInputRef.current?.click()} disabled={!bolProtocol} className="flex flex-col items-center gap-4 group transition-all z-10">
+                    <div className={`w-24 h-24 border-2 flex items-center justify-center bg-black transition-all ${bolProtocol ? 'border-white shadow-lg' : 'border-zinc-800'}`}><span className="text-4xl">📸</span></div>
                     <span className={`text-[10px] font-black uppercase transition-colors tracking-tight ${bolProtocol ? 'text-white' : 'text-zinc-800'}`}>CAMERA</span>
                 </button>
-                <button onClick={() => fileInputRef.current?.click()} disabled={!bolProtocol} className="flex flex-col items-center gap-4 group active:scale-90 transition-all z-10">
-                    <div className={`w-24 h-24 border-2 flex items-center justify-center bg-black transition-all ${bolProtocol ? 'border-white shadow-lg' : 'border-zinc-800'}`}>
-                        <span className="text-4xl">📂</span>
-                    </div>
+                <button onClick={() => fileInputRef.current?.click()} disabled={!bolProtocol} className="flex flex-col items-center gap-4 group transition-all z-10">
+                    <div className={`w-24 h-24 border-2 flex items-center justify-center bg-black transition-all ${bolProtocol ? 'border-white shadow-lg' : 'border-zinc-800'}`}><span className="text-4xl">📂</span></div>
                     <span className={`text-[10px] font-black uppercase transition-colors tracking-tight ${bolProtocol ? 'text-white' : 'text-zinc-800'}`}>GALLERY</span>
                 </button>
             </div>
           </div>
-          {/* REINFORCED PREVIEW GRID */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 mt-6">
             {uploadedFiles.filter(f => f.category === 'bol').map(f => (
-              <div key={f.id} className="relative aspect-[3/4] border-2 border-white rounded-2xl overflow-hidden group shadow-2xl bg-zinc-900">
-                <img 
-                   src={f.preview} 
-                   className="w-full h-full object-cover transition-opacity duration-300" 
-                   onLoad={(e) => (e.currentTarget.style.opacity = '1')} 
-                   style={{ opacity: 0 }}
-                   alt="BOL Preview" 
-                />
+              <div key={f.id} className="relative aspect-[3/4] border-2 border-white rounded-2xl overflow-hidden group bg-zinc-900 shadow-2xl">
+                <img src={f.preview} className="w-full h-full object-cover" alt="BOL Preview" />
                 <button onClick={() => setUploadedFiles(p => p.filter(i => i.id !== f.id))} className="absolute top-2 right-2 w-8 h-8 bg-red-600 text-white rounded-full text-xs font-black shadow-lg">✕</button>
               </div>
             ))}
           </div>
         </section>
 
-        {/* TRAILER INSPECTION SECTION */}
         {bolProtocol !== 'DELIVERY' && (
           <section ref={freightSectionRef} className={`space-y-8 transition-all duration-1000 ${uploadedFiles.some(f => f.category === 'bol') ? 'opacity-100' : 'opacity-10 pointer-events-none'}`}>
-            <div className="border-b border-zinc-900 pb-4 flex justify-between items-end">
-              <h2 className={`text-base font-black uppercase tracking-[0.4em] ${themeColor}`}>Images of freight loaded on the trailer</h2>
-            </div>
+            <div className="border-b border-zinc-900 pb-4"><h2 className={`text-base font-black uppercase tracking-[0.4em] ${themeColor}`}>Images of freight loaded on the trailer</h2></div>
             {showFreightPrompt && uploadedFiles.filter(f => f.category === 'freight').length === 0 && (
-              <div className="bg-white/5 border border-white/20 p-8 rounded-[2rem] animate-in zoom-in duration-700 text-center shadow-2xl">
-                  <p className="text-sm font-black uppercase tracking-[0.2em] text-white mb-6 italic underline underline-offset-8 decoration-white/20">Would you like to take pictures of the freight loaded?</p>
+              <div className="bg-white/5 border border-white/20 p-8 rounded-[2rem] text-center shadow-2xl">
+                  <p className="text-sm font-black uppercase tracking-[0.2em] text-white mb-6 italic">Pickup detected: take pictures of freight loaded on trailer?</p>
                   <div className="flex justify-center gap-8">
                       <button onClick={() => setShowFreightPrompt(false)} className="text-[11px] font-black uppercase tracking-widest text-zinc-500 hover:text-white px-10 py-3">Skip</button>
-                      <button onClick={() => { setShowFreightPrompt(false); freightCamRef.current?.click(); }} className={`text-[11px] font-black uppercase tracking-widest px-12 py-4 rounded-xl ${themeBg} text-black shadow-xl`}>Open Camera</button>
+                      <button onClick={() => { setShowFreightPrompt(false); freightCamRef.current?.click(); }} className={`text-[11px] font-black uppercase tracking-widest px-12 py-4 rounded-xl ${themeBg} text-black shadow-xl font-black`}>Open Camera</button>
                   </div>
               </div>
             )}
             <div className={`p-10 border-2 border-dashed border-zinc-900 rounded-[3rem] bg-zinc-950/20 text-center space-y-10 relative transition-all duration-1000 ${uploadedFiles.some(f => f.category === 'bol') ? 'opacity-100' : 'opacity-30 grayscale'}`}>
               <p className="text-[11px] font-black uppercase tracking-[0.4em] text-zinc-600 italic">Click to capture or upload images of freight loaded</p>
               <div className="flex justify-center gap-16">
-                  <button onClick={() => freightCamRef.current?.click()} className="flex flex-col items-center gap-4 group active:scale-90 transition-all">
-                      <div className="w-24 h-24 border-2 flex items-center justify-center bg-black transition-all group-hover:border-white">
-                          <span className="text-4xl">📸</span>
-                      </div>
+                  <button onClick={() => freightCamRef.current?.click()} className="flex flex-col items-center gap-4 group transition-all">
+                      <div className="w-24 h-24 border-2 flex items-center justify-center bg-black group-hover:border-white transition-all"><span className="text-4xl">📸</span></div>
                       <span className="text-[10px] font-black uppercase text-zinc-700 group-hover:text-white tracking-tight">CAMERA</span>
                   </button>
-                  <button onClick={() => freightFileRef.current?.click()} className="flex flex-col items-center gap-4 group active:scale-90 transition-all">
-                      <div className="w-24 h-24 border-2 flex items-center justify-center bg-black transition-all group-hover:border-white">
-                          <span className="text-4xl">📂</span>
-                      </div>
+                  <button onClick={() => freightFileRef.current?.click()} className="flex flex-col items-center gap-4 group transition-all">
+                      <div className="w-24 h-24 border-2 flex items-center justify-center bg-black group-hover:border-white transition-all"><span className="text-4xl">📂</span></div>
                       <span className="text-[10px] font-black uppercase text-zinc-700 group-hover:text-white tracking-tight">GALLERY</span>
                   </button>
               </div>
             </div>
-            {/* REINFORCED FREIGHT PREVIEW GRID */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 mt-8 animate-in fade-in">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 mt-8">
               {uploadedFiles.filter(f => f.category === 'freight').map(f => (
-                <div key={f.id} className="relative aspect-square border-2 border-white/20 rounded-2xl overflow-hidden group shadow-2xl bg-zinc-900">
-                  <img 
-                    src={f.preview} 
-                    className="w-full h-full object-cover transition-opacity duration-300" 
-                    onLoad={(e) => (e.currentTarget.style.opacity = '1')} 
-                    style={{ opacity: 0 }}
-                    alt="Freight Preview" 
-                  />
+                <div key={f.id} className="relative aspect-square border-2 border-white/20 rounded-2xl overflow-hidden group bg-zinc-900 shadow-2xl">
+                  <img src={f.preview} className="w-full h-full object-cover opacity-80" alt="Freight Preview" />
                   <button onClick={() => setUploadedFiles(p => p.filter(i => i.id !== f.id))} className="absolute top-2 right-2 w-8 h-8 bg-red-600 text-white rounded-full text-xs font-black shadow-lg">✕</button>
                 </div>
               ))}
@@ -372,27 +306,23 @@ const App: React.FC = () => {
 
         <div className="pt-10">
           <button onClick={() => { if(!isReady) { setShake(true); setTimeout(()=>setShake(false),500); } else { setIsSubmitting(true); setTimeout(()=>setShowSuccess(true),2500); }}} disabled={isSubmitting} className={`w-full py-10 rounded-[3rem] font-black text-base uppercase tracking-[1.5em] transition-all duration-700 relative overflow-hidden shadow-2xl ${isReady ? (isGLX ? 'bg-green-600 text-black shadow-green-500/40' : 'bg-blue-600 text-white shadow-blue-500/40') : 'bg-zinc-900 text-zinc-700 border border-zinc-800 cursor-not-allowed opacity-50'}`}>
-            <span className="relative z-10">{isSubmitting ? 'UPLOADING...' : isReady ? 'SUBMIT DOCUMENTS' : 'Incomplete Fields'}</span>
+            <span className="relative z-10 uppercase italic tracking-[0.5em]">{isSubmitting ? 'UPLOADING...' : isReady ? 'SUBMIT DOCUMENTS' : 'Incomplete Fields'}</span>
           </button>
         </div>
       </div>
 
       {showSuccess && (
         <div className="fixed inset-0 z-[200] bg-black/98 backdrop-blur-3xl flex flex-col items-center justify-center p-10 animate-in fade-in">
-           <div className={`w-64 h-64 rounded-3xl flex items-center justify-center mb-16 shadow-[0_0_100px_currentColor] animate-bounce bg-white`}>
-              {isGLX ? <GreenleafLogo /> : <BSTLogo />}
-           </div>
-           <h2 className="text-5xl sm:text-7xl font-black uppercase tracking-[0.5em] text-white text-center">Verified</h2>
+           <div className={`w-64 h-64 rounded-3xl flex items-center justify-center mb-16 shadow-[0_0_100px_currentColor] animate-bounce bg-white`}>{isGLX ? <GreenleafLogo /> : <BSTLogo />}</div>
+           <h2 className="text-5xl sm:text-7xl font-black uppercase tracking-[0.5em] text-white text-center italic">Verified</h2>
            <button onClick={() => window.location.reload()} className="w-full max-w-sm py-6 border border-zinc-800 rounded-3xl text-[14px] font-black uppercase tracking-[0.5em] text-white mt-16 shadow-2xl hover:bg-white/5 transition-all">New Session</button>
         </div>
       )}
 
       <style>{`
-        @keyframes scan { 0% { top: -10%; opacity: 0; } 50% { opacity: 1; } 100% { top: 110%; opacity: 0; } }
-        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
         @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         .animate-spin-slow { animation: spin-slow 8s linear infinite; }
-        .animate-scan { animation: scan 4s ease-in-out infinite; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
         .animate-shake { animation: shake 0.1s linear infinite; }
         select { -webkit-appearance: none; appearance: none; }
       `}</style>
