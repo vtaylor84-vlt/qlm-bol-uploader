@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 
 /**
- * LOGISTICS TERMINAL v2.1 - SENSORY RESTORED
- * Includes: Neon Glow Snapping, Haptics, Solar Mode, and Image Compression.
+ * LOGISTICS TERMINAL v2.3 - THE ULTIMATE MASTER
+ * Includes: Verification HUD, Neon Snapping, Haptics, Solar Mode, and Auto-Compression.
  */
 
 interface FileWithPreview {
@@ -24,14 +24,13 @@ const playSound = (freq: number, type: OscillatorType, duration: number, vol: nu
     gain.gain.exponentialRampToValueAtTime(0.01, globalAudioCtx.currentTime + duration);
     osc.connect(gain); gain.connect(globalAudioCtx.destination);
     osc.start(); osc.stop(globalAudioCtx.currentTime + duration);
-  } catch (e) { /* Browser blocked audio */ }
+  } catch (e) { /* Audio Blocked */ }
 };
 
-const triggerHaptic = (ms: number = 10) => {
+const triggerHaptic = (ms: number | number[] = 10) => {
   if ('vibrate' in navigator) navigator.vibrate(ms);
 };
 
-// --- IMAGE COMPRESSION UTILITY ---
 const compressImage = (file: File): Promise<Blob> => {
   return new Promise((resolve) => {
     const reader = new FileReader();
@@ -42,14 +41,9 @@ const compressImage = (file: File): Promise<Blob> => {
       img.onload = () => {
         const canvas = document.createElement('canvas');
         const MAX_WIDTH = 1600;
-        let width = img.width;
-        let height = img.height;
-        if (width > MAX_WIDTH) {
-          height *= MAX_WIDTH / width;
-          width = MAX_WIDTH;
-        }
-        canvas.width = width;
-        canvas.height = height;
+        let width = img.width; let height = img.height;
+        if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+        canvas.width = width; canvas.height = height;
         const ctx = canvas.getContext('2d');
         ctx?.drawImage(img, 0, 0, width, height);
         canvas.toBlob((blob) => resolve(blob || file), 'image/jpeg', 0.8);
@@ -104,6 +98,7 @@ const App: React.FC = () => {
   const [bolProtocol, setBolProtocol] = useState<'PICKUP' | 'DELIVERY' | ''>('');
   const [uploadedFiles, setUploadedFiles] = useState<FileWithPreview[]>([]);
   const [showFreightPrompt, setShowFreightPrompt] = useState(false);
+  const [showVerification, setShowVerification] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [shake, setShake] = useState(false);
@@ -134,8 +129,7 @@ const App: React.FC = () => {
     triggerHaptic(50);
     let stage = 0;
     const interval = setInterval(() => {
-      stage++;
-      setAuthStage(stage);
+      stage++; setAuthStage(stage);
       playSound(200 + (stage * 100), 'sine', 0.1);
       if (stage >= 4) {
         clearInterval(interval);
@@ -177,7 +171,6 @@ const App: React.FC = () => {
     }
   };
 
-  // Dynamic Input Style Logic (Restored Glow)
   const getInputStyle = (hasValue: boolean) => {
     if (solarMode) return hasValue ? `bg-white text-black border-[${themeHex}] shadow-[0_0_15px_${themeHex}40]` : 'bg-white text-black border-zinc-200';
     return hasValue ? `bg-black text-white border-[${themeHex}] shadow-[0_0_20px_${themeHex}40]` : 'bg-zinc-100 text-black border-zinc-200';
@@ -257,18 +250,21 @@ const App: React.FC = () => {
           </div>
         </section>
 
-        <section className={`rounded-[2.5rem] p-8 border-2 transition-all duration-700 ${s4Ready ? 'bg-black border-zinc-700 shadow-xl' : 'bg-zinc-900/20 border-zinc-800 border-dashed opacity-60'} ${solarMode && s4Ready ? 'bg-zinc-100 border-zinc-300 shadow-none' : ''}`} style={{ borderColor: s4Ready ? themeHex : '' }}>
+        <section className={`rounded-[2.5rem] p-8 border-2 transition-all duration-700 relative overflow-hidden ${s4Ready ? 'bg-black border-zinc-700 shadow-xl' : 'bg-zinc-900/20 border-zinc-800 border-dashed opacity-60'} ${solarMode && s4Ready ? 'bg-zinc-100 border-zinc-300 shadow-none' : ''}`} style={{ borderColor: s4Ready ? themeHex : '', backgroundColor: bolProtocol ? `${themeHex}05` : '' }}>
           <div className="flex flex-col sm:flex-row justify-between items-center gap-6 mb-10 text-center sm:text-left">
-            <div>
-              <h3 className={`text-[11px] font-black uppercase tracking-[0.6em] ${s4Ready ? themeColor : 'text-zinc-500'}`}>[ 04 ] Document Uplink</h3>
+            <div className="relative">
+              <h3 className={`text-[11px] font-black uppercase tracking-[0.6em] ${bolProtocol ? themeColor : 'text-zinc-500'}`}>
+                {bolProtocol && <span className="inline-block w-2 h-2 rounded-full mr-3 animate-pulse" style={{ backgroundColor: themeHex }} />}
+                [ 04 ] Document Uplink
+              </h3>
               {!bolProtocol && <p className="text-[10px] text-zinc-500 mt-2 font-bold animate-bounce uppercase">← Select Pickup or Delivery</p>}
             </div>
             <div className="flex gap-4">
-              <button onClick={() => {setBolProtocol('PICKUP'); playSound(500, 'square', 0.1); triggerHaptic(10);}} className={`px-8 py-3 text-[10px] font-black rounded-xl border-2 transition-all duration-500 ${bolProtocol === 'PICKUP' ? (solarMode ? 'bg-white text-black border-zinc-800 shadow-lg' : `bg-black text-white border-[${themeHex}] shadow-lg`) : 'bg-white text-zinc-500 border-zinc-200'}`}>PICKUP BOL</button>
-              <button onClick={() => {setBolProtocol('DELIVERY'); playSound(500, 'square', 0.1); triggerHaptic(10);}} className={`px-8 py-3 text-[10px] font-black rounded-xl border-2 transition-all duration-500 ${bolProtocol === 'DELIVERY' ? (solarMode ? 'bg-white text-black border-zinc-800 shadow-lg' : `bg-black text-white border-[${themeHex}] shadow-lg`) : 'bg-white text-zinc-500 border-zinc-200'}`}>DELIVERY BOL</button>
+              <button onClick={() => {setBolProtocol('PICKUP'); playSound(300, 'square', 0.1); triggerHaptic([10, 30]);}} className={`px-8 py-3 text-[10px] font-black rounded-xl border-2 transition-all duration-500 ${bolProtocol === 'PICKUP' ? (solarMode ? 'bg-white text-black border-zinc-800 shadow-lg' : `bg-black text-white border-[${themeHex}] shadow-[0_0_25px_${themeHex}60]`) : 'bg-white text-zinc-500 border-zinc-200'}`}>PICKUP BOL</button>
+              <button onClick={() => {setBolProtocol('DELIVERY'); playSound(300, 'square', 0.1); triggerHaptic([10, 30]);}} className={`px-8 py-3 text-[10px] font-black rounded-xl border-2 transition-all duration-500 ${bolProtocol === 'DELIVERY' ? (solarMode ? 'bg-white text-black border-zinc-800 shadow-lg' : `bg-black text-white border-[${themeHex}] shadow-[0_0_25px_${themeHex}60]`) : 'bg-white text-zinc-500 border-zinc-200'}`}>DELIVERY BOL</button>
             </div>
           </div>
-          <div className="flex justify-center gap-16 py-6">
+          <div className={`flex justify-center gap-16 py-6 transition-all duration-500 ${bolProtocol ? 'opacity-100 scale-100' : 'opacity-20 scale-95 pointer-events-none'}`}>
             <button onClick={() => cameraInputRef.current?.click()} className="flex flex-col items-center gap-4 group"><div className={`w-20 h-20 rounded-2xl flex items-center justify-center text-4xl border border-zinc-700 group-hover:bg-white transition-all shadow-xl ${solarMode ? 'bg-white border-zinc-300' : 'bg-zinc-800'}`}>📸</div><span className="text-[10px] font-black uppercase text-zinc-500">Camera</span></button>
             <button onClick={() => fileInputRef.current?.click()} className="flex flex-col items-center gap-4 group"><div className={`w-20 h-20 rounded-2xl flex items-center justify-center text-4xl border border-zinc-700 group-hover:bg-white transition-all shadow-xl ${solarMode ? 'bg-white border-zinc-300' : 'bg-zinc-800'}`}>📂</div><span className="text-[10px] font-black uppercase text-zinc-500">Gallery</span></button>
           </div>
@@ -294,12 +290,40 @@ const App: React.FC = () => {
           </section>
         )}
 
-        <button onClick={() => { if(!isReady) { playSound(100, 'square', 0.3); triggerHaptic(100); setShake(true); setTimeout(() => setShake(false), 500); } else { playSound(800, 'sine', 0.5); triggerHaptic(200); setIsSubmitting(true); setTimeout(() => setShowSuccess(true), 2500); } }} className={`w-full py-10 rounded-[2.5rem] font-black uppercase tracking-[1.5em] transition-all duration-1000 relative overflow-hidden group ${isReady ? `bg-gradient-to-r ${company === 'GLX' ? 'from-green-600 via-green-400 to-green-600' : 'from-blue-600 via-blue-400 to-blue-600'} text-black shadow-[0_0_80px_${themeHex}80]` : 'bg-zinc-900 text-zinc-700 opacity-50 cursor-not-allowed'}`} style={{ border: isReady ? `3px solid white` : '3px solid transparent' }}>
+        <button onClick={() => { if(!isReady) { playSound(100, 'square', 0.3); triggerHaptic(100); setShake(true); setTimeout(() => setShake(false), 500); } else { playSound(600, 'sine', 0.3); triggerHaptic([30, 100]); setShowVerification(true); } }} className={`w-full py-10 rounded-[2.5rem] font-black uppercase tracking-[1.5em] transition-all duration-1000 relative overflow-hidden group ${isReady ? `bg-gradient-to-r ${company === 'GLX' ? 'from-green-600 via-green-400 to-green-600' : 'from-blue-600 via-blue-400 to-blue-600'} text-black shadow-[0_0_80px_${themeHex}80]` : 'bg-zinc-900 text-zinc-700 opacity-50 cursor-not-allowed'}`} style={{ border: isReady ? `3px solid white` : '3px solid transparent' }}>
           {isReady && <div className="absolute inset-0 bg-white/30 animate-pulse mix-blend-overlay" />}
-          <span className="relative z-10">{isSubmitting ? 'UPLOADING DATA...' : isReady ? 'SUBMIT DOCUMENTS' : 'COMPLETE FIELDS'}</span>
+          <span className="relative z-10">{isReady ? 'REVIEW DOCUMENTS' : 'COMPLETE FIELDS'}</span>
         </button>
       </div>
 
+      {/* VERIFICATION HUD SUMMARY */}
+      {showVerification && (
+        <div className="fixed inset-0 z-[400] bg-black flex flex-col items-center justify-center p-6 animate-in slide-in-from-bottom duration-500">
+           <div className="w-full max-w-lg bg-zinc-900 border-2 rounded-[3.5rem] p-10 shadow-2xl relative overflow-hidden" style={{ borderColor: themeHex }}>
+              <div className="absolute top-0 left-0 w-full h-1 opacity-20 bg-gradient-to-r from-transparent via-white to-transparent" />
+              <h2 className={`text-2xl font-black italic uppercase tracking-widest mb-10 ${themeColor}`}>Verification Manifest</h2>
+              
+              <div className="space-y-6 mb-12 font-mono text-sm">
+                <div className="flex justify-between border-b border-zinc-800 pb-2"><span className="text-zinc-500 uppercase">Carrier</span><span className="text-white font-bold">{company === 'GLX' ? 'GREENLEAF XPRESS' : 'BST EXPEDITE'}</span></div>
+                <div className="flex justify-between border-b border-zinc-800 pb-2"><span className="text-zinc-500 uppercase">Load #</span><span className="text-white font-bold">{loadNum || 'N/A'}</span></div>
+                <div className="flex justify-between border-b border-zinc-800 pb-2"><span className="text-zinc-500 uppercase">Origin</span><span className="text-white font-bold">{puCity}, {puState}</span></div>
+                <div className="flex justify-between border-b border-zinc-800 pb-2"><span className="text-zinc-500 uppercase">Dest.</span><span className="text-white font-bold">{delCity}, {delState}</span></div>
+                <div className="flex justify-between border-b border-zinc-800 pb-2"><span className="text-zinc-500 uppercase">Docs</span><span className="text-white font-bold">{uploadedFiles.length} Photos Captured</span></div>
+              </div>
+
+              <div className="flex flex-col gap-4">
+                <button 
+                  onClick={() => { setIsSubmitting(true); setShowVerification(false); playSound(800, 'sine', 0.5); triggerHaptic(200); setTimeout(() => setShowSuccess(true), 2500); }} 
+                  className={`w-full py-6 rounded-2xl text-black font-black uppercase tracking-[0.5em] transition-all bg-gradient-to-r ${company === 'GLX' ? 'from-green-400 to-green-600' : 'from-blue-400 to-blue-600'}`}>
+                  Confirm & Transmit
+                </button>
+                <button onClick={() => setShowVerification(false)} className="text-zinc-600 text-[10px] font-black uppercase tracking-widest">Back to Editor</button>
+              </div>
+           </div>
+        </div>
+      )}
+
+      {/* FREIGHT PROMPT POPUP */}
       {showFreightPrompt && (
         <div className="fixed inset-0 z-[200] bg-black/90 backdrop-blur-md flex items-center justify-center p-6 animate-in fade-in duration-500">
           <div className={`bg-zinc-900 border-2 rounded-[2.5rem] p-10 max-w-sm text-center shadow-2xl`} style={{ borderColor: themeHex }}>
@@ -315,9 +339,9 @@ const App: React.FC = () => {
       )}
 
       {showSuccess && (
-        <div className="fixed inset-0 z-[300] bg-black flex flex-col items-center justify-center animate-in fade-in">
+        <div className="fixed inset-0 z-[500] bg-black flex flex-col items-center justify-center animate-in fade-in">
            <div className="w-32 h-32 rounded-full border-4 flex items-center justify-center text-5xl mb-12 animate-bounce" style={{ borderColor: themeHex }}>✓</div>
-           <h2 className="text-4xl font-black italic uppercase text-white tracking-widest">Verified</h2>
+           <h2 className="text-4xl font-black italic uppercase text-white tracking-widest text-center px-4">Uplink Verified</h2>
            <button onClick={() => window.location.reload()} className="mt-16 text-zinc-600 uppercase text-xs font-black tracking-widest hover:text-white">Terminate Session</button>
         </div>
       )}
