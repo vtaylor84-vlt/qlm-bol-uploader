@@ -1,28 +1,40 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 /**
- * LOGISTICS TERMINAL v1.0 - FULL SENSORY
+ * LOGISTICS TERMINAL v1.1 - SENIOR OPTIMIZED
+ * UX/UI: High-Tactility Industrial Design
+ * Engine: Web Audio Synthesizer (Zero-Cost)
  */
 
 interface FileWithPreview {
-  file: File; preview: string; id: string; category: 'bol' | 'freight';
+  file: File;
+  preview: string;
+  id: string;
+  category: 'bol' | 'freight';
 }
 
-// --- AUDIO ENGINE ---
+// --- AUDIO ENGINE (REUSABLE INSTANCE) ---
+let globalAudioCtx: AudioContext | null = null;
+
 const playSound = (freq: number, type: OscillatorType, duration: number, vol: number = 0.1) => {
   try {
-    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
+    if (!globalAudioCtx) {
+      globalAudioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    }
+    if (globalAudioCtx.state === 'suspended') {
+      globalAudioCtx.resume();
+    }
+    const osc = globalAudioCtx.createOscillator();
+    const gain = globalAudioCtx.createGain();
     osc.type = type;
-    osc.frequency.setValueAtTime(freq, ctx.currentTime);
-    gain.gain.setValueAtTime(vol, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + duration);
+    osc.frequency.setValueAtTime(freq, globalAudioCtx.currentTime);
+    gain.gain.setValueAtTime(vol, globalAudioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, globalAudioCtx.currentTime + duration);
     osc.connect(gain);
-    gain.connect(ctx.destination);
+    gain.connect(globalAudioCtx.destination);
     osc.start();
-    osc.stop(ctx.currentTime + duration);
-  } catch (e) { /* Browser blocked audio */ }
+    osc.stop(globalAudioCtx.currentTime + duration);
+  } catch (e) { /* Browser security blocked audio */ }
 };
 
 // --- BRAND ASSETS ---
@@ -80,7 +92,6 @@ const App: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const freightCamRef = useRef<HTMLInputElement>(null);
   const freightFileRef = useRef<HTMLInputElement>(null);
-  const freightSectionRef = useRef<HTMLDivElement>(null);
 
   const states = ['AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 'HI', 'IA', 'ID', 'IL', 'IN', 'KS', 'KY', 'LA', 'ME', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'];
 
@@ -95,17 +106,30 @@ const App: React.FC = () => {
   const s4Ready = !!(bolProtocol && uploadedFiles.some(f => f.category === 'bol'));
   const isReady = s1Ready && s2Ready && s3Ready && s4Ready;
 
+  // --- CLEANUP MEMORY ON UNMOUNT ---
+  useEffect(() => {
+    return () => {
+      uploadedFiles.forEach(file => URL.revokeObjectURL(file.preview));
+    };
+  }, [uploadedFiles]);
+
   const startSecureHandshake = () => {
     if (isAuthenticating) return;
     setIsAuthenticating(true);
+    
+    // Initialize AudioContext on this user gesture
+    if (!globalAudioCtx) {
+      globalAudioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    }
+
     let stage = 0;
     const interval = setInterval(() => {
       stage++;
       setAuthStage(stage);
-      playSound(200 + (stage * 100), 'sine', 0.1); // REV UP SOUND
+      playSound(200 + (stage * 100), 'sine', 0.1);
       if (stage >= 4) {
         clearInterval(interval);
-        playSound(800, 'square', 0.2, 0.05); // SUCCESS CHIME
+        playSound(800, 'square', 0.2, 0.05);
         setTimeout(() => setIsLocked(false), 800);
       }
     }, 700);
@@ -123,7 +147,10 @@ const App: React.FC = () => {
     if (e.target.files) {
       playSound(600, 'triangle', 0.1);
       const files = Array.from(e.target.files).map(file => ({
-        file, preview: URL.createObjectURL(file), id: Math.random().toString(36).substr(2, 9), category
+        file, 
+        preview: URL.createObjectURL(file), 
+        id: Math.random().toString(36).substr(2, 9), 
+        category
       }));
       setUploadedFiles(prev => [...prev, ...files]);
       if (category === 'bol' && bolProtocol === 'PICKUP') {
@@ -166,7 +193,7 @@ const App: React.FC = () => {
       </header>
 
       <div className="max-w-4xl mx-auto space-y-8 px-4 relative">
-        {/* IDENTIFICATION */}
+        {/* 01 IDENTIFICATION */}
         <section className={`bg-zinc-900/40 border-2 transition-all duration-700 rounded-[2.5rem] p-8 shadow-2xl ${s1Ready ? '' : 'border-zinc-800 opacity-60'}`} style={{ borderColor: s1Ready ? themeHex : '' }}>
           <h3 className={`text-[11px] font-black uppercase tracking-[0.6em] mb-8 ${s1Ready ? themeColor : 'text-zinc-500'}`}>[ 01 ] Identification</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -186,7 +213,7 @@ const App: React.FC = () => {
           </div>
         </section>
 
-        {/* DOCUMENT REFERENCES */}
+        {/* 02 DOCUMENT REFERENCES */}
         <section className={`bg-zinc-900/40 border-2 transition-all duration-700 rounded-[2.5rem] p-8 shadow-2xl ${s2Ready ? '' : 'border-zinc-800 opacity-60'}`} style={{ borderColor: s2Ready ? themeHex : '' }}>
           <h3 className={`text-[11px] font-black uppercase tracking-[0.6em] mb-8 ${s2Ready ? themeColor : 'text-zinc-500'}`}>[ 02 ] Document References</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -195,7 +222,7 @@ const App: React.FC = () => {
           </div>
         </section>
 
-        {/* ORIGIN / DESTINATION */}
+        {/* 03 ORIGIN / DESTINATION */}
         <section className={`bg-zinc-900/40 border-2 transition-all duration-700 rounded-[2.5rem] p-8 shadow-2xl space-y-10 ${s3Ready ? '' : 'border-zinc-800 opacity-60'}`} style={{ borderColor: s3Ready ? themeHex : '' }}>
           <h3 className={`text-[11px] font-black uppercase tracking-[0.6em] mb-8 ${s3Ready ? themeColor : 'text-zinc-500'}`}>[ 03 ] Origin / Destination</h3>
           <div className="grid grid-cols-3 gap-6">
@@ -208,7 +235,7 @@ const App: React.FC = () => {
           </div>
         </section>
 
-        {/* DOCUMENT UPLINK */}
+        {/* 04 DOCUMENT UPLINK */}
         <section className={`rounded-[2.5rem] p-8 border-2 transition-all duration-700 ${s4Ready ? 'bg-black border-zinc-700 shadow-xl' : 'bg-zinc-900/20 border-zinc-800 border-dashed opacity-60'}`} style={{ borderColor: s4Ready ? themeHex : '' }}>
           <div className="flex flex-col sm:flex-row justify-between items-center gap-6 mb-10 text-center sm:text-left">
             <div>
@@ -231,9 +258,9 @@ const App: React.FC = () => {
           </div>
         </section>
 
-        {/* FREIGHT PICTURES */}
+        {/* 05 FREIGHT PHOTOS */}
         {bolProtocol === 'PICKUP' && (
-          <section ref={freightSectionRef} className={`bg-zinc-900/40 border-2 transition-all duration-700 rounded-[2.5rem] p-8 shadow-2xl ${uploadedFiles.some(f => f.category === 'freight') ? '' : 'border-zinc-800 opacity-60'}`} style={{ borderColor: uploadedFiles.some(f => f.category === 'freight') ? themeHex : '' }}>
+          <section className={`bg-zinc-900/40 border-2 transition-all duration-700 rounded-[2.5rem] p-8 shadow-2xl ${uploadedFiles.some(f => f.category === 'freight') ? '' : 'border-zinc-800 opacity-60'}`} style={{ borderColor: uploadedFiles.some(f => f.category === 'freight') ? themeHex : '' }}>
             <h3 className={`text-[11px] font-black uppercase tracking-[0.6em] mb-8 ${uploadedFiles.some(f => f.category === 'freight') ? themeColor : 'text-zinc-500'}`}>[ 05 ] Freight Loaded on Trailer Photos</h3>
             <div className="flex justify-center gap-12 py-6">
               <button onClick={() => freightCamRef.current?.click()} className="flex flex-col items-center gap-4 group"><div className="w-20 h-20 rounded-2xl bg-zinc-800 flex items-center justify-center text-4xl border border-zinc-700 group-hover:bg-white transition-all shadow-xl">📸</div><span className="text-[10px] font-black text-zinc-500">Camera</span></button>
@@ -247,7 +274,7 @@ const App: React.FC = () => {
           </section>
         )}
 
-        {/* RADIATING SUBMIT BUTTON */}
+        {/* SUBMIT BUTTON */}
         <button 
           onClick={() => { 
             if(!isReady) { playSound(100, 'square', 0.3); setShake(true); setTimeout(() => setShake(false), 500); } 
@@ -278,6 +305,7 @@ const App: React.FC = () => {
         </div>
       )}
 
+      {/* SUCCESS SCREEN */}
       {showSuccess && (
         <div className="fixed inset-0 z-[300] bg-black flex flex-col items-center justify-center animate-in fade-in">
            <div className="w-32 h-32 rounded-full border-4 flex items-center justify-center text-5xl mb-12 animate-bounce" style={{ borderColor: themeHex }}>✓</div>
@@ -293,7 +321,7 @@ const App: React.FC = () => {
         .animate-shake { animation: shake 0.1s linear infinite; }
       `}</style>
 
-      {/* INPUTS */}
+      {/* HIDDEN INPUTS */}
       <input type="file" ref={cameraInputRef} className="hidden" capture="environment" accept="image/*" multiple onChange={(e) => onFileSelect(e, 'bol')} />
       <input type="file" ref={fileInputRef} className="hidden" multiple accept="image/*" onChange={(e) => onFileSelect(e, 'bol')} />
       <input type="file" ref={freightCamRef} className="hidden" capture="environment" accept="image/*" multiple onChange={(e) => onFileSelect(e, 'freight')} />
