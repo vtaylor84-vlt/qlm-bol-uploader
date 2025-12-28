@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 
 /**
- * LOGISTICS TERMINAL v2.0 - MASTER GRADE
- * UPDATED: Precise adherence to original layout with sensory & perf upgrades.
+ * LOGISTICS TERMINAL v2.1 - SENSORY RESTORED
+ * Includes: Neon Glow Snapping, Haptics, Solar Mode, and Image Compression.
  */
 
 interface FileWithPreview {
@@ -31,7 +31,7 @@ const triggerHaptic = (ms: number = 10) => {
   if ('vibrate' in navigator) navigator.vibrate(ms);
 };
 
-// --- IMAGE COMPRESSION (STAYS 100% FREE) ---
+// --- IMAGE COMPRESSION UTILITY ---
 const compressImage = (file: File): Promise<Blob> => {
   return new Promise((resolve) => {
     const reader = new FileReader();
@@ -58,7 +58,7 @@ const compressImage = (file: File): Promise<Blob> => {
   });
 };
 
-// --- BRAND ASSETS (ORIGINAL UNCHANGED) ---
+// --- BRAND ASSETS ---
 const GreenleafLogo = () => (
   <div className="flex flex-col items-center justify-center animate-in fade-in zoom-in duration-1000 p-4">
     <svg width="320" height="180" viewBox="0 0 400 220" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -89,7 +89,6 @@ const BSTLogo = () => (
 );
 
 const App: React.FC = () => {
-  // --- STATES ---
   const [isLocked, setIsLocked] = useState(true);
   const [solarMode, setSolarMode] = useState(false);
   const [authStage, setAuthStage] = useState(0);
@@ -148,7 +147,7 @@ const App: React.FC = () => {
 
   const handleInputChange = (setter: React.Dispatch<React.SetStateAction<string>>, val: string) => {
     setter(val.toUpperCase());
-    playSound(150, 'sine', 0.04, 0.03); // MECHANICAL THUD
+    playSound(150, 'sine', 0.04, 0.03);
   };
 
   const swapLocations = () => {
@@ -176,6 +175,12 @@ const App: React.FC = () => {
       setUploadedFiles(prev => [...prev, ...newFiles]);
       if (category === 'bol' && bolProtocol === 'PICKUP') setTimeout(() => setShowFreightPrompt(true), 600);
     }
+  };
+
+  // Dynamic Input Style Logic (Restored Glow)
+  const getInputStyle = (hasValue: boolean) => {
+    if (solarMode) return hasValue ? `bg-white text-black border-[${themeHex}] shadow-[0_0_15px_${themeHex}40]` : 'bg-white text-black border-zinc-200';
+    return hasValue ? `bg-black text-white border-[${themeHex}] shadow-[0_0_20px_${themeHex}40]` : 'bg-zinc-100 text-black border-zinc-200';
   };
 
   if (isLocked) {
@@ -222,18 +227,18 @@ const App: React.FC = () => {
         <section className={`bg-zinc-900/40 border-2 transition-all duration-700 rounded-[2.5rem] p-8 shadow-2xl ${s1Ready ? '' : 'border-zinc-800 opacity-60'} ${solarMode ? 'bg-zinc-50 border-zinc-200' : ''}`} style={{ borderColor: s1Ready ? themeHex : '' }}>
           <h3 className={`text-[11px] font-black uppercase tracking-[0.6em] mb-8 ${s1Ready ? themeColor : 'text-zinc-500'}`}>[ 01 ] Identification</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <select onFocus={() => playSound(400, 'sine', 0.05)} className={`w-full p-5 rounded-2xl font-mono text-sm border-2 outline-none transition-all ${solarMode ? 'bg-white text-black' : (company ? 'bg-black text-white' : 'bg-zinc-100 text-black')}`} value={company} onChange={(e) => { setCompany(e.target.value as any); playSound(500, 'sine', 0.1); triggerHaptic(10); }}>
+            <select onFocus={() => playSound(400, 'sine', 0.05)} className={`w-full p-5 rounded-2xl font-mono text-sm border-2 outline-none transition-all ${getInputStyle(!!company)}`} style={{ borderColor: company ? themeHex : '' }} value={company} onChange={(e) => { setCompany(e.target.value as any); playSound(500, 'sine', 0.1); triggerHaptic(10); }}>
               <option value="">SELECT CARRIER</option><option value="GLX">GREENLEAF XPRESS</option><option value="BST">BST EXPEDITE INC</option>
             </select>
-            <input onFocus={() => playSound(440, 'sine', 0.05)} type="text" placeholder="DRIVER NAME" className={`w-full p-5 rounded-2xl font-mono text-sm border-2 outline-none transition-all ${solarMode ? 'bg-white text-black' : (driverName ? 'bg-black text-white' : 'bg-zinc-100 text-black')}`} value={driverName} onChange={(e) => handleInputChange(setDriverName, e.target.value)} />
+            <input onFocus={() => playSound(440, 'sine', 0.05)} type="text" placeholder="DRIVER NAME" className={`w-full p-5 rounded-2xl font-mono text-sm border-2 outline-none transition-all ${getInputStyle(!!driverName)}`} style={{ borderColor: driverName ? themeHex : '' }} value={driverName} onChange={(e) => handleInputChange(setDriverName, e.target.value)} />
           </div>
         </section>
 
         <section className={`bg-zinc-900/40 border-2 transition-all duration-700 rounded-[2.5rem] p-8 shadow-2xl ${s2Ready ? '' : 'border-zinc-800 opacity-60'} ${solarMode ? 'bg-zinc-50 border-zinc-200' : ''}`} style={{ borderColor: s2Ready ? themeHex : '' }}>
           <h3 className={`text-[11px] font-black uppercase tracking-[0.6em] mb-8 ${s2Ready ? themeColor : 'text-zinc-500'}`}>[ 02 ] Document References</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <input onFocus={() => playSound(440, 'sine', 0.05)} type="text" placeholder="ENTER LOAD #" className={`w-full p-5 rounded-2xl font-mono text-sm border-2 outline-none transition-all ${solarMode ? 'bg-white text-black' : (loadNum ? 'bg-black text-white' : 'bg-zinc-100 text-black')}`} value={loadNum} onChange={(e) => handleInputChange(setLoadNum, e.target.value)} />
-            <input onFocus={() => playSound(440, 'sine', 0.05)} type="text" placeholder="ENTER BOL #" className={`w-full p-5 rounded-2xl font-mono text-sm border-2 outline-none transition-all ${solarMode ? 'bg-white text-black' : (bolNum ? 'bg-black text-white' : 'bg-zinc-100 text-black')}`} value={bolNum} onChange={(e) => handleInputChange(setBolNum, e.target.value)} />
+            <input onFocus={() => playSound(440, 'sine', 0.05)} type="text" placeholder="ENTER LOAD #" className={`w-full p-5 rounded-2xl font-mono text-sm border-2 outline-none transition-all ${getInputStyle(!!loadNum)}`} style={{ borderColor: loadNum ? themeHex : '' }} value={loadNum} onChange={(e) => handleInputChange(setLoadNum, e.target.value)} />
+            <input onFocus={() => playSound(440, 'sine', 0.05)} type="text" placeholder="ENTER BOL #" className={`w-full p-5 rounded-2xl font-mono text-sm border-2 outline-none transition-all ${getInputStyle(!!bolNum)}`} style={{ borderColor: bolNum ? themeHex : '' }} value={bolNum} onChange={(e) => handleInputChange(setBolNum, e.target.value)} />
           </div>
         </section>
 
@@ -243,12 +248,12 @@ const App: React.FC = () => {
             <button onClick={swapLocations} className="text-[10px] font-black border px-4 py-1 rounded-full hover:bg-white hover:text-black transition-colors uppercase">⇅ Swap</button>
           </div>
           <div className="grid grid-cols-3 gap-6">
-            <div className="col-span-2"><input onFocus={() => playSound(440, 'sine', 0.05)} type="text" placeholder="PICKUP CITY" className={`w-full p-5 rounded-2xl font-mono text-sm border-2 outline-none transition-all ${solarMode ? 'bg-white text-black' : (puCity ? 'bg-black text-white' : 'bg-zinc-100 text-black')}`} value={puCity} onChange={(e) => handleInputChange(setPuCity, e.target.value)} /></div>
-            <select onFocus={() => playSound(400, 'sine', 0.05)} className={`w-full p-5 rounded-2xl font-mono text-sm border-2 outline-none transition-all ${solarMode ? 'bg-white text-black' : (puState ? 'bg-black text-white' : 'bg-zinc-100 text-black')}`} value={puState} onChange={(e) => {setPuState(e.target.value); playSound(500, 'sine', 0.1);}}><option value="">STATE</option>{states.map(s => <option key={s} value={s}>{s}</option>)}</select>
+            <div className="col-span-2"><input onFocus={() => playSound(440, 'sine', 0.05)} type="text" placeholder="PICKUP CITY" className={`w-full p-5 rounded-2xl font-mono text-sm border-2 outline-none transition-all ${getInputStyle(!!puCity)}`} style={{ borderColor: puCity ? themeHex : '' }} value={puCity} onChange={(e) => handleInputChange(setPuCity, e.target.value)} /></div>
+            <select onFocus={() => playSound(400, 'sine', 0.05)} className={`w-full p-5 rounded-2xl font-mono text-sm border-2 outline-none transition-all ${getInputStyle(!!puState)}`} style={{ borderColor: puState ? themeHex : '' }} value={puState} onChange={(e) => {setPuState(e.target.value); playSound(500, 'sine', 0.1);}}><option value="">STATE</option>{states.map(s => <option key={s} value={s}>{s}</option>)}</select>
           </div>
           <div className="grid grid-cols-3 gap-6">
-            <div className="col-span-2"><input onFocus={() => playSound(440, 'sine', 0.05)} type="text" placeholder="DELIVERY CITY" className={`w-full p-5 rounded-2xl font-mono text-sm border-2 outline-none transition-all ${solarMode ? 'bg-white text-black' : (delCity ? 'bg-black text-white' : 'bg-zinc-100 text-black')}`} value={delCity} onChange={(e) => handleInputChange(setDelCity, e.target.value)} /></div>
-            <select onFocus={() => playSound(400, 'sine', 0.05)} className={`w-full p-5 rounded-2xl font-mono text-sm border-2 outline-none transition-all ${solarMode ? 'bg-white text-black' : (delState ? 'bg-black text-white' : 'bg-zinc-100 text-black')}`} value={delState} onChange={(e) => {setDelState(e.target.value); playSound(500, 'sine', 0.1);}}><option value="">STATE</option>{states.map(s => <option key={s} value={s}>{s}</option>)}</select>
+            <div className="col-span-2"><input onFocus={() => playSound(440, 'sine', 0.05)} type="text" placeholder="DELIVERY CITY" className={`w-full p-5 rounded-2xl font-mono text-sm border-2 outline-none transition-all ${getInputStyle(!!delCity)}`} style={{ borderColor: delCity ? themeHex : '' }} value={delCity} onChange={(e) => handleInputChange(setDelCity, e.target.value)} /></div>
+            <select onFocus={() => playSound(400, 'sine', 0.05)} className={`w-full p-5 rounded-2xl font-mono text-sm border-2 outline-none transition-all ${getInputStyle(!!delState)}`} style={{ borderColor: delState ? themeHex : '' }} value={delState} onChange={(e) => {setDelState(e.target.value); playSound(500, 'sine', 0.1);}}><option value="">STATE</option>{states.map(s => <option key={s} value={s}>{s}</option>)}</select>
           </div>
         </section>
 
@@ -259,8 +264,8 @@ const App: React.FC = () => {
               {!bolProtocol && <p className="text-[10px] text-zinc-500 mt-2 font-bold animate-bounce uppercase">← Select Pickup or Delivery</p>}
             </div>
             <div className="flex gap-4">
-              <button onClick={() => {setBolProtocol('PICKUP'); playSound(500, 'square', 0.1); triggerHaptic(10);}} className={`px-8 py-3 text-[10px] font-black rounded-xl border-2 transition-all duration-500 ${bolProtocol === 'PICKUP' ? (solarMode ? 'bg-white text-black border-zinc-800 shadow-lg' : `bg-black text-white border-[${themeHex}] shadow-lg`) : 'bg-white text-zinc-500'}`}>PICKUP BOL</button>
-              <button onClick={() => {setBolProtocol('DELIVERY'); playSound(500, 'square', 0.1); triggerHaptic(10);}} className={`px-8 py-3 text-[10px] font-black rounded-xl border-2 transition-all duration-500 ${bolProtocol === 'DELIVERY' ? (solarMode ? 'bg-white text-black border-zinc-800 shadow-lg' : `bg-black text-white border-[${themeHex}] shadow-lg`) : 'bg-white text-zinc-500'}`}>DELIVERY BOL</button>
+              <button onClick={() => {setBolProtocol('PICKUP'); playSound(500, 'square', 0.1); triggerHaptic(10);}} className={`px-8 py-3 text-[10px] font-black rounded-xl border-2 transition-all duration-500 ${bolProtocol === 'PICKUP' ? (solarMode ? 'bg-white text-black border-zinc-800 shadow-lg' : `bg-black text-white border-[${themeHex}] shadow-lg`) : 'bg-white text-zinc-500 border-zinc-200'}`}>PICKUP BOL</button>
+              <button onClick={() => {setBolProtocol('DELIVERY'); playSound(500, 'square', 0.1); triggerHaptic(10);}} className={`px-8 py-3 text-[10px] font-black rounded-xl border-2 transition-all duration-500 ${bolProtocol === 'DELIVERY' ? (solarMode ? 'bg-white text-black border-zinc-800 shadow-lg' : `bg-black text-white border-[${themeHex}] shadow-lg`) : 'bg-white text-zinc-500 border-zinc-200'}`}>DELIVERY BOL</button>
             </div>
           </div>
           <div className="flex justify-center gap-16 py-6">
