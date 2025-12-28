@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 
 /**
- * LOGISTICS TERMINAL v2.3 - THE ULTIMATE MASTER
- * Includes: Verification HUD, Neon Snapping, Haptics, Solar Mode, and Auto-Compression.
+ * DOCUMENT TERMINAL v2.5 - STATE-SHIFT MASTER
+ * UX: Active Deck Background Tints | Labels: DOCUMENT UPLOADER
  */
 
 interface FileWithPreview {
@@ -210,7 +210,7 @@ const App: React.FC = () => {
           </button>
         </div>
         <div className={`w-full min-h-[220px] rounded-[3.5rem] border-2 transition-all duration-1000 flex items-center justify-center ${company ? 'bg-black shadow-[0_0_60px_rgba(0,0,0,0.8)]' : 'bg-zinc-900/50 border-zinc-800'}`} style={{ borderColor: company ? themeHex : '', boxShadow: company ? `0 0 50px ${themeHex}10` : '' }}>
-          {!company && <h1 className="text-5xl font-black italic tracking-tighter uppercase text-zinc-700">BOL UPLOADER</h1>}
+          {!company && <h1 className="text-5xl font-black italic tracking-tighter uppercase text-zinc-700">DOCUMENT UPLOADER</h1>}
           {company === 'GLX' && <GreenleafLogo />}
           {company === 'BST' && <BSTLogo />}
         </div>
@@ -250,7 +250,16 @@ const App: React.FC = () => {
           </div>
         </section>
 
-        <section className={`rounded-[2.5rem] p-8 border-2 transition-all duration-700 relative overflow-hidden ${s4Ready ? 'bg-black border-zinc-700 shadow-xl' : 'bg-zinc-900/20 border-zinc-800 border-dashed opacity-60'} ${solarMode && s4Ready ? 'bg-zinc-100 border-zinc-300 shadow-none' : ''}`} style={{ borderColor: s4Ready ? themeHex : '', backgroundColor: bolProtocol ? `${themeHex}05` : '' }}>
+        {/* 04 UPLINK - STATE BACKGROUNDS RESTORED */}
+        <section 
+          className={`rounded-[2.5rem] p-8 border-2 transition-all duration-700 relative overflow-hidden 
+            ${s4Ready ? 'bg-black border-zinc-700 shadow-xl' : 'bg-zinc-900/20 border-zinc-800 border-dashed opacity-60'} 
+            ${solarMode && s4Ready ? 'bg-zinc-100 border-zinc-300 shadow-none' : ''}`} 
+          style={{ 
+            borderColor: s4Ready ? themeHex : '', 
+            backgroundColor: bolProtocol ? `${themeHex}${solarMode ? '10' : '20'}` : '' // TINTS THE SECTION ON SELECT
+          }}
+        >
           <div className="flex flex-col sm:flex-row justify-between items-center gap-6 mb-10 text-center sm:text-left">
             <div className="relative">
               <h3 className={`text-[11px] font-black uppercase tracking-[0.6em] ${bolProtocol ? themeColor : 'text-zinc-500'}`}>
@@ -277,7 +286,7 @@ const App: React.FC = () => {
 
         {bolProtocol === 'PICKUP' && (
           <section className={`bg-zinc-900/40 border-2 transition-all duration-700 rounded-[2.5rem] p-8 shadow-2xl ${uploadedFiles.some(f => f.category === 'freight') ? '' : 'border-zinc-800 opacity-60'} ${solarMode ? 'bg-zinc-50 border-zinc-200' : ''}`} style={{ borderColor: uploadedFiles.some(f => f.category === 'freight') ? themeHex : '' }}>
-            <h3 className={`text-[11px] font-black uppercase tracking-[0.6em] mb-8 ${uploadedFiles.some(f => f.category === 'freight') ? themeColor : 'text-zinc-500'}`}>[ 05 ] Freight Loaded on Trailer Photos</h3>
+            <h3 className={`text-[11px] font-black uppercase tracking-[0.6em] mb-8 ${uploadedFiles.some(f => f.category === 'freight') ? themeColor : 'text-zinc-500'}`}>[ 05 ] Freight Photos</h3>
             <div className="flex justify-center gap-12 py-6">
               <button onClick={() => freightCamRef.current?.click()} className="flex flex-col items-center gap-4 group"><div className={`w-20 h-20 rounded-2xl flex items-center justify-center text-4xl border border-zinc-700 group-hover:bg-white transition-all shadow-xl ${solarMode ? 'bg-white border-zinc-300' : 'bg-zinc-800'}`}>📸</div><span className="text-[10px] font-black text-zinc-500 uppercase">Camera</span></button>
               <button onClick={() => freightFileRef.current?.click()} className="flex flex-col items-center gap-4 group"><div className={`w-20 h-20 rounded-2xl flex items-center justify-center text-4xl border border-zinc-700 group-hover:bg-white transition-all shadow-xl ${solarMode ? 'bg-white border-zinc-300' : 'bg-zinc-800'}`}>📂</div><span className="text-[10px] font-black text-zinc-500 uppercase">Gallery</span></button>
@@ -296,34 +305,31 @@ const App: React.FC = () => {
         </button>
       </div>
 
-      {/* VERIFICATION HUD SUMMARY */}
+      {/* FINAL REVIEW HUD */}
       {showVerification && (
         <div className="fixed inset-0 z-[400] bg-black flex flex-col items-center justify-center p-6 animate-in slide-in-from-bottom duration-500">
            <div className="w-full max-w-lg bg-zinc-900 border-2 rounded-[3.5rem] p-10 shadow-2xl relative overflow-hidden" style={{ borderColor: themeHex }}>
               <div className="absolute top-0 left-0 w-full h-1 opacity-20 bg-gradient-to-r from-transparent via-white to-transparent" />
-              <h2 className={`text-2xl font-black italic uppercase tracking-widest mb-10 ${themeColor}`}>Verification Manifest</h2>
-              
+              <h2 className={`text-2xl font-black italic uppercase tracking-widest mb-10 ${themeColor}`}>Final Review</h2>
               <div className="space-y-6 mb-12 font-mono text-sm">
                 <div className="flex justify-between border-b border-zinc-800 pb-2"><span className="text-zinc-500 uppercase">Carrier</span><span className="text-white font-bold">{company === 'GLX' ? 'GREENLEAF XPRESS' : 'BST EXPEDITE'}</span></div>
                 <div className="flex justify-between border-b border-zinc-800 pb-2"><span className="text-zinc-500 uppercase">Load #</span><span className="text-white font-bold">{loadNum || 'N/A'}</span></div>
                 <div className="flex justify-between border-b border-zinc-800 pb-2"><span className="text-zinc-500 uppercase">Origin</span><span className="text-white font-bold">{puCity}, {puState}</span></div>
                 <div className="flex justify-between border-b border-zinc-800 pb-2"><span className="text-zinc-500 uppercase">Dest.</span><span className="text-white font-bold">{delCity}, {delState}</span></div>
-                <div className="flex justify-between border-b border-zinc-800 pb-2"><span className="text-zinc-500 uppercase">Docs</span><span className="text-white font-bold">{uploadedFiles.length} Photos Captured</span></div>
+                <div className="flex justify-between border-b border-zinc-800 pb-2"><span className="text-zinc-500 uppercase">Photos</span><span className="text-white font-bold">{uploadedFiles.length} Total Captured</span></div>
               </div>
-
               <div className="flex flex-col gap-4">
                 <button 
                   onClick={() => { setIsSubmitting(true); setShowVerification(false); playSound(800, 'sine', 0.5); triggerHaptic(200); setTimeout(() => setShowSuccess(true), 2500); }} 
-                  className={`w-full py-6 rounded-2xl text-black font-black uppercase tracking-[0.5em] transition-all bg-gradient-to-r ${company === 'GLX' ? 'from-green-400 to-green-600' : 'from-blue-400 to-blue-600'}`}>
+                  className={`w-full py-8 rounded-[1.5rem] text-black font-black uppercase tracking-[0.4em] transition-all border-[3px] border-white shadow-[0_0_50px_${themeHex}80] bg-gradient-to-r ${company === 'GLX' ? 'from-green-600 via-green-400 to-green-600' : 'from-blue-600 via-blue-400 to-blue-600'}`}>
                   Confirm & Transmit
                 </button>
-                <button onClick={() => setShowVerification(false)} className="text-zinc-600 text-[10px] font-black uppercase tracking-widest">Back to Editor</button>
+                <button onClick={() => setShowVerification(false)} className="text-zinc-600 text-[10px] font-black uppercase tracking-widest mt-2">Back to Edit</button>
               </div>
            </div>
         </div>
       )}
 
-      {/* FREIGHT PROMPT POPUP */}
       {showFreightPrompt && (
         <div className="fixed inset-0 z-[200] bg-black/90 backdrop-blur-md flex items-center justify-center p-6 animate-in fade-in duration-500">
           <div className={`bg-zinc-900 border-2 rounded-[2.5rem] p-10 max-w-sm text-center shadow-2xl`} style={{ borderColor: themeHex }}>
