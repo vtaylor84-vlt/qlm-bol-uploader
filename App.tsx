@@ -11,7 +11,7 @@ interface FileWithPreview {
 
 // --- ENGINE: SENSORY & API ---
 let globalAudioCtx: AudioContext | null = null;
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxDdA1NTP5WmTKF3dzLhYERyzP19_XSOKjMLdJFdcafPBmPWYpHW10-rzBXyYpGmBOzNw/exec';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby-L6nKjgfAnLFPgezkf3inQTJRG3Ql_MufZ-jlKWhSbPdEHeQniPLdNQDaidM2EY6MdA/exec';
 
 const playSound = (freq: number, type: OscillatorType, duration: number, vol: number = 0.1) => {
   try {
