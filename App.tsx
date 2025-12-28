@@ -1,11 +1,10 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 
 /**
- * LOGISTICS TERMINAL v9.0 - COMMAND CENTER
- * - Feature: Reactive Section Borders (Glow on Completion)
- * - Feature: Radiating Carrier-Themed Submit Button
- * - Feature: High-Frequency Sensory Pulse & Validation Shake
- * - Label: DRIVER NAME (Restored)
+ * LOGISTICS TERMINAL v9.5 - RADIANT EDITION
+ * - Feature: Radiating Submit Button (High-Intensity Theme Glow)
+ * - Feature: Reactive Section Borders (01-04 Tactical Handshake)
+ * - Feature: Automatic Uppercase & Sensory Pulse
  */
 
 interface FileWithPreview {
@@ -62,21 +61,20 @@ const App: React.FC = () => {
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const freightCamRef = useRef<HTMLInputElement>(null);
-  const freightFileRef = useRef<HTMLInputElement>(null);
 
   const states = ['AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 'HI', 'IA', 'ID', 'IL', 'IN', 'KS', 'KY', 'LA', 'ME', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'];
 
   const isGLX = company === 'GLX';
   const isBST = company === 'BST';
   const themeHex = isGLX ? '#22c55e' : isBST ? '#3b82f6' : '#6366f1';
-  const themeColor = isGLX ? 'text-green-500' : isBST ? 'text-blue-500' : 'text-zinc-500';
+  const themeColor = isGLX ? 'text-green-500' : isBST ? 'text-blue-500' : 'text-zinc-600';
 
-  // Section Readiness
-  const section1Ready = company && driverName;
-  const section2Ready = loadNum || bolNum;
-  const section3Ready = puCity && puState && delCity && delState;
-  const section4Ready = bolProtocol && uploadedFiles.some(f => f.category === 'bol');
-  const isReady = section1Ready && section2Ready && section3Ready && section4Ready;
+  // Section logic
+  const s1 = company && driverName;
+  const s2 = loadNum || bolNum;
+  const s3 = puCity && puState && delCity && delState;
+  const s4 = bolProtocol && uploadedFiles.some(f => f.category === 'bol');
+  const isReady = s1 && s2 && s3 && s4;
 
   const triggerPulse = () => {
     setPulseActive(true);
@@ -91,7 +89,7 @@ const App: React.FC = () => {
   const getInputStyles = (value: string) => {
     const isFilled = value && value.trim().length > 0;
     return `w-full p-5 rounded-2xl font-mono text-sm transition-all duration-500 border-2 outline-none
-      ${isFilled ? `bg-black text-white border-[${themeHex}] shadow-[0_0_20px_${themeHex}40] tracking-widest` : 'bg-zinc-100 text-black border-zinc-200'}`;
+      ${isFilled ? `bg-black text-white border-[${themeHex}] shadow-[0_0_15px_${themeHex}30] tracking-widest` : 'bg-zinc-100 text-black border-zinc-200'}`;
   };
 
   const onFileSelect = (e: React.ChangeEvent<HTMLInputElement>, category: 'bol' | 'freight') => {
@@ -107,19 +105,19 @@ const App: React.FC = () => {
   if (isLocked) {
     return (
       <div className="min-h-screen bg-[#020202] flex items-center justify-center">
-        <button onClick={() => setIsLocked(false)} className="w-48 h-48 rounded-full border border-zinc-900 flex items-center justify-center hover:border-blue-500 transition-all duration-700 shadow-2xl">
-           <span className="text-4xl animate-pulse">📡</span>
+        <button onClick={() => setIsLocked(false)} className="w-48 h-48 rounded-full border border-zinc-900 flex items-center justify-center hover:border-blue-500 transition-all duration-700 shadow-2xl animate-pulse">
+           <span className="text-4xl">📡</span>
         </button>
       </div>
     );
   }
 
   return (
-    <div className={`min-h-screen bg-[#020202] text-zinc-100 pb-24 font-sans transition-all duration-300 ${shake ? 'animate-shake' : ''}`}>
+    <div className={`min-h-screen bg-[#020202] text-zinc-100 pb-24 font-sans ${shake ? 'animate-shake' : ''}`}>
       <div className={`fixed inset-0 pointer-events-none transition-opacity duration-300 z-50 ${pulseActive ? 'opacity-20' : 'opacity-0'}`} style={{ backgroundColor: themeHex }} />
 
       <header className="max-w-4xl mx-auto pt-10 px-4 mb-12 relative">
-        <div className={`w-full min-h-[220px] rounded-[3.5rem] border-2 transition-all duration-1000 flex items-center justify-center ${company ? 'bg-black' : 'bg-zinc-900/50 border-zinc-800'}`} style={{ borderColor: company ? themeHex : '', boxShadow: company ? `0 0 60px ${themeHex}20` : '' }}>
+        <div className={`w-full min-h-[220px] rounded-[3.5rem] border-2 transition-all duration-1000 flex items-center justify-center ${company ? 'bg-black shadow-[0_0_60px_rgba(0,0,0,0.8)]' : 'bg-zinc-900/50 border-zinc-800'}`} style={{ borderColor: company ? themeHex : '', boxShadow: company ? `0 0 50px ${themeHex}20` : '' }}>
           {!company && <h1 className="text-4xl font-black italic tracking-tighter uppercase text-zinc-700">Terminal Uplink</h1>}
           {isGLX && <GreenleafLogo />}
           {isBST && <BSTLogo />}
@@ -127,21 +125,19 @@ const App: React.FC = () => {
       </header>
 
       <div className="max-w-4xl mx-auto space-y-8 px-4 relative">
-        {/* [ 01 ] IDENTIFICATION */}
-        <section className={`bg-zinc-900/40 border-2 transition-all duration-700 rounded-[2.5rem] p-8 shadow-2xl ${section1Ready ? '' : 'border-zinc-800'}`} style={{ borderColor: section1Ready ? themeHex : '' }}>
+        {/* SECTION 1 */}
+        <section className={`bg-zinc-900/40 border-2 transition-all duration-700 rounded-[2.5rem] p-8 shadow-2xl ${s1 ? '' : 'border-zinc-800'}`} style={{ borderColor: s1 ? themeHex : '' }}>
           <h3 className={`text-[11px] font-black uppercase tracking-[0.6em] mb-8 ${themeColor}`}>[ 01 ] Identification</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <select className={getInputStyles(company)} value={company} onChange={(e) => { setCompany(e.target.value as any); triggerPulse(); }}>
-              <option value="">SELECT CARRIER</option>
-              <option value="GLX">GREENLEAF XPRESS</option>
-              <option value="BST">BST EXPEDITE INC</option>
+              <option value="">SELECT CARRIER</option><option value="GLX">GREENLEAF XPRESS</option><option value="BST">BST EXPEDITE INC</option>
             </select>
             <input type="text" placeholder="DRIVER NAME" className={getInputStyles(driverName)} value={driverName} onChange={(e) => handleInputChange(setDriverName, e.target.value)} />
           </div>
         </section>
 
-        {/* [ 02 ] DOCUMENT REFERENCES */}
-        <section className={`bg-zinc-900/40 border-2 transition-all duration-700 rounded-[2.5rem] p-8 shadow-2xl ${section2Ready ? '' : 'border-zinc-800'}`} style={{ borderColor: section2Ready ? themeHex : '' }}>
+        {/* SECTION 2 */}
+        <section className={`bg-zinc-900/40 border-2 transition-all duration-700 rounded-[2.5rem] p-8 shadow-2xl ${s2 ? '' : 'border-zinc-800'}`} style={{ borderColor: s2 ? themeHex : '' }}>
           <h3 className={`text-[11px] font-black uppercase tracking-[0.6em] mb-8 ${themeColor}`}>[ 02 ] Document References</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <input type="text" placeholder="ENTER LOAD #" className={getInputStyles(loadNum)} value={loadNum} onChange={(e) => handleInputChange(setLoadNum, e.target.value)} />
@@ -149,8 +145,8 @@ const App: React.FC = () => {
           </div>
         </section>
 
-        {/* [ 03 ] ORIGIN / DESTINATION */}
-        <section className={`bg-zinc-900/40 border-2 transition-all duration-700 rounded-[2.5rem] p-8 shadow-2xl space-y-10 ${section3Ready ? '' : 'border-zinc-800'}`} style={{ borderColor: section3Ready ? themeHex : '' }}>
+        {/* SECTION 3 */}
+        <section className={`bg-zinc-900/40 border-2 transition-all duration-700 rounded-[2.5rem] p-8 shadow-2xl space-y-10 ${s3 ? '' : 'border-zinc-800'}`} style={{ borderColor: s3 ? themeHex : '' }}>
           <h3 className={`text-[11px] font-black uppercase tracking-[0.6em] mb-8 ${themeColor}`}>[ 03 ] Origin / Destination</h3>
           <div className="grid grid-cols-3 gap-6">
             <div className="col-span-2"><input type="text" placeholder="PICKUP CITY" className={getInputStyles(puCity)} value={puCity} onChange={(e) => handleInputChange(setPuCity, e.target.value)} /></div>
@@ -162,8 +158,8 @@ const App: React.FC = () => {
           </div>
         </section>
 
-        {/* [ 04 ] DOCUMENT UPLINK */}
-        <section className={`rounded-[2.5rem] p-8 border-2 transition-all duration-700 ${section4Ready ? 'bg-black' : 'bg-zinc-900/20 border-zinc-800 border-dashed'}`} style={{ borderColor: section4Ready ? themeHex : '' }}>
+        {/* SECTION 4 */}
+        <section className={`rounded-[2.5rem] p-8 border-2 transition-all duration-700 ${s4 ? 'bg-black' : 'bg-zinc-900/20 border-zinc-800 border-dashed'}`} style={{ borderColor: s4 ? themeHex : '' }}>
           <div className="flex flex-col sm:flex-row justify-between items-center gap-6 mb-10">
             <h3 className={`text-[11px] font-black uppercase tracking-[0.6em] ${themeColor}`}>[ 04 ] Document Uplink</h3>
             <div className="flex gap-4">
@@ -177,38 +173,25 @@ const App: React.FC = () => {
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {uploadedFiles.filter(f => f.category === 'bol').map(f => (
-              <div key={f.id} className="aspect-[3/4] rounded-2xl bg-zinc-900 overflow-hidden relative group border border-zinc-800"><img src={f.preview} className="w-full h-full object-cover" /><button onClick={() => setUploadedFiles(p => p.filter(i => i.id !== f.id))} className="absolute top-2 right-2 w-7 h-7 bg-red-600 text-white rounded-full flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity">✕</button></div>
+              <div key={f.id} className="aspect-[3/4] rounded-2xl bg-zinc-900 overflow-hidden relative group border border-zinc-800"><img src={f.preview} className="w-full h-full object-cover" alt="BOL" /><button onClick={() => setUploadedFiles(p => p.filter(i => i.id !== f.id))} className="absolute top-2 right-2 w-7 h-7 bg-red-600 text-white rounded-full flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity">✕</button></div>
             ))}
           </div>
         </section>
 
-        {/* [ 05 ] FREIGHT */}
-        {bolProtocol === 'PICKUP' && (
-          <section className={`bg-zinc-900/40 border-2 transition-all duration-700 rounded-[2.5rem] p-8 shadow-2xl ${uploadedFiles.some(f => f.category === 'freight') ? '' : 'border-zinc-800'}`} style={{ borderColor: uploadedFiles.some(f => f.category === 'freight') ? themeHex : '' }}>
-            <h3 className={`text-[11px] font-black uppercase tracking-[0.6em] mb-8 ${themeColor}`}>[ 05 ] Freight on Trailer</h3>
-            <div className="flex justify-center gap-16 py-6">
-              <button onClick={() => freightCamRef.current?.click()} className="w-24 h-24 rounded-full bg-zinc-800 flex items-center justify-center text-3xl border border-zinc-700 hover:bg-white transition-all">📸</button>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-8">
-              {uploadedFiles.filter(f => f.category === 'freight').map(f => (
-                <div key={f.id} className="aspect-square rounded-2xl bg-zinc-900 overflow-hidden relative border border-zinc-800 group"><img src={f.preview} className="w-full h-full object-cover opacity-60 group-hover:opacity-100" /><button onClick={() => setUploadedFiles(p => p.filter(i => i.id !== f.id))} className="absolute top-2 right-2 w-7 h-7 bg-red-600 text-white rounded-full flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity">✕</button></div>
-              ))}
-            </div>
-          </section>
-        )}
-
         {/* RADIATING SUBMIT BUTTON */}
         <button 
-          onClick={() => { 
-            if(!isReady) { setShake(true); setTimeout(() => setShake(false), 500); }
-            else { setIsSubmitting(true); setTimeout(() => setShowSuccess(true), 2500); }
-          }}
-          disabled={isSubmitting}
-          className={`w-full py-10 rounded-[2.5rem] font-black uppercase tracking-[1.5em] transition-all duration-1000 relative overflow-hidden
-            ${isReady ? `bg-black text-white shadow-[0_0_50px_${themeHex}60] animate-pulse` : 'bg-zinc-900 text-zinc-800 opacity-50 cursor-not-allowed'}
+          onClick={() => { if(!isReady) { setShake(true); setTimeout(() => setShake(false), 500); } else { setIsSubmitting(true); setTimeout(() => setShowSuccess(true), 2500); } }}
+          className={`w-full py-10 rounded-[2.5rem] font-black uppercase tracking-[1.5em] transition-all duration-700 relative overflow-hidden group
+            ${isReady ? `bg-black text-white scale-[1.01]` : 'bg-zinc-900 text-zinc-800 opacity-50 cursor-not-allowed'}
           `}
-          style={{ border: isReady ? `2px solid ${themeHex}` : '2px solid transparent' }}>
-          <div className={`absolute inset-0 opacity-20 bg-gradient-to-r ${isGLX ? 'from-green-500 to-transparent' : 'from-blue-500 to-transparent'}`} />
+          style={{ 
+            border: isReady ? `3px solid ${themeHex}` : '3px solid transparent',
+            boxShadow: isReady ? `0 0 30px ${themeHex}60, inset 0 0 20px ${themeHex}40` : 'none'
+          }}>
+          {/* RADIANT WAVE ANIMATION */}
+          {isReady && (
+            <div className={`absolute inset-0 opacity-40 animate-pulse bg-[radial-gradient(circle,_${themeHex}_0%,_transparent_70%)]`} />
+          )}
           <span className="relative z-10">{isSubmitting ? 'UPLOADING...' : isReady ? 'SUBMIT DOCUMENTS' : 'COMPLETE FIELDS'}</span>
         </button>
       </div>
