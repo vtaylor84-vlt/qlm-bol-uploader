@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 
 /**
- * DOCUMENT TERMINAL v2.5 - STATE-SHIFT MASTER
- * UX: Active Deck Background Tints | Labels: DOCUMENT UPLOADER
+ * DOCUMENT TERMINAL v2.6 - FINAL POLISH
+ * UX: BOL# in Review | Section 05 State-Shift | Labels: DOCUMENT UPLOADER
  */
 
 interface FileWithPreview {
@@ -250,14 +250,14 @@ const App: React.FC = () => {
           </div>
         </section>
 
-        {/* 04 UPLINK - STATE BACKGROUNDS RESTORED */}
+        {/* 04 UPLINK - STATE BACKGROUND TINTS */}
         <section 
           className={`rounded-[2.5rem] p-8 border-2 transition-all duration-700 relative overflow-hidden 
             ${s4Ready ? 'bg-black border-zinc-700 shadow-xl' : 'bg-zinc-900/20 border-zinc-800 border-dashed opacity-60'} 
             ${solarMode && s4Ready ? 'bg-zinc-100 border-zinc-300 shadow-none' : ''}`} 
           style={{ 
             borderColor: s4Ready ? themeHex : '', 
-            backgroundColor: bolProtocol ? `${themeHex}${solarMode ? '10' : '20'}` : '' // TINTS THE SECTION ON SELECT
+            backgroundColor: bolProtocol ? `${themeHex}${solarMode ? '10' : '20'}` : ''
           }}
         >
           <div className="flex flex-col sm:flex-row justify-between items-center gap-6 mb-10 text-center sm:text-left">
@@ -284,9 +284,21 @@ const App: React.FC = () => {
           </div>
         </section>
 
+        {/* 05 FREIGHT - COLOR TINTS ADDED FOR UPLOADS */}
         {bolProtocol === 'PICKUP' && (
-          <section className={`bg-zinc-900/40 border-2 transition-all duration-700 rounded-[2.5rem] p-8 shadow-2xl ${uploadedFiles.some(f => f.category === 'freight') ? '' : 'border-zinc-800 opacity-60'} ${solarMode ? 'bg-zinc-50 border-zinc-200' : ''}`} style={{ borderColor: uploadedFiles.some(f => f.category === 'freight') ? themeHex : '' }}>
-            <h3 className={`text-[11px] font-black uppercase tracking-[0.6em] mb-8 ${uploadedFiles.some(f => f.category === 'freight') ? themeColor : 'text-zinc-500'}`}>[ 05 ] Freight Photos</h3>
+          <section 
+            className={`transition-all duration-700 rounded-[2.5rem] p-8 border-2 shadow-2xl 
+              ${uploadedFiles.some(f => f.category === 'freight') ? 'bg-zinc-900/40' : 'border-zinc-800 opacity-60'} 
+              ${solarMode ? 'bg-zinc-50 border-zinc-200 shadow-none' : ''}`} 
+            style={{ 
+              borderColor: uploadedFiles.some(f => f.category === 'freight') ? themeHex : '',
+              backgroundColor: uploadedFiles.some(f => f.category === 'freight') ? `${themeHex}${solarMode ? '10' : '20'}` : ''
+            }}
+          >
+            <h3 className={`text-[11px] font-black uppercase tracking-[0.6em] mb-8 ${uploadedFiles.some(f => f.category === 'freight') ? themeColor : 'text-zinc-500'}`}>
+              {uploadedFiles.some(f => f.category === 'freight') && <span className="inline-block w-2 h-2 rounded-full mr-3 animate-pulse" style={{ backgroundColor: themeHex }} />}
+              [ 05 ] Freight Photos
+            </h3>
             <div className="flex justify-center gap-12 py-6">
               <button onClick={() => freightCamRef.current?.click()} className="flex flex-col items-center gap-4 group"><div className={`w-20 h-20 rounded-2xl flex items-center justify-center text-4xl border border-zinc-700 group-hover:bg-white transition-all shadow-xl ${solarMode ? 'bg-white border-zinc-300' : 'bg-zinc-800'}`}>📸</div><span className="text-[10px] font-black text-zinc-500 uppercase">Camera</span></button>
               <button onClick={() => freightFileRef.current?.click()} className="flex flex-col items-center gap-4 group"><div className={`w-20 h-20 rounded-2xl flex items-center justify-center text-4xl border border-zinc-700 group-hover:bg-white transition-all shadow-xl ${solarMode ? 'bg-white border-zinc-300' : 'bg-zinc-800'}`}>📂</div><span className="text-[10px] font-black text-zinc-500 uppercase">Gallery</span></button>
@@ -305,7 +317,7 @@ const App: React.FC = () => {
         </button>
       </div>
 
-      {/* FINAL REVIEW HUD */}
+      {/* FINAL REVIEW HUD - BOL# ADDED & BUTTON STYLE REFINED */}
       {showVerification && (
         <div className="fixed inset-0 z-[400] bg-black flex flex-col items-center justify-center p-6 animate-in slide-in-from-bottom duration-500">
            <div className="w-full max-w-lg bg-zinc-900 border-2 rounded-[3.5rem] p-10 shadow-2xl relative overflow-hidden" style={{ borderColor: themeHex }}>
@@ -314,6 +326,7 @@ const App: React.FC = () => {
               <div className="space-y-6 mb-12 font-mono text-sm">
                 <div className="flex justify-between border-b border-zinc-800 pb-2"><span className="text-zinc-500 uppercase">Carrier</span><span className="text-white font-bold">{company === 'GLX' ? 'GREENLEAF XPRESS' : 'BST EXPEDITE'}</span></div>
                 <div className="flex justify-between border-b border-zinc-800 pb-2"><span className="text-zinc-500 uppercase">Load #</span><span className="text-white font-bold">{loadNum || 'N/A'}</span></div>
+                <div className="flex justify-between border-b border-zinc-800 pb-2"><span className="text-zinc-500 uppercase">BOL #</span><span className="text-white font-bold">{bolNum || 'N/A'}</span></div>
                 <div className="flex justify-between border-b border-zinc-800 pb-2"><span className="text-zinc-500 uppercase">Origin</span><span className="text-white font-bold">{puCity}, {puState}</span></div>
                 <div className="flex justify-between border-b border-zinc-800 pb-2"><span className="text-zinc-500 uppercase">Dest.</span><span className="text-white font-bold">{delCity}, {delState}</span></div>
                 <div className="flex justify-between border-b border-zinc-800 pb-2"><span className="text-zinc-500 uppercase">Photos</span><span className="text-white font-bold">{uploadedFiles.length} Total Captured</span></div>
