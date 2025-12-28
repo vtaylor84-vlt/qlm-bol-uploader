@@ -45,27 +45,39 @@ const GreenleafLogo = () => (
 const BSTLogo = () => (
   <div className="flex items-center justify-center animate-in fade-in zoom-in duration-1000 p-4">
     <svg width="340" height="200" viewBox="0 0 400 240" fill="none" xmlns="http://www.w3.org/2000/svg" className="drop-shadow-[0_0_25px_rgba(59,130,246,0.5)]">
+      {/* Metallic Diamond Frame */}
       <path d="M200 10L380 110L200 210L20 110L200 10Z" fill="url(#metalGradient)" stroke="#3b82f6" strokeWidth="2" strokeOpacity="0.5"/>
+      
+      {/* Light Trails (Neon Glow) */}
       <g filter="url(#glow)">
         <path d="M50 110H150" stroke="#f59e0b" strokeWidth="3" strokeLinecap="round" className="animate-pulse" />
         <path d="M40 120H130" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" />
         <path d="M60 100H140" stroke="#06b6d4" strokeWidth="2" strokeLinecap="round" />
       </g>
+
+      {/* Modern Truck Silhouette */}
       <path d="M150 120V90H210L230 110H300V140H150V120Z" fill="#18181b" stroke="#3b82f6" strokeWidth="1.5"/>
       <circle cx="175" cy="145" r="8" fill="#18181b" stroke="#3b82f6" strokeWidth="2" />
       <circle cx="275" cy="145" r="8" fill="#18181b" stroke="#3b82f6" strokeWidth="2" />
+
+      {/* Professional Text Styling */}
       <text x="200" y="185" textAnchor="middle" className="font-black italic" style={{ fontSize: '56px', fill: 'white', letterSpacing: '-2px' }}>BST</text>
       <text x="200" y="205" textAnchor="middle" className="font-bold" style={{ fontSize: '12px', fill: '#60a5fa', letterSpacing: '4px', textTransform: 'uppercase' }}>EXPEDITE INC</text>
+
       <defs>
         <linearGradient id="metalGradient" x1="20" y1="10" x2="380" y2="210" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#27272a"/><stop offset="0.5" stopColor="#3f3f46"/><stop offset="1" stopColor="#18181b"/>
+          <stop stopColor="#27272a"/>
+          <stop offset="0.5" stopColor="#3f3f46"/>
+          <stop offset="1" stopColor="#18181b"/>
         </linearGradient>
-        <filter id="glow"><feGaussianBlur stdDeviation="4" result="blur" /><feComposite in="SourceGraphic" in2="blur" operator="over" /></filter>
+        <filter id="glow" x="0" y="0" width="400" height="240" filterUnits="userSpaceOnUse">
+          <feGaussianBlur stdDeviation="4" result="blur" />
+          <feComposite in="SourceGraphic" in2="blur" operator="over" />
+        </filter>
       </defs>
     </svg>
   </div>
 );
-
 const App: React.FC = () => {
   const [isLocked, setIsLocked] = useState(true);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
