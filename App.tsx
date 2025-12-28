@@ -41,40 +41,52 @@ const GreenleafLogo = () => (
     </div>
   </div>
 );
-
 const BSTLogo = () => (
-  <div className="flex items-center justify-center animate-in fade-in zoom-in duration-1000 p-4">
-    <svg width="340" height="200" viewBox="0 0 400 240" fill="none" xmlns="http://www.w3.org/2000/svg" className="drop-shadow-[0_0_25px_rgba(59,130,246,0.5)]">
-      {/* Metallic Diamond Frame */}
-      <path d="M200 10L380 110L200 210L20 110L200 10Z" fill="url(#metalGradient)" stroke="#3b82f6" strokeWidth="2" strokeOpacity="0.5"/>
-      
-      {/* Light Trails (Neon Glow) */}
-      <g filter="url(#glow)">
-        <path d="M50 110H150" stroke="#f59e0b" strokeWidth="3" strokeLinecap="round" className="animate-pulse" />
-        <path d="M40 120H130" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" />
-        <path d="M60 100H140" stroke="#06b6d4" strokeWidth="2" strokeLinecap="round" />
-      </g>
-
-      {/* Modern Truck Silhouette */}
-      <path d="M150 120V90H210L230 110H300V140H150V120Z" fill="#18181b" stroke="#3b82f6" strokeWidth="1.5"/>
-      <circle cx="175" cy="145" r="8" fill="#18181b" stroke="#3b82f6" strokeWidth="2" />
-      <circle cx="275" cy="145" r="8" fill="#18181b" stroke="#3b82f6" strokeWidth="2" />
-
-      {/* Professional Text Styling */}
-      <text x="200" y="185" textAnchor="middle" className="font-black italic" style={{ fontSize: '56px', fill: 'white', letterSpacing: '-2px' }}>BST</text>
-      <text x="200" y="205" textAnchor="middle" className="font-bold" style={{ fontSize: '12px', fill: '#60a5fa', letterSpacing: '4px', textTransform: 'uppercase' }}>EXPEDITE INC</text>
-
+  <div className="flex flex-col items-center justify-center p-6 bg-zinc-950 rounded-[2rem] border border-blue-500/30 shadow-[0_0_50px_rgba(59,130,246,0.2)]">
+    <svg width="320" height="120" viewBox="0 0 400 140" xmlns="http://www.w3.org/2000/svg">
       <defs>
-        <linearGradient id="metalGradient" x1="20" y1="10" x2="380" y2="210" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#27272a"/>
-          <stop offset="0.5" stopColor="#3f3f46"/>
-          <stop offset="1" stopColor="#18181b"/>
+        <linearGradient id="bst-chrome" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#ffffff" />
+          <stop offset="50%" stopColor="#3b82f6" />
+          <stop offset="100%" stopColor="#1e3a8a" />
         </linearGradient>
-        <filter id="glow" x="0" y="0" width="400" height="240" filterUnits="userSpaceOnUse">
-          <feGaussianBlur stdDeviation="4" result="blur" />
-          <feComposite in="SourceGraphic" in2="blur" operator="over" />
+        <filter id="bst-neon">
+          <feGaussianBlur stdDeviation="2" result="blur" />
+          <feMerge>
+            <feMergeNode in="blur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
         </filter>
       </defs>
+      {/* Background Graphic Element */}
+      <path d="M10 70 L390 70" stroke="#3b82f6" strokeWidth="1" strokeDasharray="10 5" opacity="0.3" />
+      
+      {/* Main BST Text - Bold, Professional, Italic */}
+      <text x="50%" y="85" textAnchor="middle" 
+        style={{ 
+          fontFamily: 'Arial Black, sans-serif', 
+          fontSize: '110px', 
+          fontWeight: '900', 
+          fill: 'url(#bst-chrome)',
+          filter: 'url(#bst-neon)',
+          fontStyle: 'italic',
+          letterSpacing: '-5px'
+        }}>
+        BST
+      </text>
+      
+      {/* Subtext */}
+      <text x="50%" y="125" textAnchor="middle" 
+        style={{ 
+          fontFamily: 'monospace', 
+          fontSize: '16px', 
+          fill: '#60a5fa', 
+          fontWeight: 'bold', 
+          letterSpacing: '8px',
+          textTransform: 'uppercase'
+        }}>
+        EXPEDITE INC
+      </text>
     </svg>
   </div>
 );
