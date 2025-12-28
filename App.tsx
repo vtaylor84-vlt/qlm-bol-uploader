@@ -1,12 +1,9 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 
 /**
- * LOGISTICS TERMINAL v5.0 - APEX PRODUCTION
- * Features:
- * - High-Contrast Field Swapping (White to Black)
- * - Segmented Tactical Modules [01-04]
- * - Chrome Metallic BST & Greenleaf Branding
- * - System-Aware Light/Dark Mode
+ * LOGISTICS TERMINAL v5.1 - APEX PRODUCTION (FIXED)
+ * Fix: Resolved Unterminated Regex / JSX nesting error at line 196.
+ * Features: High-Contrast Field Swapping, Tactical Modules, Chrome Branding.
  */
 
 interface FileWithPreview {
@@ -67,7 +64,7 @@ const App: React.FC = () => {
   const isBST = company === 'BST';
   const themeHex = isGLX ? '#22c55e' : isBST ? '#3b82f6' : '#6366f1';
   const themeColor = isGLX ? 'text-green-500' : isBST ? 'text-blue-500' : 'text-indigo-500';
-  const themeBg = isGLX ? 'bg-green-500' : isBST ? 'bg-blue-600' : 'bg-indigo-500';
+  const themeBg = isGLX ? 'bg-green-500' : isBST ? 'bg-blue-600' : 'bg-cyan-500';
 
   const isReady = useMemo(() => {
     return company && driverName && (loadNum || bolNum) && puCity && puState && delCity && delState && bolProtocol && uploadedFiles.some(f => f.category === 'bol');
@@ -119,7 +116,6 @@ const App: React.FC = () => {
       </header>
 
       <div className="max-w-4xl mx-auto space-y-6 px-4">
-        {/* MODULE 01 */}
         <section className="bg-white dark:bg-zinc-950/50 border-2 border-zinc-100 dark:border-zinc-900 rounded-[2.5rem] p-8 shadow-sm">
           <h3 className={`text-[11px] font-black uppercase tracking-[0.4em] mb-8 ${themeColor}`}>[ 01 ] Company & Driver</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -132,7 +128,6 @@ const App: React.FC = () => {
           </div>
         </section>
 
-        {/* MODULE 02 */}
         <section className="bg-white dark:bg-zinc-950/50 border-2 border-zinc-100 dark:border-zinc-900 rounded-[2.5rem] p-8 shadow-sm">
           <h3 className={`text-[11px] font-black uppercase tracking-[0.4em] mb-8 ${themeColor}`}>[ 02 ] Load Information</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -141,7 +136,6 @@ const App: React.FC = () => {
           </div>
         </section>
 
-        {/* MODULE 03 */}
         <section className="bg-white dark:bg-zinc-950/50 border-2 border-zinc-100 dark:border-zinc-900 rounded-[2.5rem] p-8 shadow-sm">
           <h3 className={`text-[11px] font-black uppercase tracking-[0.4em] mb-8 ${themeColor}`}>[ 03 ] Route Details</h3>
           <div className="grid grid-cols-2 gap-6">
@@ -156,7 +150,6 @@ const App: React.FC = () => {
           </div>
         </section>
 
-        {/* MODULE 04 */}
         <section className={`rounded-[2.5rem] p-8 border-2 transition-all duration-700 ${bolProtocol ? 'bg-zinc-950 border-zinc-800' : 'bg-white dark:bg-zinc-900/20 border-zinc-200 dark:border-zinc-900 border-dashed'}`}>
           <div className="flex justify-between items-center mb-10">
             <h3 className={`text-[11px] font-black uppercase tracking-[0.4em] ${themeColor}`}>[ 04 ] Scan BOL / Paperwork</h3>
@@ -193,7 +186,6 @@ const App: React.FC = () => {
           <h2 className="text-4xl font-black text-white italic uppercase tracking-widest">Verified</h2>
           <button onClick={() => window.location.reload()} className="mt-10 px-10 py-4 border border-zinc-800 rounded-full text-zinc-500 uppercase text-xs font-black">New Session</button>
         </div>
-      </div>
       )}
       <input type="file" ref={cameraInputRef} className="hidden" capture="environment" accept="image/*" multiple onChange={(e) => onFileSelect(e, 'bol')} />
     </div>
