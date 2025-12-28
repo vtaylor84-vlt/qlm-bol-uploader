@@ -1,16 +1,29 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 
 /**
- * LOGISTICS TERMINAL v12.0 - TACTICAL COMMAND
- * - Feature: Smart Prompt for Freight Photos (Triggers after Pickup BOL scan)
- * - Feature: Explicit "Choice" UI for BOL selection
- * - Feature: Desriptive labels for Freight Loading
- * - Feature: Radiating Gradient Submit & Reactive Section Borders
+ * LOGISTICS TERMINAL v1.0 - FULL SENSORY
  */
 
 interface FileWithPreview {
   file: File; preview: string; id: string; category: 'bol' | 'freight';
 }
+
+// --- AUDIO ENGINE ---
+const playSound = (freq: number, type: OscillatorType, duration: number, vol: number = 0.1) => {
+  try {
+    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, ctx.currentTime);
+    gain.gain.setValueAtTime(vol, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + duration);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + duration);
+  } catch (e) { /* Browser blocked audio */ }
+};
 
 // --- BRAND ASSETS ---
 const GreenleafLogo = () => (
@@ -82,11 +95,6 @@ const App: React.FC = () => {
   const s4Ready = !!(bolProtocol && uploadedFiles.some(f => f.category === 'bol'));
   const isReady = s1Ready && s2Ready && s3Ready && s4Ready;
 
-  const triggerPulse = () => {
-    setPulseActive(true);
-    setTimeout(() => setPulseActive(false), 300);
-  };
-
   const startSecureHandshake = () => {
     if (isAuthenticating) return;
     setIsAuthenticating(true);
@@ -94,30 +102,30 @@ const App: React.FC = () => {
     const interval = setInterval(() => {
       stage++;
       setAuthStage(stage);
-      if (stage >= 4) { clearInterval(interval); setTimeout(() => setIsLocked(false), 800); }
+      playSound(200 + (stage * 100), 'sine', 0.1); // REV UP SOUND
+      if (stage >= 4) {
+        clearInterval(interval);
+        playSound(800, 'square', 0.2, 0.05); // SUCCESS CHIME
+        setTimeout(() => setIsLocked(false), 800);
+      }
     }, 700);
   };
 
   const handleInputChange = (setter: React.Dispatch<React.SetStateAction<string>>, val: string) => {
     setter(val.toUpperCase());
-    if (val.length === 1) triggerPulse();
-  };
-
-  const getInputStyles = (value: string) => {
-    const isFilled = value && value.trim().length > 0;
-    return `w-full p-5 rounded-2xl font-mono text-sm transition-all duration-500 border-2 outline-none
-      ${isFilled ? `bg-black text-white border-[${themeHex}] shadow-[0_0_20px_${themeHex}30] tracking-widest` : 'bg-zinc-100 text-black border-zinc-200'}`;
+    if (val.length === 1) {
+      setPulseActive(true);
+      setTimeout(() => setPulseActive(false), 300);
+    }
   };
 
   const onFileSelect = async (e: React.ChangeEvent<HTMLInputElement>, category: 'bol' | 'freight') => {
     if (e.target.files) {
-      triggerPulse();
+      playSound(600, 'triangle', 0.1);
       const files = Array.from(e.target.files).map(file => ({
         file, preview: URL.createObjectURL(file), id: Math.random().toString(36).substr(2, 9), category
       }));
       setUploadedFiles(prev => [...prev, ...files]);
-      
-      // SHOW POPUP IF PICKUP BOL IS DETECTED
       if (category === 'bol' && bolProtocol === 'PICKUP') {
         setTimeout(() => setShowFreightPrompt(true), 600);
       }
@@ -158,15 +166,23 @@ const App: React.FC = () => {
       </header>
 
       <div className="max-w-4xl mx-auto space-y-8 px-4 relative">
-        
         {/* IDENTIFICATION */}
         <section className={`bg-zinc-900/40 border-2 transition-all duration-700 rounded-[2.5rem] p-8 shadow-2xl ${s1Ready ? '' : 'border-zinc-800 opacity-60'}`} style={{ borderColor: s1Ready ? themeHex : '' }}>
           <h3 className={`text-[11px] font-black uppercase tracking-[0.6em] mb-8 ${s1Ready ? themeColor : 'text-zinc-500'}`}>[ 01 ] Identification</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <select className={getInputStyles(company)} value={company} onChange={(e) => { setCompany(e.target.value as any); triggerPulse(); }}>
+            <select 
+              onFocus={() => playSound(400, 'sine', 0.05)}
+              className={`w-full p-5 rounded-2xl font-mono text-sm border-2 outline-none transition-all ${company ? `bg-black text-white border-[${themeHex}] shadow-[0_0_20px_${themeHex}30]` : 'bg-zinc-100 text-black border-zinc-200'}`}
+              value={company} onChange={(e) => { setCompany(e.target.value as any); playSound(500, 'sine', 0.1); }}
+            >
               <option value="">SELECT CARRIER</option><option value="GLX">GREENLEAF XPRESS</option><option value="BST">BST EXPEDITE INC</option>
             </select>
-            <input type="text" placeholder="DRIVER NAME" className={getInputStyles(driverName)} value={driverName} onChange={(e) => handleInputChange(setDriverName, e.target.value)} />
+            <input 
+              onFocus={() => playSound(440, 'sine', 0.05)}
+              type="text" placeholder="DRIVER NAME" 
+              className={`w-full p-5 rounded-2xl font-mono text-sm border-2 outline-none transition-all ${driverName ? `bg-black text-white border-[${themeHex}] shadow-[0_0_20px_${themeHex}30]` : 'bg-zinc-100 text-black border-zinc-200'}`}
+              value={driverName} onChange={(e) => handleInputChange(setDriverName, e.target.value)} 
+            />
           </div>
         </section>
 
@@ -174,8 +190,8 @@ const App: React.FC = () => {
         <section className={`bg-zinc-900/40 border-2 transition-all duration-700 rounded-[2.5rem] p-8 shadow-2xl ${s2Ready ? '' : 'border-zinc-800 opacity-60'}`} style={{ borderColor: s2Ready ? themeHex : '' }}>
           <h3 className={`text-[11px] font-black uppercase tracking-[0.6em] mb-8 ${s2Ready ? themeColor : 'text-zinc-500'}`}>[ 02 ] Document References</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <input type="text" placeholder="ENTER LOAD #" className={getInputStyles(loadNum)} value={loadNum} onChange={(e) => handleInputChange(setLoadNum, e.target.value)} />
-            <input type="text" placeholder="ENTER BOL #" className={getInputStyles(bolNum)} value={bolNum} onChange={(e) => handleInputChange(setBolNum, e.target.value)} />
+            <input onFocus={() => playSound(440, 'sine', 0.05)} type="text" placeholder="ENTER LOAD #" className={`w-full p-5 rounded-2xl font-mono text-sm border-2 outline-none transition-all ${loadNum ? `bg-black text-white border-[${themeHex}] shadow-[0_0_20px_${themeHex}30]` : 'bg-zinc-100 text-black border-zinc-200'}`} value={loadNum} onChange={(e) => handleInputChange(setLoadNum, e.target.value)} />
+            <input onFocus={() => playSound(440, 'sine', 0.05)} type="text" placeholder="ENTER BOL #" className={`w-full p-5 rounded-2xl font-mono text-sm border-2 outline-none transition-all ${bolNum ? `bg-black text-white border-[${themeHex}] shadow-[0_0_20px_${themeHex}30]` : 'bg-zinc-100 text-black border-zinc-200'}`} value={bolNum} onChange={(e) => handleInputChange(setBolNum, e.target.value)} />
           </div>
         </section>
 
@@ -183,49 +199,49 @@ const App: React.FC = () => {
         <section className={`bg-zinc-900/40 border-2 transition-all duration-700 rounded-[2.5rem] p-8 shadow-2xl space-y-10 ${s3Ready ? '' : 'border-zinc-800 opacity-60'}`} style={{ borderColor: s3Ready ? themeHex : '' }}>
           <h3 className={`text-[11px] font-black uppercase tracking-[0.6em] mb-8 ${s3Ready ? themeColor : 'text-zinc-500'}`}>[ 03 ] Origin / Destination</h3>
           <div className="grid grid-cols-3 gap-6">
-            <div className="col-span-2"><input type="text" placeholder="PICKUP CITY" className={getInputStyles(puCity)} value={puCity} onChange={(e) => handleInputChange(setPuCity, e.target.value)} /></div>
-            <select className={getInputStyles(puState)} value={puState} onChange={(e) => {setPuState(e.target.value); triggerPulse();}}><option value="">SELECT STATE</option>{states.map(s => <option key={s} value={s}>{s}</option>)}</select>
+            <div className="col-span-2"><input onFocus={() => playSound(440, 'sine', 0.05)} type="text" placeholder="PICKUP CITY" className={`w-full p-5 rounded-2xl font-mono text-sm border-2 outline-none transition-all ${puCity ? `bg-black text-white border-[${themeHex}] shadow-[0_0_20px_${themeHex}30]` : 'bg-zinc-100 text-black border-zinc-200'}`} value={puCity} onChange={(e) => handleInputChange(setPuCity, e.target.value)} /></div>
+            <select onFocus={() => playSound(400, 'sine', 0.05)} className={`w-full p-5 rounded-2xl font-mono text-sm border-2 outline-none transition-all ${puState ? `bg-black text-white border-[${themeHex}] shadow-[0_0_20px_${themeHex}30]` : 'bg-zinc-100 text-black border-zinc-200'}`} value={puState} onChange={(e) => {setPuState(e.target.value); playSound(500, 'sine', 0.1);}}><option value="">STATE</option>{states.map(s => <option key={s} value={s}>{s}</option>)}</select>
           </div>
           <div className="grid grid-cols-3 gap-6">
-            <div className="col-span-2"><input type="text" placeholder="DELIVERY CITY" className={getInputStyles(delCity)} value={delCity} onChange={(e) => handleInputChange(setDelCity, e.target.value)} /></div>
-            <select className={getInputStyles(delState)} value={delState} onChange={(e) => {setDelState(e.target.value); triggerPulse();}}><option value="">SELECT STATE</option>{states.map(s => <option key={s} value={s}>{s}</option>)}</select>
+            <div className="col-span-2"><input onFocus={() => playSound(440, 'sine', 0.05)} type="text" placeholder="DELIVERY CITY" className={`w-full p-5 rounded-2xl font-mono text-sm border-2 outline-none transition-all ${delCity ? `bg-black text-white border-[${themeHex}] shadow-[0_0_20px_${themeHex}30]` : 'bg-zinc-100 text-black border-zinc-200'}`} value={delCity} onChange={(e) => handleInputChange(setDelCity, e.target.value)} /></div>
+            <select onFocus={() => playSound(400, 'sine', 0.05)} className={`w-full p-5 rounded-2xl font-mono text-sm border-2 outline-none transition-all ${delState ? `bg-black text-white border-[${themeHex}] shadow-[0_0_20px_${themeHex}30]` : 'bg-zinc-100 text-black border-zinc-200'}`} value={delState} onChange={(e) => {setDelState(e.target.value); playSound(500, 'sine', 0.1);}}><option value="">STATE</option>{states.map(s => <option key={s} value={s}>{s}</option>)}</select>
           </div>
         </section>
 
         {/* DOCUMENT UPLINK */}
-        <section className={`rounded-[2.5rem] p-8 border-2 transition-all duration-700 ${s4Ready ? 'bg-black border-zinc-700 shadow-xl' : 'bg-zinc-900/20 border-zinc-800 border-dashed animate-pulse-border'}`} style={{ borderColor: s4Ready ? themeHex : '' }}>
+        <section className={`rounded-[2.5rem] p-8 border-2 transition-all duration-700 ${s4Ready ? 'bg-black border-zinc-700 shadow-xl' : 'bg-zinc-900/20 border-zinc-800 border-dashed opacity-60'}`} style={{ borderColor: s4Ready ? themeHex : '' }}>
           <div className="flex flex-col sm:flex-row justify-between items-center gap-6 mb-10 text-center sm:text-left">
             <div>
               <h3 className={`text-[11px] font-black uppercase tracking-[0.6em] ${s4Ready ? themeColor : 'text-zinc-500'}`}>[ 04 ] Document Uplink</h3>
-              {!bolProtocol && <p className="text-[10px] text-zinc-500 mt-2 font-bold animate-bounce uppercase">← You must select Pickup or Delivery</p>}
+              {!bolProtocol && <p className="text-[10px] text-zinc-500 mt-2 font-bold animate-bounce uppercase">← Select Pickup or Delivery</p>}
             </div>
             <div className="flex gap-4">
-              <button onClick={() => {setBolProtocol('PICKUP'); triggerPulse();}} className={`px-8 py-3 text-[10px] font-black rounded-xl border-2 transition-all duration-500 ${bolProtocol === 'PICKUP' ? `bg-black text-white border-[${themeHex}] shadow-lg` : 'bg-white text-zinc-500'}`}>PICKUP BOL</button>
-              <button onClick={() => {setBolProtocol('DELIVERY'); triggerPulse();}} className={`px-8 py-3 text-[10px] font-black rounded-xl border-2 transition-all duration-500 ${bolProtocol === 'DELIVERY' ? `bg-black text-white border-[${themeHex}] shadow-lg` : 'bg-white text-zinc-500'}`}>DELIVERY BOL</button>
+              <button onClick={() => {setBolProtocol('PICKUP'); playSound(500, 'square', 0.1);}} className={`px-8 py-3 text-[10px] font-black rounded-xl border-2 transition-all duration-500 ${bolProtocol === 'PICKUP' ? `bg-black text-white border-[${themeHex}] shadow-lg` : 'bg-white text-zinc-500'}`}>PICKUP BOL</button>
+              <button onClick={() => {setBolProtocol('DELIVERY'); playSound(500, 'square', 0.1);}} className={`px-8 py-3 text-[10px] font-black rounded-xl border-2 transition-all duration-500 ${bolProtocol === 'DELIVERY' ? `bg-black text-white border-[${themeHex}] shadow-lg` : 'bg-white text-zinc-500'}`}>DELIVERY BOL</button>
             </div>
           </div>
           <div className="flex justify-center gap-16 py-6">
-            <button onClick={() => cameraInputRef.current?.click()} className="flex flex-col items-center gap-4 group"><div className="w-20 h-20 rounded-2xl bg-zinc-800 flex items-center justify-center text-4xl border border-zinc-700 group-hover:bg-white transition-all shadow-xl">📸</div><span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Camera</span></button>
-            <button onClick={() => fileInputRef.current?.click()} className="flex flex-col items-center gap-4 group"><div className="w-20 h-20 rounded-2xl bg-zinc-800 flex items-center justify-center text-4xl border border-zinc-700 group-hover:bg-white transition-all shadow-xl">📂</div><span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Gallery</span></button>
+            <button onClick={() => cameraInputRef.current?.click()} className="flex flex-col items-center gap-4 group"><div className="w-20 h-20 rounded-2xl bg-zinc-800 flex items-center justify-center text-4xl border border-zinc-700 group-hover:bg-white transition-all shadow-xl">📸</div><span className="text-[10px] font-black uppercase text-zinc-500">Camera</span></button>
+            <button onClick={() => fileInputRef.current?.click()} className="flex flex-col items-center gap-4 group"><div className="w-20 h-20 rounded-2xl bg-zinc-800 flex items-center justify-center text-4xl border border-zinc-700 group-hover:bg-white transition-all shadow-xl">📂</div><span className="text-[10px] font-black uppercase text-zinc-500">Gallery</span></button>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
             {uploadedFiles.filter(f => f.category === 'bol').map(f => (
-              <div key={f.id} className="aspect-[3/4] rounded-2xl bg-zinc-900 overflow-hidden relative group border border-zinc-800 shadow-2xl animate-in zoom-in"><img src={f.preview} className="w-full h-full object-cover" /><button onClick={() => setUploadedFiles(p => p.filter(i => i.id !== f.id))} className="absolute top-2 right-2 w-7 h-7 bg-red-600 text-white rounded-full flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity shadow-lg">✕</button></div>
+              <div key={f.id} className="aspect-[3/4] rounded-2xl bg-zinc-900 overflow-hidden relative group border border-zinc-800 animate-in zoom-in"><img src={f.preview} className="w-full h-full object-cover" /><button onClick={() => {setUploadedFiles(p => p.filter(i => i.id !== f.id)); playSound(300, 'sine', 0.1);}} className="absolute top-2 right-2 w-7 h-7 bg-red-600 text-white rounded-full flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity shadow-lg">✕</button></div>
             ))}
           </div>
         </section>
 
-        {/* FREIGHT PICTURES ON TRAILER */}
+        {/* FREIGHT PICTURES */}
         {bolProtocol === 'PICKUP' && (
           <section ref={freightSectionRef} className={`bg-zinc-900/40 border-2 transition-all duration-700 rounded-[2.5rem] p-8 shadow-2xl ${uploadedFiles.some(f => f.category === 'freight') ? '' : 'border-zinc-800 opacity-60'}`} style={{ borderColor: uploadedFiles.some(f => f.category === 'freight') ? themeHex : '' }}>
             <h3 className={`text-[11px] font-black uppercase tracking-[0.6em] mb-8 ${uploadedFiles.some(f => f.category === 'freight') ? themeColor : 'text-zinc-500'}`}>[ 05 ] Freight Loaded on Trailer Photos</h3>
             <div className="flex justify-center gap-12 py-6">
-              <button onClick={() => freightCamRef.current?.click()} className="flex flex-col items-center gap-4 group"><div className="w-20 h-20 rounded-2xl bg-zinc-800 flex items-center justify-center text-4xl border border-zinc-700 group-hover:bg-white transition-all shadow-xl">📸</div><span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Camera</span></button>
-              <button onClick={() => freightFileRef.current?.click()} className="flex flex-col items-center gap-4 group"><div className="w-20 h-20 rounded-2xl bg-zinc-800 flex items-center justify-center text-4xl border border-zinc-700 group-hover:bg-white transition-all shadow-xl">📂</div><span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Gallery</span></button>
+              <button onClick={() => freightCamRef.current?.click()} className="flex flex-col items-center gap-4 group"><div className="w-20 h-20 rounded-2xl bg-zinc-800 flex items-center justify-center text-4xl border border-zinc-700 group-hover:bg-white transition-all shadow-xl">📸</div><span className="text-[10px] font-black text-zinc-500">Camera</span></button>
+              <button onClick={() => freightFileRef.current?.click()} className="flex flex-col items-center gap-4 group"><div className="w-20 h-20 rounded-2xl bg-zinc-800 flex items-center justify-center text-4xl border border-zinc-700 group-hover:bg-white transition-all shadow-xl">📂</div><span className="text-[10px] font-black text-zinc-500">Gallery</span></button>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-8">
               {uploadedFiles.filter(f => f.category === 'freight').map(f => (
-                <div key={f.id} className="aspect-square rounded-2xl bg-zinc-900 overflow-hidden relative group border border-zinc-800 animate-in zoom-in"><img src={f.preview} className="w-full h-full object-cover opacity-70 group-hover:opacity-100 transition-opacity" /><button onClick={() => setUploadedFiles(p => p.filter(i => i.id !== f.id))} className="absolute top-2 right-2 w-7 h-7 bg-red-600 text-white rounded-full flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity shadow-lg">✕</button></div>
+                <div key={f.id} className="aspect-square rounded-2xl bg-zinc-900 overflow-hidden relative group border border-zinc-800 animate-in zoom-in"><img src={f.preview} className="w-full h-full object-cover opacity-70 group-hover:opacity-100" /><button onClick={() => {setUploadedFiles(p => p.filter(i => i.id !== f.id)); playSound(300, 'sine', 0.1);}} className="absolute top-2 right-2 w-7 h-7 bg-red-600 text-white rounded-full flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity">✕</button></div>
               ))}
             </div>
           </section>
@@ -233,7 +249,10 @@ const App: React.FC = () => {
 
         {/* RADIATING SUBMIT BUTTON */}
         <button 
-          onClick={() => { if(!isReady) { setShake(true); setTimeout(() => setShake(false), 500); } else { setIsSubmitting(true); setTimeout(() => setShowSuccess(true), 2500); } }}
+          onClick={() => { 
+            if(!isReady) { playSound(100, 'square', 0.3); setShake(true); setTimeout(() => setShake(false), 500); } 
+            else { playSound(800, 'sine', 0.5); setIsSubmitting(true); setTimeout(() => setShowSuccess(true), 2500); } 
+          }}
           className={`w-full py-10 rounded-[2.5rem] font-black uppercase tracking-[1.5em] transition-all duration-1000 relative overflow-hidden group
             ${isReady 
               ? `bg-gradient-to-r ${isGLX ? 'from-green-600 via-green-400 to-green-600' : 'from-blue-600 via-blue-400 to-blue-600'} text-black shadow-[0_0_80px_${themeHex}80]` 
@@ -244,15 +263,15 @@ const App: React.FC = () => {
         </button>
       </div>
 
-      {/* SMART PROMPT POPUP */}
+      {/* FREIGHT PROMPT POPUP */}
       {showFreightPrompt && (
         <div className="fixed inset-0 z-[200] bg-black/90 backdrop-blur-md flex items-center justify-center p-6 animate-in fade-in duration-500">
-          <div className="bg-zinc-900 border-2 border-blue-500 rounded-[2.5rem] p-10 max-w-sm text-center shadow-[0_0_100px_rgba(59,130,246,0.3)]">
+          <div className={`bg-zinc-900 border-2 rounded-[2.5rem] p-10 max-w-sm text-center shadow-2xl`} style={{ borderColor: themeHex }}>
             <div className="text-5xl mb-6">📦</div>
             <h2 className={`text-xl font-black uppercase tracking-tighter mb-4 ${themeColor}`}>Pickup Detected</h2>
-            <p className="text-zinc-400 text-sm font-bold leading-relaxed mb-8 uppercase tracking-widest italic">Would you like to capture photos of the freight loaded on the trailer?</p>
+            <p className="text-zinc-400 text-sm font-bold leading-relaxed mb-8 uppercase tracking-widest italic">Take photos of the freight loaded on the trailer?</p>
             <div className="flex flex-col gap-4">
-              <button onClick={() => { setShowFreightPrompt(false); freightCamRef.current?.click(); }} className={`${themeBg} text-black py-4 rounded-xl font-black uppercase tracking-widest shadow-xl`}>Open Camera</button>
+              <button onClick={() => { setShowFreightPrompt(false); freightCamRef.current?.click(); }} className={`${isGLX ? 'bg-green-500' : 'bg-blue-600'} text-black py-4 rounded-xl font-black uppercase tracking-widest shadow-xl`}>Open Camera</button>
               <button onClick={() => setShowFreightPrompt(false)} className="text-zinc-500 py-2 font-black uppercase tracking-widest text-[10px]">No, Skip</button>
             </div>
           </div>
@@ -263,7 +282,7 @@ const App: React.FC = () => {
         <div className="fixed inset-0 z-[300] bg-black flex flex-col items-center justify-center animate-in fade-in">
            <div className="w-32 h-32 rounded-full border-4 flex items-center justify-center text-5xl mb-12 animate-bounce" style={{ borderColor: themeHex }}>✓</div>
            <h2 className="text-4xl font-black italic uppercase text-white tracking-widest">Verified</h2>
-           <button onClick={() => window.location.reload()} className="mt-16 text-zinc-600 uppercase text-xs font-black tracking-widest hover:text-white transition-colors">Start New Session</button>
+           <button onClick={() => window.location.reload()} className="mt-16 text-zinc-600 uppercase text-xs font-black tracking-widest hover:text-white">Terminate Session</button>
         </div>
       )}
 
@@ -272,8 +291,6 @@ const App: React.FC = () => {
         .animate-spin-slow { animation: spin-slow 8s linear infinite; }
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
         .animate-shake { animation: shake 0.1s linear infinite; }
-        @keyframes border-glow { 0%, 100% { border-color: #27272a; } 50% { border-color: #52525b; } }
-        .animate-pulse-border { animation: border-glow 2s infinite ease-in-out; }
       `}</style>
 
       {/* INPUTS */}
