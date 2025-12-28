@@ -1,17 +1,17 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 
 /**
- * LOGISTICS TERMINAL v10.0 - SOVEREIGN COMMAND
- * - Feature: Sections 01-05 with Reactive Borders (Glow on completion)
- * - Feature: Radiating Submit Button (Themed Gradient + Black Text)
- * - Feature: Full Freight Gallery/Camera Restoration
- * - Feature: Sensory Pulse & Uppercase Industry Standard
+ * LOGISTICS TERMINAL v11.0 - SOVEREIGN VAULT
+ * - Entry: Tactical Security Handshake Sequence
+ * - UI: Reactive Section Borders & Radiating Submit
+ * - Branding: High-Fidelity Metallic SVG
  */
 
 interface FileWithPreview {
   file: File; preview: string; id: string; category: 'bol' | 'freight';
 }
 
+// --- BRAND ASSETS ---
 const GreenleafLogo = () => (
   <div className="flex flex-col items-center justify-center animate-in fade-in zoom-in duration-1000 p-4">
     <svg width="320" height="180" viewBox="0 0 400 220" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -42,7 +42,12 @@ const BSTLogo = () => (
 );
 
 const App: React.FC = () => {
+  // --- AUTH STATES ---
   const [isLocked, setIsLocked] = useState(true);
+  const [authStage, setAuthStage] = useState(0);
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
+
+  // --- FORM STATES ---
   const [company, setCompany] = useState<'GLX' | 'BST' | ''>('');
   const [driverName, setDriverName] = useState('');
   const [loadNum, setLoadNum] = useState('');
@@ -71,7 +76,7 @@ const App: React.FC = () => {
   const themeHex = isGLX ? '#22c55e' : isBST ? '#3b82f6' : '#6366f1';
   const themeColor = isGLX ? 'text-green-500' : isBST ? 'text-blue-500' : 'text-zinc-600';
 
-  // Section Completion States
+  // Section completion checks
   const s1Ready = !!(company && driverName);
   const s2Ready = !!(loadNum || bolNum);
   const s3Ready = !!(puCity && puState && delCity && delState);
@@ -81,6 +86,20 @@ const App: React.FC = () => {
   const triggerPulse = () => {
     setPulseActive(true);
     setTimeout(() => setPulseActive(false), 300);
+  };
+
+  const startSecureHandshake = () => {
+    if (isAuthenticating) return;
+    setIsAuthenticating(true);
+    let stage = 0;
+    const interval = setInterval(() => {
+      stage++;
+      setAuthStage(stage);
+      if (stage >= 4) {
+        clearInterval(interval);
+        setTimeout(() => setIsLocked(false), 800);
+      }
+    }, 700);
   };
 
   const handleInputChange = (setter: React.Dispatch<React.SetStateAction<string>>, val: string) => {
@@ -109,10 +128,22 @@ const App: React.FC = () => {
 
   if (isLocked) {
     return (
-      <div className="min-h-screen bg-[#020202] flex items-center justify-center">
-        <button onClick={() => setIsLocked(false)} className="w-48 h-48 rounded-full border border-zinc-900 flex items-center justify-center hover:border-blue-500 transition-all duration-700 shadow-2xl">
-           <span className="text-4xl animate-pulse text-white">📡</span>
-        </button>
+      <div className="min-h-screen bg-[#020202] flex items-center justify-center p-6">
+        <div className="w-full max-w-md bg-zinc-950/50 p-10 border border-zinc-900 rounded-[3rem] backdrop-blur-3xl shadow-2xl flex flex-col items-center gap-10">
+          <button onClick={startSecureHandshake} className={`relative w-40 h-40 border-2 rounded-full flex items-center justify-center transition-all duration-1000 ${isAuthenticating ? 'border-blue-500 shadow-[0_0_50px_rgba(59,130,246,0.3)]' : 'border-zinc-800 hover:border-zinc-600'}`}>
+            <div className={`absolute inset-0 border border-dashed border-zinc-800 rounded-full ${isAuthenticating ? 'animate-spin-slow' : ''}`} />
+            <span className={`text-6xl ${isAuthenticating ? 'animate-pulse' : ''}`}>{isAuthenticating ? '🔐' : '🛡️'}</span>
+          </button>
+          
+          <div className="w-full space-y-4 font-mono">
+            {[{ label: 'ENCRYPTING CHANNEL...', done: authStage >= 1 }, { label: 'VERIFYING CREDENTIALS...', done: authStage >= 2 }, { label: 'ESTABLISHING UPLINK...', done: authStage >= 3 }, { label: 'HANDSHAKE SECURE', done: authStage >= 4, color: 'text-green-500' }].map((step, i) => (
+              <div key={i} className={`text-[10px] flex justify-between tracking-widest ${step.done ? (step.color || 'text-blue-400') : 'text-zinc-800'}`}>
+                <span>{`> ${step.label}`}</span><span>{step.done ? '[OK]' : '[--]'}</span>
+              </div>
+            ))}
+          </div>
+          {!isAuthenticating && <p className="text-[10px] font-black tracking-[0.5em] text-zinc-600 animate-pulse uppercase">Initiate Secure Link</p>}
+        </div>
       </div>
     );
   }
@@ -122,28 +153,26 @@ const App: React.FC = () => {
       <div className={`fixed inset-0 pointer-events-none transition-opacity duration-300 z-50 ${pulseActive ? 'opacity-20' : 'opacity-0'}`} style={{ backgroundColor: themeHex }} />
 
       <header className="max-w-4xl mx-auto pt-10 px-4 mb-12 relative">
-        <div className={`w-full min-h-[220px] rounded-[3.5rem] border-2 transition-all duration-1000 flex items-center justify-center ${company ? 'bg-black' : 'bg-zinc-900/50 border-zinc-800'}`} style={{ borderColor: company ? themeHex : '', boxShadow: company ? `0 0 60px ${themeHex}20` : '' }}>
-          {!company && <h1 className="text-4xl font-black italic tracking-tighter uppercase text-zinc-700">Terminal Uplink</h1>}
+        <div className={`w-full min-h-[220px] rounded-[3.5rem] border-2 transition-all duration-1000 flex items-center justify-center ${company ? 'bg-black shadow-[0_0_60px_rgba(0,0,0,0.8)]' : 'bg-zinc-900/50 border-zinc-800'}`} style={{ borderColor: company ? themeHex : '', boxShadow: company ? `0 0 50px ${themeHex}10` : '' }}>
+          {!company && <h1 className="text-5xl font-black italic tracking-tighter uppercase text-zinc-700">BOL UPLOADER</h1>}
           {isGLX && <GreenleafLogo />}
           {isBST && <BSTLogo />}
         </div>
       </header>
 
       <div className="max-w-4xl mx-auto space-y-8 px-4 relative">
-        {/* [ 01 ] IDENTIFICATION */}
+        {/* IDENTIFICATION */}
         <section className={`bg-zinc-900/40 border-2 transition-all duration-700 rounded-[2.5rem] p-8 shadow-2xl ${s1Ready ? '' : 'border-zinc-800 opacity-60'}`} style={{ borderColor: s1Ready ? themeHex : '' }}>
           <h3 className={`text-[11px] font-black uppercase tracking-[0.6em] mb-8 ${s1Ready ? themeColor : 'text-zinc-500'}`}>[ 01 ] Identification</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <select className={getInputStyles(company)} value={company} onChange={(e) => { setCompany(e.target.value as any); triggerPulse(); }}>
-              <option value="">SELECT CARRIER</option>
-              <option value="GLX">GREENLEAF XPRESS</option>
-              <option value="BST">BST EXPEDITE INC</option>
+              <option value="">SELECT CARRIER</option><option value="GLX">GREENLEAF XPRESS</option><option value="BST">BST EXPEDITE INC</option>
             </select>
             <input type="text" placeholder="DRIVER NAME" className={getInputStyles(driverName)} value={driverName} onChange={(e) => handleInputChange(setDriverName, e.target.value)} />
           </div>
         </section>
 
-        {/* [ 02 ] DOCUMENT REFERENCES */}
+        {/* DOCUMENT REFERENCES */}
         <section className={`bg-zinc-900/40 border-2 transition-all duration-700 rounded-[2.5rem] p-8 shadow-2xl ${s2Ready ? '' : 'border-zinc-800 opacity-60'}`} style={{ borderColor: s2Ready ? themeHex : '' }}>
           <h3 className={`text-[11px] font-black uppercase tracking-[0.6em] mb-8 ${s2Ready ? themeColor : 'text-zinc-500'}`}>[ 02 ] Document References</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -152,7 +181,7 @@ const App: React.FC = () => {
           </div>
         </section>
 
-        {/* [ 03 ] ORIGIN / DESTINATION */}
+        {/* ORIGIN / DESTINATION */}
         <section className={`bg-zinc-900/40 border-2 transition-all duration-700 rounded-[2.5rem] p-8 shadow-2xl space-y-10 ${s3Ready ? '' : 'border-zinc-800 opacity-60'}`} style={{ borderColor: s3Ready ? themeHex : '' }}>
           <h3 className={`text-[11px] font-black uppercase tracking-[0.6em] mb-8 ${s3Ready ? themeColor : 'text-zinc-500'}`}>[ 03 ] Origin / Destination</h3>
           <div className="grid grid-cols-3 gap-6">
@@ -165,7 +194,7 @@ const App: React.FC = () => {
           </div>
         </section>
 
-        {/* [ 04 ] DOCUMENT UPLINK */}
+        {/* DOCUMENT UPLINK */}
         <section className={`rounded-[2.5rem] p-8 border-2 transition-all duration-700 ${s4Ready ? 'bg-black border-zinc-700' : 'bg-zinc-900/20 border-zinc-800 border-dashed opacity-60'}`} style={{ borderColor: s4Ready ? themeHex : '' }}>
           <div className="flex flex-col sm:flex-row justify-between items-center gap-6 mb-10">
             <h3 className={`text-[11px] font-black uppercase tracking-[0.6em] ${s4Ready ? themeColor : 'text-zinc-500'}`}>[ 04 ] Document Uplink</h3>
@@ -180,41 +209,37 @@ const App: React.FC = () => {
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
             {uploadedFiles.filter(f => f.category === 'bol').map(f => (
-              <div key={f.id} className="aspect-[3/4] rounded-2xl bg-zinc-900 overflow-hidden relative group border border-zinc-800"><img src={f.preview} className="w-full h-full object-cover" /><button onClick={() => setUploadedFiles(p => p.filter(i => i.id !== f.id))} className="absolute top-2 right-2 w-7 h-7 bg-red-600 text-white rounded-full flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity shadow-lg">✕</button></div>
+              <div key={f.id} className="aspect-[3/4] rounded-2xl bg-zinc-900 overflow-hidden relative group border border-zinc-800 shadow-2xl animate-in zoom-in"><img src={f.preview} className="w-full h-full object-cover" /><button onClick={() => setUploadedFiles(p => p.filter(i => i.id !== f.id))} className="absolute top-2 right-2 w-7 h-7 bg-red-600 text-white rounded-full flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity">✕</button></div>
             ))}
           </div>
         </section>
 
-        {/* [ 05 ] FREIGHT PICTURES (RESTORED) */}
+        {/* FREIGHT ON TRAILER */}
         {bolProtocol === 'PICKUP' && (
           <section ref={freightSectionRef} className={`bg-zinc-900/40 border-2 transition-all duration-700 rounded-[2.5rem] p-8 shadow-2xl ${uploadedFiles.some(f => f.category === 'freight') ? '' : 'border-zinc-800 opacity-60'}`} style={{ borderColor: uploadedFiles.some(f => f.category === 'freight') ? themeHex : '' }}>
             <h3 className={`text-[11px] font-black uppercase tracking-[0.6em] mb-8 ${uploadedFiles.some(f => f.category === 'freight') ? themeColor : 'text-zinc-500'}`}>[ 05 ] Freight on Trailer</h3>
             <div className="flex justify-center gap-12 py-6">
-              <button onClick={() => freightCamRef.current?.click()} className="flex flex-col items-center gap-4 group"><div className="w-20 h-20 rounded-2xl bg-zinc-800 flex items-center justify-center text-4xl border border-zinc-700 group-hover:bg-white transition-all">📸</div><span className="text-[10px] font-black text-zinc-500">Camera</span></button>
-              <button onClick={() => freightFileRef.current?.click()} className="flex flex-col items-center gap-4 group"><div className="w-20 h-20 rounded-2xl bg-zinc-800 flex items-center justify-center text-4xl border border-zinc-700 group-hover:bg-white transition-all">📂</div><span className="text-[10px] font-black text-zinc-500">Gallery</span></button>
+              <button onClick={() => freightCamRef.current?.click()} className="flex flex-col items-center gap-4 group"><div className="w-20 h-20 rounded-2xl bg-zinc-800 flex items-center justify-center text-4xl border border-zinc-700 hover:bg-white transition-all">📸</div><span className="text-[10px] font-black uppercase text-zinc-500">Camera</span></button>
+              <button onClick={() => freightFileRef.current?.click()} className="flex flex-col items-center gap-4 group"><div className="w-20 h-20 rounded-2xl bg-zinc-800 flex items-center justify-center text-4xl border border-zinc-700 hover:bg-white transition-all">📂</div><span className="text-[10px] font-black uppercase text-zinc-500">Gallery</span></button>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-8">
               {uploadedFiles.filter(f => f.category === 'freight').map(f => (
-                <div key={f.id} className="aspect-square rounded-2xl bg-zinc-900 overflow-hidden relative group border border-zinc-800 shadow-xl"><img src={f.preview} className="w-full h-full object-cover opacity-70 group-hover:opacity-100" /><button onClick={() => setUploadedFiles(p => p.filter(i => i.id !== f.id))} className="absolute top-2 right-2 w-7 h-7 bg-red-600 text-white rounded-full flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity">✕</button></div>
+                <div key={f.id} className="aspect-square rounded-2xl bg-zinc-900 overflow-hidden relative group border border-zinc-800 animate-in zoom-in"><img src={f.preview} className="w-full h-full object-cover" /><button onClick={() => setUploadedFiles(p => p.filter(i => i.id !== f.id))} className="absolute top-2 right-2 w-7 h-7 bg-red-600 text-white rounded-full flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity">✕</button></div>
               ))}
             </div>
           </section>
         )}
 
-        {/* RADIATING CARRIER SUBMIT BUTTON */}
+        {/* RADIATING SUBMIT DOCUMENTS BUTTON */}
         <button 
           onClick={() => { if(!isReady) { setShake(true); setTimeout(() => setShake(false), 500); } else { setIsSubmitting(true); setTimeout(() => setShowSuccess(true), 2500); } }}
           className={`w-full py-10 rounded-[2.5rem] font-black uppercase tracking-[1.5em] transition-all duration-1000 relative overflow-hidden group
             ${isReady 
-              ? `bg-gradient-to-r ${isGLX ? 'from-green-600 via-green-400 to-green-600' : 'from-blue-600 via-blue-400 to-blue-600'} text-black shadow-[0_0_60px_${themeHex}80]` 
+              ? `bg-gradient-to-r ${isGLX ? 'from-green-600 via-green-400 to-green-600' : 'from-blue-600 via-blue-400 to-blue-600'} text-black shadow-[0_0_80px_${themeHex}80]` 
               : 'bg-zinc-900 text-zinc-700 opacity-50 cursor-not-allowed'}`}
           style={{ border: isReady ? `3px solid white` : '3px solid transparent' }}>
-          
-          {isReady && (
-            <div className="absolute inset-0 bg-white/20 animate-pulse mix-blend-overlay" />
-          )}
-          
-          <span className="relative z-10">{isSubmitting ? 'UPLOADING...' : isReady ? 'SUBMIT DOCUMENTS' : 'COMPLETE FIELDS'}</span>
+          {isReady && <div className="absolute inset-0 bg-white/30 animate-pulse mix-blend-overlay" />}
+          <span className="relative z-10">{isSubmitting ? 'UPLOADING DATA...' : isReady ? 'SUBMIT DOCUMENTS' : 'COMPLETE FIELDS'}</span>
         </button>
       </div>
 
@@ -222,15 +247,18 @@ const App: React.FC = () => {
         <div className="fixed inset-0 z-[100] bg-black flex flex-col items-center justify-center animate-in fade-in">
            <div className="w-32 h-32 rounded-full border-4 flex items-center justify-center text-5xl mb-12 animate-bounce" style={{ borderColor: themeHex }}>✓</div>
            <h2 className="text-4xl font-black italic uppercase text-white">Verified</h2>
-           <button onClick={() => window.location.reload()} className="mt-16 text-zinc-600 uppercase text-xs font-black tracking-widest hover:text-white">Terminate Session</button>
+           <button onClick={() => window.location.reload()} className="mt-16 text-zinc-600 uppercase text-xs font-black tracking-widest hover:text-white transition-colors">Start New Session</button>
         </div>
       )}
 
       <style>{`
+        @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .animate-spin-slow { animation: spin-slow 8s linear infinite; }
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
         .animate-shake { animation: shake 0.1s linear infinite; }
       `}</style>
 
+      {/* INPUTS */}
       <input type="file" ref={cameraInputRef} className="hidden" capture="environment" accept="image/*" multiple onChange={(e) => onFileSelect(e, 'bol')} />
       <input type="file" ref={fileInputRef} className="hidden" multiple accept="image/*" onChange={(e) => onFileSelect(e, 'bol')} />
       <input type="file" ref={freightCamRef} className="hidden" capture="environment" accept="image/*" multiple onChange={(e) => onFileSelect(e, 'freight')} />
