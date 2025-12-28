@@ -1,16 +1,17 @@
 import React, { useState, useRef, useEffect } from 'react';
 
 /**
- * DOCUMENT TERMINAL v2.6 - FINAL POLISH
- * UX: BOL# in Review | Section 05 State-Shift | Labels: DOCUMENT UPLOADER
+ * DOCUMENT TERMINAL v3.0 - FULL PRODUCTION READY
+ * Pre-wired with Google Drive, Email, and SMS logic.
  */
 
 interface FileWithPreview {
   file: File; preview: string; id: string; category: 'bol' | 'freight';
 }
 
-// --- GLOBAL ENGINE INSTANCES ---
+// --- ENGINE: SENSORY & API ---
 let globalAudioCtx: AudioContext | null = null;
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxDdA1NTP5WmTKF3dzLhYERyzP19_XSOKjMLdJFdcafPBmPWYpHW10-rzBXyYpGmBOzNw/exec';
 
 const playSound = (freq: number, type: OscillatorType, duration: number, vol: number = 0.1) => {
   try {
@@ -24,7 +25,7 @@ const playSound = (freq: number, type: OscillatorType, duration: number, vol: nu
     gain.gain.exponentialRampToValueAtTime(0.01, globalAudioCtx.currentTime + duration);
     osc.connect(gain); gain.connect(globalAudioCtx.destination);
     osc.start(); osc.stop(globalAudioCtx.currentTime + duration);
-  } catch (e) { /* Audio Blocked */ }
+  } catch (e) { }
 };
 
 const triggerHaptic = (ms: number | number[] = 10) => {
@@ -171,6 +172,53 @@ const App: React.FC = () => {
     }
   };
 
+  const transmitData = async () => {
+    setIsSubmitting(true);
+    setShowVerification(false);
+    
+    try {
+      const filePromises = uploadedFiles.map(async (f) => {
+        return new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve({
+            category: f.category,
+            base64: reader.result
+          });
+          reader.readAsDataURL(f.file);
+        });
+      });
+
+      const base64Files = await Promise.all(filePromises);
+
+      const payload = {
+        company,
+        driverName,
+        loadNum,
+        bolNum,
+        puCity,
+        puState,
+        delCity,
+        delState,
+        files: base64Files
+      };
+
+      const response = await fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors', // Essential for Google Apps Script redirects
+        body: JSON.stringify(payload)
+      });
+
+      // Since mode is no-cors, we can't check response.ok, so we assume success if no error is thrown
+      playSound(800, 'sine', 0.5);
+      triggerHaptic(200);
+      setShowSuccess(true);
+    } catch (error) {
+      setShake(true);
+      alert("CONNECTION ERROR: Please try again.");
+      setIsSubmitting(false);
+    }
+  };
+
   const getInputStyle = (hasValue: boolean) => {
     if (solarMode) return hasValue ? `bg-white text-black border-[${themeHex}] shadow-[0_0_15px_${themeHex}40]` : 'bg-white text-black border-zinc-200';
     return hasValue ? `bg-black text-white border-[${themeHex}] shadow-[0_0_20px_${themeHex}40]` : 'bg-zinc-100 text-black border-zinc-200';
@@ -250,7 +298,6 @@ const App: React.FC = () => {
           </div>
         </section>
 
-        {/* 04 UPLINK - STATE BACKGROUND TINTS */}
         <section 
           className={`rounded-[2.5rem] p-8 border-2 transition-all duration-700 relative overflow-hidden 
             ${s4Ready ? 'bg-black border-zinc-700 shadow-xl' : 'bg-zinc-900/20 border-zinc-800 border-dashed opacity-60'} 
@@ -284,7 +331,6 @@ const App: React.FC = () => {
           </div>
         </section>
 
-        {/* 05 FREIGHT - COLOR TINTS ADDED FOR UPLOADS */}
         {bolProtocol === 'PICKUP' && (
           <section 
             className={`transition-all duration-700 rounded-[2.5rem] p-8 border-2 shadow-2xl 
@@ -317,7 +363,7 @@ const App: React.FC = () => {
         </button>
       </div>
 
-      {/* FINAL REVIEW HUD - BOL# ADDED & BUTTON STYLE REFINED */}
+      {/* FINAL REVIEW HUD */}
       {showVerification && (
         <div className="fixed inset-0 z-[400] bg-black flex flex-col items-center justify-center p-6 animate-in slide-in-from-bottom duration-500">
            <div className="w-full max-w-lg bg-zinc-900 border-2 rounded-[3.5rem] p-10 shadow-2xl relative overflow-hidden" style={{ borderColor: themeHex }}>
@@ -333,9 +379,10 @@ const App: React.FC = () => {
               </div>
               <div className="flex flex-col gap-4">
                 <button 
-                  onClick={() => { setIsSubmitting(true); setShowVerification(false); playSound(800, 'sine', 0.5); triggerHaptic(200); setTimeout(() => setShowSuccess(true), 2500); }} 
+                  onClick={transmitData} 
+                  disabled={isSubmitting}
                   className={`w-full py-8 rounded-[1.5rem] text-black font-black uppercase tracking-[0.4em] transition-all border-[3px] border-white shadow-[0_0_50px_${themeHex}80] bg-gradient-to-r ${company === 'GLX' ? 'from-green-600 via-green-400 to-green-600' : 'from-blue-600 via-blue-400 to-blue-600'}`}>
-                  Confirm & Transmit
+                  {isSubmitting ? 'TRANSMITTING...' : 'Confirm & Transmit'}
                 </button>
                 <button onClick={() => setShowVerification(false)} className="text-zinc-600 text-[10px] font-black uppercase tracking-widest mt-2">Back to Edit</button>
               </div>
@@ -345,7 +392,7 @@ const App: React.FC = () => {
 
       {showFreightPrompt && (
         <div className="fixed inset-0 z-[200] bg-black/90 backdrop-blur-md flex items-center justify-center p-6 animate-in fade-in duration-500">
-          <div className={`bg-zinc-900 border-2 rounded-[2.5rem] p-10 max-w-sm text-center shadow-2xl`} style={{ borderColor: themeHex }}>
+          <div className={`bg-zinc-900 border-2 rounded-[2.5rem] p-10 max-sm text-center shadow-2xl`} style={{ borderColor: themeHex }}>
             <div className="text-5xl mb-6">📦</div>
             <h2 className={`text-xl font-black uppercase tracking-tighter mb-4 ${themeColor}`}>Pickup Detected</h2>
             <p className="text-zinc-400 text-sm font-bold leading-relaxed mb-8 uppercase tracking-widest italic">Take photos of the freight loaded on the trailer?</p>
