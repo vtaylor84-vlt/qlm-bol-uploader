@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 
 /**
- * QLMCONNECT TERMINAL v3.3 - OFFICIAL BRANDING
- * SENIOR GRADE: High-Intensity UX | Google TMS Integration | restored labels
+ * QLMCONNECT TERMINAL v3.5 - STABLE PRODUCTION
+ * VISUAL UPGRADE ONLY: Pulsing Handshake | Green Verifiers | Original Data Payload
  */
 
 interface FileWithPreview {
@@ -10,6 +10,7 @@ interface FileWithPreview {
 }
 
 const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby-L6nKjgfAnLFPgezkf3inQTJRG3Ql_MufZ-jlKWhSbPdEHeQniPLdNQDaidM2EY6MdA/exec';
+
 let globalAudioCtx: AudioContext | null = null;
 
 const playSound = (freq: number, type: OscillatorType, duration: number, vol: number = 0.1) => {
@@ -172,12 +173,22 @@ const App: React.FC = () => {
       <div className="min-h-screen bg-[#020202] flex items-center justify-center p-6 relative">
         <div className="absolute inset-0 opacity-10 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] z-50 bg-[length:100%_2px,3px_100%]" />
         <div className="w-full max-w-md bg-zinc-950/50 p-10 border border-zinc-900 rounded-[3rem] shadow-2xl flex flex-col items-center gap-10">
-          <button onClick={startSecureHandshake} className={`relative w-40 h-40 border-2 rounded-full flex items-center justify-center transition-all duration-1000 ${isAuthenticating ? 'border-blue-500 shadow-[0_0_50px_rgba(59,130,246,0.3)]' : 'border-zinc-800'}`}>
+          <button onClick={startSecureHandshake} className={`relative group w-40 h-40 border-2 rounded-full flex items-center justify-center transition-all duration-1000 ${isAuthenticating ? 'border-blue-500 shadow-[0_0_50px_rgba(59,130,246,0.3)]' : 'border-zinc-800 hover:border-zinc-400'}`}>
             <span className={`text-6xl ${isAuthenticating ? 'animate-pulse' : ''}`}>{isAuthenticating ? '🔐' : '🛡️'}</span>
+            {!isAuthenticating && (
+               <div className="absolute -bottom-14 w-full text-center">
+                  <p className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-500 animate-pulse">Click to Connect</p>
+               </div>
+            )}
           </button>
-          <div className="w-full space-y-4 font-mono">{['ENCRYPTING...', 'VERIFYING...', 'UPLINKING...', 'SECURE'].map((label, i) => (
-            <div key={i} className={`text-[10px] flex justify-between tracking-widest ${authStage > i ? 'text-blue-400' : 'text-zinc-800'}`}><span>{`> ${label}`}</span><span>{authStage > i ? '[OK]' : '[--]'}</span></div>
-          ))}</div>
+          <div className="w-full space-y-4 font-mono">
+            {['ENCRYPTING...', 'VERIFYING...', 'UPLINKING...', 'SECURE'].map((label, i) => (
+              <div key={i} className={`text-[10px] flex justify-between tracking-widest ${authStage > i ? (i === 3 ? 'text-green-500' : 'text-blue-400') : 'text-zinc-800'}`}>
+                <span>{`> ${label}`}</span>
+                <span>{authStage > i ? '[OK]' : '[--]'}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     );
