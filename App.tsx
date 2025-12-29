@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 
 /**
- * QLMCONNECT TERMINAL v3.6 - RESTORED VISUALS
- * STATUS: High-Intensity UX | Restored Gradients | Pulse Handshake | Green Verifiers
+ * QLMCONNECT TERMINAL v3.7 - ELITE PRODUCTION
+ * STATUS: High-Intensity UX | Neon Transmit Trigger | Pulse Handshake | Green Verifiers
  */
 
 interface FileWithPreview {
@@ -203,7 +203,6 @@ const App: React.FC = () => {
         <div className={`w-full min-h-[220px] rounded-[3.5rem] border-2 transition-all duration-1000 flex items-center justify-center ${company ? 'bg-black shadow-2xl' : 'bg-zinc-900/50 border-zinc-800'}`} style={{ borderColor: company ? themeHex : '' }}>{!company && <h1 className="text-4xl font-black italic tracking-tighter uppercase text-zinc-700">QLM<span className="text-zinc-500">CONNECT</span></h1>}{company === 'GLX' && <GreenleafLogo />}{company === 'BST' && <BSTLogo />}</div>
       </header>
       <div className="max-w-4xl mx-auto space-y-8 px-4 relative z-10">
-        {/* Sections 01-03 Unchanged for brevity but included in full script */}
         <section className={`bg-zinc-900/40 border-2 rounded-[2.5rem] p-8 shadow-2xl ${solarMode ? 'bg-zinc-50 border-zinc-200' : ''}`} style={{ borderColor: company ? themeHex : '#27272a' }}>
           <h3 className={`text-[11px] font-black uppercase tracking-[0.6em] mb-8 ${company ? themeColor : 'text-zinc-500'}`}>[ 01 ] Identification</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -223,8 +222,6 @@ const App: React.FC = () => {
           <div className="grid grid-cols-3 gap-6 mb-6"><input type="text" placeholder="PICKUP CITY" className={`col-span-2 p-5 rounded-2xl border-2 outline-none ${getInputStyle(!!puCity)}`} value={puCity} onChange={(e) => handleInputChange(setPuCity, e.target.value)} /><select className={`p-5 rounded-2xl border-2 outline-none ${getInputStyle(!!puState)}`} value={puState} onChange={(e) => setPuState(e.target.value)}><option value="">STATE</option>{states.map(s => <option key={s} value={s}>{s}</option>)}</select></div>
           <div className="grid grid-cols-3 gap-6"><input type="text" placeholder="DELIVERY CITY" className={`col-span-2 p-5 rounded-2xl border-2 outline-none ${getInputStyle(!!delCity)}`} value={delCity} onChange={(e) => handleInputChange(setDelCity, e.target.value)} /><select className={`p-5 rounded-2xl border-2 outline-none ${getInputStyle(!!delState)}`} value={delState} onChange={(e) => setDelState(e.target.value)}><option value="">STATE</option>{states.map(s => <option key={s} value={s}>{s}</option>)}</select></div>
         </section>
-
-        {/* Uplink & Review - GRADIENTS RESTORED HERE */}
         <section className={`rounded-[2.5rem] p-8 border-2 transition-all ${bolProtocol ? (solarMode ? 'bg-zinc-100' : 'bg-black') : 'opacity-40 border-dashed'}`} style={{ borderColor: bolProtocol ? themeHex : '#27272a', backgroundColor: bolProtocol ? `${themeHex}${solarMode ? '10' : '20'}` : '' }}>
           <div className="flex flex-col sm:flex-row justify-between items-center gap-6 mb-10"><h3 className={`text-[11px] font-black uppercase tracking-[0.6em] ${bolProtocol ? themeColor : 'text-zinc-500'}`}>[ 04 ] Uplink</h3><div className="flex gap-4"><button onClick={() => {setBolProtocol('PICKUP'); triggerHaptic(10);}} className={`px-8 py-3 text-[10px] font-black rounded-xl border-2 transition-all ${bolProtocol === 'PICKUP' ? `bg-black text-white border-[${themeHex}] shadow-lg` : 'bg-white text-zinc-500 border-zinc-200'}`}>PICKUP BOL</button><button onClick={() => {setBolProtocol('DELIVERY'); triggerHaptic(10);}} className={`px-8 py-3 text-[10px] font-black rounded-xl border-2 transition-all ${bolProtocol === 'DELIVERY' ? `bg-black text-white border-[${themeHex}] shadow-lg` : 'bg-white text-zinc-500 border-zinc-200'}`}>DELIVERY BOL</button></div></div>
           <div className={`flex justify-center gap-16 py-6 transition-all ${bolProtocol ? 'opacity-100' : 'opacity-20 pointer-events-none'}`}><button onClick={() => cameraInputRef.current?.click()} className="flex flex-col items-center gap-4 group"><div className={`w-20 h-20 rounded-2xl flex items-center justify-center text-4xl border ${solarMode ? 'bg-white border-zinc-300' : 'bg-zinc-800 border-zinc-700'} group-active:scale-95`}>📸</div><span className="text-[10px] font-black uppercase text-zinc-500">Camera</span></button><button onClick={() => fileInputRef.current?.click()} className="flex flex-col items-center gap-4 group"><div className={`w-20 h-20 rounded-2xl flex items-center justify-center text-4xl border ${solarMode ? 'bg-white border-zinc-300' : 'bg-zinc-800 border-zinc-700'} group-active:scale-95`}>📂</div><span className="text-[10px] font-black uppercase text-zinc-500">Gallery</span></button></div>
@@ -234,14 +231,31 @@ const App: React.FC = () => {
         <button onClick={() => { if(!isReady) { playSound(100, 'square', 0.3); triggerHaptic(100); setShake(true); setTimeout(() => setShake(false), 500); } else { playSound(600, 'sine', 0.3); triggerHaptic([30, 100]); setShowVerification(true); } }} className={`w-full py-10 rounded-[2.5rem] font-black uppercase tracking-[1.5em] transition-all duration-1000 border-[3px] border-white ${isReady ? `bg-gradient-to-r ${company === 'GLX' ? 'from-green-600 via-green-400 to-green-600' : 'from-blue-600 via-blue-400 to-blue-600'} text-black shadow-2xl scale-[1.02]` : 'bg-zinc-900 text-zinc-700 opacity-50 cursor-not-allowed'}`}><span className="relative z-10">{isReady ? 'REVIEW DOCUMENTS' : 'COMPLETE FIELDS'}</span></button>
       </div>
 
-      {showVerification && (<div className="fixed inset-0 z-[400] bg-black flex flex-col items-center justify-center p-6 animate-in slide-in-from-bottom duration-500"><div className="w-full max-w-lg bg-zinc-900 border-2 rounded-[3.5rem] p-10 shadow-2xl relative overflow-hidden" style={{ borderColor: themeHex }}><h2 className={`text-2xl font-black italic uppercase tracking-widest mb-10 ${themeColor}`}>Final Review</h2><div className="space-y-6 mb-12 font-mono text-sm text-white">
-        <div className="flex justify-between border-b border-zinc-800 pb-2"><span>Carrier</span><span>{company === 'GLX' ? 'GREENLEAF XPRESS' : 'BST EXPEDITE'}</span></div>
-        <div className="flex justify-between border-b border-zinc-800 pb-2"><span>Load #</span><span>{loadNum || 'N/A'}</span></div>
-        <div className="flex justify-between border-b border-zinc-800 pb-2"><span>BOL #</span><span>{bolNum || 'N/A'}</span></div>
-        <div className="flex justify-between border-b border-zinc-800 pb-2"><span>Origin</span><span>{puCity}, {puState}</span></div>
-        <div className="flex justify-between border-b border-zinc-800 pb-2"><span>Dest.</span><span>{delCity}, {delState}</span></div>
-        <div className="flex justify-between border-b border-zinc-800 pb-2"><span>Photos</span><span>{uploadedFiles.length} Total</span></div>
-        </div><div className="flex flex-col gap-4"><button onClick={transmitData} disabled={isSubmitting} className={`w-full py-8 rounded-[1.5rem] text-black font-black uppercase tracking-[0.4em] transition-all border-[3px] border-white shadow-2xl bg-gradient-to-r ${company === 'GLX' ? 'from-green-400 to-green-600' : 'from-blue-400 to-blue-600'}`}>{isSubmitting ? 'TRANSMITTING...' : 'Confirm & Transmit'}</button><button onClick={() => setShowVerification(false)} className="text-zinc-600 text-[10px] font-black uppercase tracking-widest mt-2 hover:text-white transition-colors">Back to Edit</button></div></div></div>)}
+      {showVerification && (
+        <div className="fixed inset-0 z-[400] bg-black flex flex-col items-center justify-center p-6 animate-in slide-in-from-bottom duration-500">
+          <div className="w-full max-w-lg bg-zinc-900 border-2 rounded-[3.5rem] p-10 shadow-2xl relative overflow-hidden" style={{ borderColor: themeHex }}>
+            <h2 className={`text-2xl font-black italic uppercase tracking-widest mb-10 ${themeColor}`}>Final Review</h2>
+            <div className="space-y-6 mb-12 font-mono text-sm text-white">
+              <div className="flex justify-between border-b border-zinc-800 pb-2"><span>Carrier</span><span>{company === 'GLX' ? 'GREENLEAF XPRESS' : 'BST EXPEDITE'}</span></div>
+              <div className="flex justify-between border-b border-zinc-800 pb-2"><span>Load #</span><span>{loadNum || 'N/A'}</span></div>
+              <div className="flex justify-between border-b border-zinc-800 pb-2"><span>BOL #</span><span>{bolNum || 'N/A'}</span></div>
+              <div className="flex justify-between border-b border-zinc-800 pb-2"><span>Origin</span><span>{puCity}, {puState}</span></div>
+              <div className="flex justify-between border-b border-zinc-800 pb-2"><span>Dest.</span><span>{delCity}, {delState}</span></div>
+              <div className="flex justify-between border-b border-zinc-800 pb-2"><span>Photos</span><span>{uploadedFiles.length} Total</span></div>
+            </div>
+            <div className="flex flex-col gap-4">
+              <button 
+                onClick={transmitData} 
+                disabled={isSubmitting} 
+                className="w-full py-8 rounded-[1.5rem] bg-[#ccff00] text-black font-black uppercase tracking-[0.4em] transition-all border-[3px] border-white shadow-[0_0_30px_rgba(204,255,0,0.4)] active:scale-95"
+              >
+                {isSubmitting ? 'TRANSMITTING...' : 'Confirm & Transmit'}
+              </button>
+              <button onClick={() => setShowVerification(false)} className="text-zinc-600 text-[10px] font-black uppercase tracking-widest mt-2 hover:text-white transition-colors">Back to Edit</button>
+            </div>
+          </div>
+        </div>
+      )}
       
       {showSuccess && (<div className="fixed inset-0 z-[500] bg-black flex flex-col items-center justify-center animate-in fade-in"><div className="w-32 h-32 rounded-full border-4 flex items-center justify-center text-5xl mb-12 animate-bounce" style={{ borderColor: themeHex }}>✓</div><h2 className="text-4xl font-black italic uppercase text-white tracking-widest text-center px-4">Uplink Verified</h2><button onClick={() => window.location.reload()} className="mt-16 text-zinc-600 uppercase text-xs font-black tracking-widest hover:text-white">Terminate Session</button></div>)}
       
