@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 
-/** * LOGISTICS TERMINAL v22.0 - PRODUCTION MASTER
- * - FIXED: Review Documents button now carries full brand color (Green/Blue).
- * - FIXED: Clear All button highlights Blue once any data is entered.
- * - RESTORED: All Logos, Solar/Midnight, Handshake, and Offline Vaulting.
+/** * LOGISTICS TERMINAL v23.0 - HIGH-VISIBILITY MASTER
+ * - FIXED: Review Documents text is now White for maximum legibility.
+ * - FIXED: Clear All button highlights Blue when data is present.
+ * - FEATURES: Solar/Midnight Toggle, BST/GLX Logos, Offline Vaulting.
  */
 
 interface FileWithPreview {
@@ -12,7 +12,7 @@ interface FileWithPreview {
 
 const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby-L6nKjgfAnLFPgezkf3inQTJRG3Ql_MufZ-jlKWhSbPdEHeQniPLdNQDaidM2EY6MdA/exec';
 
-// --- AUDIO ENGINE ---
+// --- UTILITIES ---
 let globalAudioCtx: AudioContext | null = null;
 const playSound = (freq: number, type: OscillatorType, duration: number, vol: number = 0.1) => {
   try {
@@ -49,6 +49,7 @@ const compressImage = (file: File): Promise<Blob> => {
   });
 };
 
+// --- LOGOS ---
 const GreenleafLogo = () => (
   <div className="flex flex-col items-center justify-center animate-in fade-in zoom-in duration-1000 p-4">
     <svg width="320" height="180" viewBox="0 0 400 220" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -93,8 +94,6 @@ const App: React.FC = () => {
   const freightFileRef = useRef<HTMLInputElement>(null);
 
   const states = ['AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 'HI', 'IA', 'ID', 'IL', 'IN', 'KS', 'KY', 'LA', 'ME', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'];
-  
-  // BRAND COLOR LOGIC
   const themeHex = company === 'GLX' ? '#22c55e' : company === 'BST' ? '#3b82f6' : '#6366f1';
   const themeColor = company === 'GLX' ? 'text-green-500' : company === 'BST' ? 'text-blue-500' : 'text-zinc-600';
 
@@ -129,10 +128,10 @@ const App: React.FC = () => {
 
   if (isLocked) return (
     <div className="min-h-screen bg-black flex flex-col items-center justify-center p-6">
-      <button onClick={() => { let stage=0; const inv=setInterval(()=>{ stage++; setAuthStage(stage); playSound(200+(stage*100),'sine',0.1); if(stage>=4){ clearInterval(inv); playSound(800,'square',0.3,0.1); setTimeout(()=>setIsLocked(false),500); }},600); }} className="w-40 h-40 border-2 border-zinc-800 rounded-full flex items-center justify-center animate-pulse">
+      <button onClick={() => { let stage=0; const inv=setInterval(()=>{ stage++; setAuthStage(stage); playSound(200+(stage*100),'sine',0.1); if(stage>=4){ clearInterval(inv); playSound(800,'square',0.3,0.1); setTimeout(()=>setIsLocked(false),500); }},600); }} className="w-40 h-40 border-2 border-zinc-800 rounded-full flex items-center justify-center animate-pulse shadow-2xl">
         <span className="text-5xl">🛡️</span>
       </button>
-      <p className="mt-8 text-[10px] font-black uppercase tracking-[0.5em] text-zinc-500 text-center">Click to Connect</p>
+      <p className="mt-8 text-[10px] font-black uppercase tracking-[0.5em] text-zinc-500 text-center animate-pulse">Click to Connect</p>
       <div className="mt-10 space-y-3 font-mono text-[10px]">
         {['ENCRYPTING...', 'VERIFYING...', 'HANDSHAKE SECURE'].map((l, i) => (<div key={i} className={authStage > i ? (i===2?'text-green-500':'text-blue-400') : 'text-zinc-800'}>{`> ${l}`}</div>))}
       </div>
@@ -145,7 +144,6 @@ const App: React.FC = () => {
       
       <header className="max-w-4xl mx-auto pt-10 px-4 mb-12">
         <div className="flex justify-between items-center mb-4">
-           {/* BLUE HIGHLIGHT RESET */}
            <button onClick={()=>{ setCompany(''); setDriverName(''); setLoadNum(''); setBolNum(''); setPuCity(''); setPuState(''); setDelCity(''); setDelState(''); setBolProtocol(''); setUploadedFiles([]); playSound(100,'square',0.2); }} className={`px-4 py-2 border-2 rounded-full font-black uppercase text-[9px] tracking-widest transition-all ${isAnyFieldFilled ? 'border-blue-500 text-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]' : 'border-zinc-800 text-zinc-600 opacity-50'}`}>Clear All</button>
            <button onClick={() => setSolarMode(!solarMode)} className={`p-3 rounded-full border-2 font-black uppercase text-[9px] tracking-widest ${solarMode ? 'bg-black text-white' : 'bg-white text-black'}`}>{solarMode ? '🌙 Midnight' : '☀️ Solar'}</button>
         </div>
@@ -157,6 +155,7 @@ const App: React.FC = () => {
       </header>
 
       <div className="max-w-4xl mx-auto space-y-8 px-4">
+        {/* IDENTIFICATION */}
         <section className={`bg-zinc-900/40 border-2 rounded-[2.5rem] p-8 shadow-2xl transition-all ${solarMode ? 'bg-zinc-50 border-zinc-200':'border-zinc-800'}`} style={{ borderColor: (company && driverName) ? themeHex : '' }}>
           <h3 className={`text-[11px] font-black uppercase tracking-[0.6em] mb-8 ${(company && driverName) ? themeColor : 'text-zinc-500'}`}>[ 01 ] Identification</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -165,6 +164,7 @@ const App: React.FC = () => {
           </div>
         </section>
 
+        {/* REFERENCES */}
         <section className={`bg-zinc-900/40 border-2 rounded-[2.5rem] p-8 shadow-2xl transition-all ${solarMode ? 'bg-zinc-50 border-zinc-200':'border-zinc-800'}`} style={{ borderColor: (loadNum || bolNum) ? themeHex : '' }}>
           <h3 className={`text-[11px] font-black uppercase tracking-[0.6em] mb-8 ${(loadNum || bolNum) ? themeColor : 'text-zinc-500'}`}>[ 02 ] References</h3>
           <div className="grid grid-cols-2 gap-4">
@@ -173,6 +173,7 @@ const App: React.FC = () => {
           </div>
         </section>
 
+        {/* ROUTE */}
         <section className={`bg-zinc-900/40 border-2 rounded-[2.5rem] p-8 shadow-2xl transition-all ${solarMode ? 'bg-zinc-50 border-zinc-200':'border-zinc-800'}`} style={{ borderColor: (puCity && delCity) ? themeHex : '' }}>
           <h3 className={`text-[11px] font-black uppercase tracking-[0.6em] mb-8 ${(puCity && delCity) ? themeColor : 'text-zinc-500'}`}>[ 03 ] Route</h3>
           <div className="grid grid-cols-3 gap-6 mb-6">
@@ -185,6 +186,7 @@ const App: React.FC = () => {
           </div>
         </section>
 
+        {/* UPLINK */}
         <section className={`bg-zinc-900/40 border-2 rounded-[2.5rem] p-8 ${solarMode ? 'bg-zinc-50 border-zinc-200':'border-zinc-800'} ${bolProtocol ? 'shadow-2xl' : 'border-dashed opacity-60'}`} style={{ borderColor: bolProtocol ? themeHex : '' }}>
           <div className="flex flex-col sm:flex-row justify-between items-center gap-6 mb-10">
             <h3 className={`text-[11px] font-black uppercase tracking-[0.6em] ${bolProtocol ? themeColor : 'text-zinc-500'}`}>[ 04 ] Uplink</h3>
@@ -198,7 +200,7 @@ const App: React.FC = () => {
             <button onClick={()=>fileInputRef.current?.click()} className="flex flex-col items-center gap-4 group"><div className="w-20 h-20 rounded-2xl bg-zinc-800 flex items-center justify-center text-4xl border border-zinc-700 shadow-xl group-active:scale-95">📂</div><span className="text-[10px] font-black uppercase text-zinc-500">Gallery</span></button>
           </div>
           <div className="grid grid-cols-4 gap-2 mt-6">
-            {uploadedFiles.filter(f=>f.category==='bol').map(f=>(<div key={f.id} className="aspect-[3/4] border border-zinc-800 rounded-xl relative overflow-hidden animate-in zoom-in"><img src={f.preview} className="w-full h-full object-cover"/><button onClick={()=>setUploadedFiles(p=>p.filter(i=>i.id!==f.id))} className="absolute top-1 right-1 bg-red-600 text-white w-5 h-5 rounded-full text-[10px]">✕</button></div>))}
+            {uploadedFiles.filter(f=>f.category==='bol').map(f=>(<div key={f.id} className="aspect-[3/4] border border-zinc-800 rounded-xl relative overflow-hidden animate-in zoom-in"><img src={f.preview} className="w-full h-full object-cover" /><button onClick={()=>setUploadedFiles(p=>p.filter(i=>i.id!==f.id))} className="absolute top-1 right-1 bg-red-600 text-white w-5 h-5 rounded-full text-[10px]">✕</button></div>))}
           </div>
         </section>
 
@@ -215,9 +217,14 @@ const App: React.FC = () => {
           </section>
         )}
 
-        {/* COLORED REVIEW BUTTON */}
-        <button onClick={()=>{ if(!isReady) playSound(100,'square',0.2); else { playSound(600,'sine',0.2); setShowVerification(true); }}} className={`w-full py-10 rounded-[2.5rem] font-black uppercase tracking-[1.5em] border-2 border-white transition-all duration-1000 
-            ${isReady ? `bg-gradient-to-r ${company==='GLX'?'from-green-600 to-green-400':'from-blue-600 to-blue-400'} text-black shadow-[0_0_80px_rgba(255,255,255,0.2)] scale-[1.02]` : 'bg-zinc-900 text-zinc-700'}`}>
+        {/* HIGH-VISIBILITY BUTTON */}
+        <button 
+          onClick={()=>{ if(!isReady) playSound(100,'square',0.2); else { playSound(600,'sine',0.2); setShowVerification(true); }}} 
+          className={`w-full py-10 rounded-[2.5rem] font-black uppercase tracking-[1.5em] border-[3px] border-white transition-all duration-1000 
+            ${isReady 
+              ? `bg-gradient-to-r ${company==='GLX'?'from-green-600 to-green-500':'from-blue-600 to-blue-500'} text-white shadow-[0_0_80px_rgba(255,255,255,0.2)] scale-[1.02]` 
+              : 'bg-zinc-900 text-zinc-700 opacity-50'}`}
+        >
           {isReady ? 'REVIEW DOCUMENTS' : 'COMPLETE FIELDS'}
         </button>
       </div>
