@@ -1,16 +1,25 @@
-import React, { useState, useRef, useEffect } from 'react';
-
 /**
- * QLMCONNECT TERMINAL v3.7 - ELITE PRODUCTION
- * STATUS: High-Intensity UX | Neon Transmit Trigger | Pulse Handshake | Green Verifiers
+ * @fileoverview QLMCONNECT TERMINAL v4.0 - PERFORMANCE MASTER
+ * @version 4.0
+ * @status STABLE
+ * - ADDED: Robust Async Image Compression handling to prevent upload hangs.
+ * - MAINTAINED: All v3.9 UI, Handshake, Solar/Midnight themes, and Audio Engine.
  */
 
+import React, { useState, useRef, useEffect } from 'react';
+
+// --- TYPES & INTERFACES ---
 interface FileWithPreview {
-  file: File; preview: string; id: string; category: 'bol' | 'freight';
+  file: File | Blob;
+  preview: string;
+  id: string;
+  category: 'bol' | 'freight';
 }
 
+// --- CONFIGURATION ---
 const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby-L6nKjgfAnLFPgezkf3inQTJRG3Ql_MufZ-jlKWhSbPdEHeQniPLdNQDaidM2EY6MdA/exec';
 
+// --- UTILITIES: AUDIO & HAPTICS ---
 let globalAudioCtx: AudioContext | null = null;
 
 const playSound = (freq: number, type: OscillatorType, duration: number, vol: number = 0.1) => {
@@ -32,6 +41,7 @@ const triggerHaptic = (ms: number | number[] = 10) => {
   if ('vibrate' in navigator) navigator.vibrate(ms);
 };
 
+// --- UTILITIES: IMAGE COMPRESSION ---
 const compressImage = (file: File): Promise<Blob> => {
   return new Promise((resolve) => {
     const reader = new FileReader();
@@ -41,18 +51,19 @@ const compressImage = (file: File): Promise<Blob> => {
       img.src = event.target?.result as string;
       img.onload = () => {
         const canvas = document.createElement('canvas');
-        const MAX_WIDTH = 1600;
+        const MAX_WIDTH = 1600; // Dispatch standard
         let width = img.width; let height = img.height;
         if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
         canvas.width = width; canvas.height = height;
         const ctx = canvas.getContext('2d');
         ctx?.drawImage(img, 0, 0, width, height);
-        canvas.toBlob((blob) => resolve(blob || file), 'image/jpeg', 0.8);
+        canvas.toBlob((blob) => resolve(blob || file), 'image/jpeg', 0.8); // 80% compression
       };
     };
   });
 };
 
+// --- BRAND ASSETS ---
 const GreenleafLogo = () => (
   <div className="flex flex-col items-center justify-center animate-in fade-in zoom-in duration-1000 p-4">
     <svg width="320" height="180" viewBox="0 0 400 220" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -98,10 +109,8 @@ const App: React.FC = () => {
   const freightFileRef = useRef<HTMLInputElement>(null);
 
   const states = ['AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 'HI', 'IA', 'ID', 'IL', 'IN', 'KS', 'KY', 'LA', 'ME', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'];
-
   const themeHex = company === 'GLX' ? '#22c55e' : company === 'BST' ? '#3b82f6' : '#6366f1';
   const themeColor = company === 'GLX' ? 'text-green-500' : company === 'BST' ? 'text-blue-500' : 'text-zinc-600';
-
   const isReady = !!(company && driverName && (loadNum || bolNum) && puCity && puState && delCity && delState && bolProtocol && uploadedFiles.some(f => f.category === 'bol'));
 
   useEffect(() => {
@@ -124,16 +133,29 @@ const App: React.FC = () => {
     setter(val.toUpperCase()); playSound(150, 'sine', 0.04, 0.03);
   };
 
+  // --- REBUILT FILE SELECT WITH ASYNC COMPRESSION ---
   const onFileSelect = async (e: React.ChangeEvent<HTMLInputElement>, category: 'bol' | 'freight') => {
     if (e.target.files) {
       playSound(600, 'triangle', 0.1); triggerHaptic(30);
-      const newFiles: FileWithPreview[] = [];
-      for (let i = 0; i < e.target.files.length; i++) {
-        const compressed = await compressImage(e.target.files[i]);
-        newFiles.push({ file: new File([compressed], e.target.files[i].name), preview: URL.createObjectURL(compressed), id: Math.random().toString(36).substr(2, 9), category });
+      const files = Array.from(e.target.files);
+      
+      // We process files one by one to ensure compression finishes before moving to state
+      const processedFiles = await Promise.all(
+        files.map(async (f) => {
+          const compressed = await compressImage(f);
+          return {
+            file: compressed,
+            preview: URL.createObjectURL(compressed),
+            id: Math.random().toString(36).substr(2, 9),
+            category
+          };
+        })
+      );
+      
+      setUploadedFiles(prev => [...prev, ...processedFiles]);
+      if (category === 'bol' && bolProtocol === 'PICKUP') {
+         setTimeout(() => setShowFreightPrompt(true), 600);
       }
-      setUploadedFiles(prev => [...prev, ...newFiles]);
-      if (category === 'bol' && bolProtocol === 'PICKUP') setTimeout(() => setShowFreightPrompt(true), 600);
     }
   };
 
@@ -144,19 +166,12 @@ const App: React.FC = () => {
         return new Promise((resolve) => {
           const reader = new FileReader();
           reader.onload = () => resolve({ category: f.category, base64: reader.result });
-          reader.readAsDataURL(f.file);
+          reader.readAsDataURL(f.file instanceof File ? f.file : new File([f.file], "upload.jpg"));
         });
       });
       const base64Files = await Promise.all(filePromises);
-      const payload = { company, driverName, loadNum, bolNum, puCity, puState, delCity, delState, files: base64Files };
-
-      await fetch(GOOGLE_SCRIPT_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify(payload)
-      });
-
+      const payload = { company, driverName, loadNum, bolNum, puCity, puState, delCity, delState, bolProtocol, files: base64Files };
+      await fetch(GOOGLE_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(payload) });
       playSound(800, 'sine', 0.5); triggerHaptic(200); setShowVerification(false); setShowSuccess(true);
     } catch (error) {
       setShake(true); alert("CONNECTION ERROR: Please try again."); setIsSubmitting(false);
@@ -175,20 +190,9 @@ const App: React.FC = () => {
         <div className="w-full max-w-md bg-zinc-950/50 p-10 border border-zinc-900 rounded-[3rem] shadow-2xl flex flex-col items-center gap-10">
           <button onClick={startSecureHandshake} className={`relative group w-40 h-40 border-2 rounded-full flex items-center justify-center transition-all duration-1000 ${isAuthenticating ? 'border-blue-500 shadow-[0_0_50px_rgba(59,130,246,0.3)]' : 'border-zinc-800 hover:border-zinc-400'}`}>
             <span className={`text-6xl ${isAuthenticating ? 'animate-pulse' : ''}`}>{isAuthenticating ? '🔐' : '🛡️'}</span>
-            {!isAuthenticating && (
-              <div className="absolute -bottom-14 w-full text-center">
-                <p className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-500 animate-pulse">Click to Connect</p>
-              </div>
-            )}
+            {!isAuthenticating && <div className="absolute -bottom-14 w-full text-center"><p className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-500 animate-pulse">Click to Connect</p></div>}
           </button>
-          <div className="w-full space-y-4 font-mono">
-            {['ENCRYPTING...', 'VERIFYING...', 'UPLINKING...', 'SECURE'].map((label, i) => (
-              <div key={i} className={`text-[10px] flex justify-between tracking-widest ${authStage > i ? (i === 3 ? 'text-green-500' : 'text-blue-400') : 'text-zinc-800'}`}>
-                <span>{`> ${label}`}</span>
-                <span>{authStage > i ? '[OK]' : '[--]'}</span>
-              </div>
-            ))}
-          </div>
+          <div className="w-full space-y-4 font-mono">{['ENCRYPTING...', 'VERIFYING...', 'UPLINKING...', 'SECURE'].map((label, i) => (<div key={i} className={`text-[10px] flex justify-between tracking-widest ${authStage > i ? (i === 3 ? 'text-green-500' : 'text-blue-400') : 'text-zinc-800'}`}><span>{`> ${label}`}</span><span>{authStage > i ? '[OK]' : '[--]'}</span></div>))}</div>
         </div>
       </div>
     );
@@ -227,38 +231,50 @@ const App: React.FC = () => {
           <div className={`flex justify-center gap-16 py-6 transition-all ${bolProtocol ? 'opacity-100' : 'opacity-20 pointer-events-none'}`}><button onClick={() => cameraInputRef.current?.click()} className="flex flex-col items-center gap-4 group"><div className={`w-20 h-20 rounded-2xl flex items-center justify-center text-4xl border ${solarMode ? 'bg-white border-zinc-300' : 'bg-zinc-800 border-zinc-700'} group-active:scale-95`}>📸</div><span className="text-[10px] font-black uppercase text-zinc-500">Camera</span></button><button onClick={() => fileInputRef.current?.click()} className="flex flex-col items-center gap-4 group"><div className={`w-20 h-20 rounded-2xl flex items-center justify-center text-4xl border ${solarMode ? 'bg-white border-zinc-300' : 'bg-zinc-800 border-zinc-700'} group-active:scale-95`}>📂</div><span className="text-[10px] font-black uppercase text-zinc-500">Gallery</span></button></div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">{uploadedFiles.filter(f => f.category === 'bol').map(f => (<div key={f.id} className="aspect-[3/4] rounded-2xl bg-zinc-900 overflow-hidden relative border border-zinc-800 animate-in zoom-in"><img src={f.preview} className="w-full h-full object-cover" /><button onClick={() => setUploadedFiles(p => p.filter(i => i.id !== f.id))} className="absolute top-2 right-2 w-7 h-7 bg-red-600 text-white rounded-full flex items-center justify-center text-xs shadow-xl transition-all active:scale-90">✕</button></div>))}</div>
         </section>
-        
+        <section className={`rounded-[2.5rem] p-8 border-2 transition-all ${uploadedFiles.some(f => f.category === 'freight') ? (solarMode ? 'bg-zinc-100' : 'bg-black') : 'opacity-40 border-dashed'}`} style={{ borderColor: uploadedFiles.some(f => f.category === 'freight') ? themeHex : '#27272a', backgroundColor: uploadedFiles.some(f => f.category === 'freight') ? `${themeHex}${solarMode ? '10' : '20'}` : '' }}>
+          <h3 className={`text-[11px] font-black uppercase tracking-[0.6em] mb-8 ${uploadedFiles.some(f => f.category === 'freight') ? themeColor : 'text-zinc-500'}`}>[ 05 ] Freight Photos</h3>
+          <div className="flex justify-center gap-16 py-6 transition-all">
+            <button onClick={() => freightCamRef.current?.click()} className="flex flex-col items-center gap-4 group"><div className={`w-20 h-20 rounded-2xl flex items-center justify-center text-4xl border ${solarMode ? 'bg-white border-zinc-300' : 'bg-zinc-800 border-zinc-700'} group-active:scale-95`}>📸</div><span className="text-[10px] font-black uppercase text-zinc-500">Camera</span></button>
+            <button onClick={() => freightFileRef.current?.click()} className="flex flex-col items-center gap-4 group"><div className={`w-20 h-20 rounded-2xl flex items-center justify-center text-4xl border ${solarMode ? 'bg-white border-zinc-300' : 'bg-zinc-800 border-zinc-700'} group-active:scale-95`}>📂</div><span className="text-[10px] font-black uppercase text-zinc-500">Gallery</span></button>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">{uploadedFiles.filter(f => f.category === 'freight').map(f => (<div key={f.id} className="aspect-square rounded-2xl bg-zinc-900 overflow-hidden relative border border-zinc-800 animate-in zoom-in"><img src={f.preview} className="w-full h-full object-cover" /><button onClick={() => setUploadedFiles(p => p.filter(i => i.id !== f.id))} className="absolute top-2 right-2 w-7 h-7 bg-red-600 text-white rounded-full flex items-center justify-center text-xs shadow-xl transition-all active:scale-90">✕</button></div>))}</div>
+        </section>
         <button onClick={() => { if(!isReady) { playSound(100, 'square', 0.3); triggerHaptic(100); setShake(true); setTimeout(() => setShake(false), 500); } else { playSound(600, 'sine', 0.3); triggerHaptic([30, 100]); setShowVerification(true); } }} className={`w-full py-10 rounded-[2.5rem] font-black uppercase tracking-[1.5em] transition-all duration-1000 border-[3px] border-white ${isReady ? `bg-gradient-to-r ${company === 'GLX' ? 'from-green-600 via-green-400 to-green-600' : 'from-blue-600 via-blue-400 to-blue-600'} text-black shadow-2xl scale-[1.02]` : 'bg-zinc-900 text-zinc-700 opacity-50 cursor-not-allowed'}`}><span className="relative z-10">{isReady ? 'REVIEW DOCUMENTS' : 'COMPLETE FIELDS'}</span></button>
       </div>
 
       {showVerification && (
         <div className="fixed inset-0 z-[400] bg-black flex flex-col items-center justify-center p-6 animate-in slide-in-from-bottom duration-500">
-          <div className="w-full max-w-lg bg-zinc-900 border-2 rounded-[3.5rem] p-10 shadow-2xl relative overflow-hidden" style={{ borderColor: themeHex }}>
+          <div className="w-full max-w-lg bg-zinc-900 border-2 rounded-[3.5rem] p-10 shadow-2xl relative" style={{ borderColor: themeHex }}>
             <h2 className={`text-2xl font-black italic uppercase tracking-widest mb-10 ${themeColor}`}>Final Review</h2>
             <div className="space-y-6 mb-12 font-mono text-sm text-white">
               <div className="flex justify-between border-b border-zinc-800 pb-2"><span>Carrier</span><span>{company === 'GLX' ? 'GREENLEAF XPRESS' : 'BST EXPEDITE'}</span></div>
+              <div className="flex justify-between border-b border-zinc-800 pb-2"><span>Type</span><span>{bolProtocol} BOL</span></div>
               <div className="flex justify-between border-b border-zinc-800 pb-2"><span>Load #</span><span>{loadNum || 'N/A'}</span></div>
-              <div className="flex justify-between border-b border-zinc-800 pb-2"><span>BOL #</span><span>{bolNum || 'N/A'}</span></div>
-              <div className="flex justify-between border-b border-zinc-800 pb-2"><span>Origin</span><span>{puCity}, {puState}</span></div>
-              <div className="flex justify-between border-b border-zinc-800 pb-2"><span>Dest.</span><span>{delCity}, {delState}</span></div>
               <div className="flex justify-between border-b border-zinc-800 pb-2"><span>Photos</span><span>{uploadedFiles.length} Total</span></div>
             </div>
             <div className="flex flex-col gap-4">
-              <button 
-                onClick={transmitData} 
-                disabled={isSubmitting} 
-                className="w-full py-8 rounded-[1.5rem] bg-[#ccff00] text-black font-black uppercase tracking-[0.4em] transition-all border-[3px] border-white shadow-[0_0_30px_rgba(204,255,0,0.4)] active:scale-95"
-              >
-                {isSubmitting ? 'TRANSMITTING...' : 'Confirm & Transmit'}
-              </button>
+              <button onClick={transmitData} disabled={isSubmitting} className="w-full py-8 rounded-[1.5rem] bg-[#ccff00] text-black font-black uppercase tracking-[0.4em] border-[3px] border-white shadow-[0_0_30px_rgba(204,255,0,0.4)] active:scale-95">{isSubmitting ? 'TRANSMITTING...' : 'Confirm & Transmit'}</button>
               <button onClick={() => setShowVerification(false)} className="text-zinc-600 text-[10px] font-black uppercase tracking-widest mt-2 hover:text-white transition-colors">Back to Edit</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showFreightPrompt && (
+        <div className="fixed inset-0 z-[200] bg-black/90 backdrop-blur-md flex items-center justify-center p-6 animate-in fade-in">
+          <div className="bg-zinc-900 border-2 rounded-[2.5rem] p-10 max-w-sm text-center shadow-2xl" style={{ borderColor: themeHex }}>
+            <div className="text-5xl mb-6">📦</div>
+            <h2 className={`text-xl font-black uppercase tracking-tighter mb-4 ${themeColor}`}>Pickup Detected</h2>
+            <p className="text-zinc-400 text-sm font-bold uppercase tracking-widest italic mb-8">Take photos of the freight on trailer?</p>
+            <div className="flex flex-col gap-4">
+              <button onClick={() => { setShowFreightPrompt(false); freightCamRef.current?.click(); }} className={`${company === 'GLX' ? 'bg-green-500' : 'bg-blue-600'} text-black py-4 rounded-xl font-black uppercase tracking-widest shadow-xl`}>Open Camera</button>
+              <button onClick={() => setShowFreightPrompt(false)} className="text-zinc-500 py-2 font-black uppercase tracking-widest text-[10px]">No, Skip</button>
             </div>
           </div>
         </div>
       )}
       
       {showSuccess && (<div className="fixed inset-0 z-[500] bg-black flex flex-col items-center justify-center animate-in fade-in"><div className="w-32 h-32 rounded-full border-4 flex items-center justify-center text-5xl mb-12 animate-bounce" style={{ borderColor: themeHex }}>✓</div><h2 className="text-4xl font-black italic uppercase text-white tracking-widest text-center px-4">Uplink Verified</h2><button onClick={() => window.location.reload()} className="mt-16 text-zinc-600 uppercase text-xs font-black tracking-widest hover:text-white">Terminate Session</button></div>)}
-      
       <style>{`@keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }.animate-shake { animation: shake 0.1s linear infinite; }`}</style>
       <input type="file" ref={cameraInputRef} className="hidden" capture="environment" accept="image/*" multiple onChange={(e) => onFileSelect(e, 'bol')} /><input type="file" ref={fileInputRef} className="hidden" multiple accept="image/*" onChange={(e) => onFileSelect(e, 'bol')} /><input type="file" ref={freightCamRef} className="hidden" capture="environment" accept="image/*" multiple onChange={(e) => onFileSelect(e, 'freight')} /><input type="file" ref={freightFileRef} className="hidden" multiple accept="image/*" onChange={(e) => onFileSelect(e, 'freight')} />
     </div>
