@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 
-/** * LOGISTICS TERMINAL v20.0 - PRODUCTION MASTER
- * - BRANDED: Restored QLMCONNECT, BST Chrome, and GLX Road Logos.
- * - OFFLINE: Zero-Loss Persistence (Local Vaulting) enabled.
- * - PERFORMANCE: Async Image Compression (1200px / 0.7 Quality).
- * - UX: Handshake Dings, Tactical Glows, and Freight Photo Popup fixed.
+/** * LOGISTICS TERMINAL v21.0 - MASTER PRODUCTION RESTORATION
+ * - RESTORED: Solar/Midnight Toggle & full theme logic.
+ * - FIXED: BST Review Button now uses correct Blue (#3b82f6) branding.
+ * - ADDED: "CLEAR ALL" button for drivers to reset the terminal.
+ * - REMOVED: Swap button as requested.
+ * - OFFLINE: Zero-Loss Persistence & Sequential Compression Active.
  */
 
 interface FileWithPreview {
@@ -29,7 +30,6 @@ const playSound = (freq: number, type: OscillatorType, duration: number, vol: nu
   } catch (e) { }
 };
 
-// --- COMPRESSION ENGINE ---
 const compressImage = (file: File): Promise<Blob> => {
   return new Promise((resolve) => {
     const reader = new FileReader();
@@ -51,7 +51,7 @@ const compressImage = (file: File): Promise<Blob> => {
   });
 };
 
-// --- RESTORED BRAND ASSETS ---
+// --- BRAND ASSETS ---
 const GreenleafLogo = () => (
   <div className="flex flex-col items-center justify-center animate-in fade-in zoom-in duration-1000 p-4">
     <svg width="320" height="180" viewBox="0 0 400 220" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -72,8 +72,8 @@ const BSTLogo = () => (
 
 const App: React.FC = () => {
   const [isLocked, setIsLocked] = useState(true);
+  const [solarMode, setSolarMode] = useState(false);
   const [authStage, setAuthStage] = useState(0);
-  const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [company, setCompany] = useState<'GLX' | 'BST' | ''>('');
   const [driverName, setDriverName] = useState('');
   const [loadNum, setLoadNum] = useState('');
@@ -99,11 +99,7 @@ const App: React.FC = () => {
   const themeHex = company === 'GLX' ? '#22c55e' : '#3b82f6';
   const themeColor = company === 'GLX' ? 'text-green-500' : 'text-blue-500';
 
-  const s1Ready = !!(company && driverName);
-  const s2Ready = !!(loadNum || bolNum);
-  const s3Ready = !!(puCity && puState && delCity && delState);
-  const s4Ready = !!(bolProtocol && uploadedFiles.some(f => f.category === 'bol'));
-  const isReady = s1Ready && s2Ready && s3Ready && s4Ready;
+  const isReady = !!(company && driverName && (loadNum || bolNum) && puCity && puState && delCity && delState && bolProtocol && uploadedFiles.some(f => f.category === 'bol'));
 
   useEffect(() => {
     const handleStatus = () => setIsOffline(!navigator.onLine);
@@ -126,27 +122,39 @@ const App: React.FC = () => {
 
   const getTacticalStyles = (val: string) => {
     const isFilled = val && val.trim().length > 0;
+    if (solarMode) return `w-full p-5 rounded-2xl font-mono text-sm border-2 outline-none ${isFilled ? `bg-white text-black border-[${themeHex}] shadow-lg` : 'bg-white text-black border-zinc-200'}`;
     return `w-full p-5 rounded-2xl font-mono text-sm border-2 transition-all outline-none 
       ${isFilled ? `bg-black text-white border-[${themeHex}] shadow-[0_0_15px_${themeHex}30]` : 'bg-zinc-100 text-black border-zinc-200'}`;
   };
 
+  const clearAllFields = () => {
+    playSound(100, 'square', 0.2);
+    setCompany(''); setDriverName(''); setLoadNum(''); setBolNum('');
+    setPuCity(''); setPuState(''); setDelCity(''); setDelState('');
+    setBolProtocol(''); setUploadedFiles([]);
+  };
+
   if (isLocked) return (
     <div className="min-h-screen bg-black flex flex-col items-center justify-center p-6">
-      <button onClick={() => { if(isAuthenticating) return; setIsAuthenticating(true); let stage=0; const inv=setInterval(()=>{ stage++; setAuthStage(stage); playSound(200+(stage*100),'sine',0.1); if(stage>=4){ clearInterval(inv); playSound(800,'square',0.3,0.1); setTimeout(()=>setIsLocked(false),500); }},600); }} className={`w-40 h-40 border-2 rounded-full flex items-center justify-center transition-all duration-1000 ${isAuthenticating ? 'border-blue-500 shadow-[0_0_50px_rgba(59,130,246,0.3)]' : 'border-zinc-800'}`}>
-        <span className="text-5xl">{isAuthenticating ? '🔐' : '🛡️'}</span>
+      <button onClick={() => { let stage=0; const inv=setInterval(()=>{ stage++; setAuthStage(stage); playSound(200+(stage*100),'sine',0.1); if(stage>=4){ clearInterval(inv); playSound(800,'square',0.3,0.1); setTimeout(()=>setIsLocked(false),500); }},600); }} className="w-40 h-40 border-2 border-zinc-800 rounded-full flex items-center justify-center animate-pulse">
+        <span className="text-5xl">🛡️</span>
       </button>
-      {!isAuthenticating && <p className="mt-8 text-[10px] font-black uppercase tracking-[0.5em] text-zinc-500 animate-pulse text-center">Click to Connect</p>}
+      <p className="mt-8 text-[10px] font-black uppercase tracking-[0.5em] text-zinc-500 text-center">Click to Connect</p>
       <div className="mt-10 space-y-3 font-mono text-[10px]">
-        {['ENCRYPTING CHANNEL...', 'VERIFYING CREDENTIALS...', 'ESTABLISHING UPLINK...', 'SECURE'].map((l, i) => (<div key={i} className={authStage > i ? (i===3?'text-green-500':'text-blue-400') : 'text-zinc-800'}>{`> ${l}`}</div>))}
+        {['ENCRYPTING...', 'VERIFYING...', 'HANDSHAKE SECURE'].map((l, i) => (<div key={i} className={authStage > i ? (i===2?'text-green-500':'text-blue-400') : 'text-zinc-800'}>{`> ${l}`}</div>))}
       </div>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-[#020202] text-zinc-100 pb-24 font-sans relative">
+    <div className={`min-h-screen transition-colors duration-1000 ${solarMode ? 'bg-white text-black' : 'bg-[#020202] text-zinc-100'} pb-24 font-sans relative`}>
       <div className={`fixed top-0 left-0 right-0 py-2 text-center text-[9px] font-black uppercase tracking-[0.3em] z-[100] transition-all ${isOffline ? 'bg-red-600' : 'bg-green-600 opacity-0'}`}>OFFLINE MODE - VAULT ACTIVE</div>
       
       <header className="max-w-4xl mx-auto pt-10 px-4 mb-12">
+        <div className="flex justify-between items-center mb-4">
+           <button onClick={clearAllFields} className={`px-4 py-2 border-2 rounded-full font-black uppercase text-[9px] tracking-widest ${solarMode ? 'border-zinc-200 text-zinc-400' : 'border-zinc-800 text-zinc-600'}`}>Clear All</button>
+           <button onClick={() => setSolarMode(!solarMode)} className="p-3 rounded-full border-2 font-black uppercase text-[9px] tracking-widest">{solarMode ? '🌙 Midnight' : '☀️ Solar'}</button>
+        </div>
         <div className={`w-full min-h-[220px] rounded-[3.5rem] border-2 transition-all duration-1000 flex items-center justify-center ${company ? 'bg-black shadow-2xl' : 'bg-zinc-900/50 border-zinc-800'}`} style={{ borderColor: company ? themeHex : '' }}>
            {!company && <h1 className="text-5xl font-black italic tracking-tighter uppercase text-zinc-700">QLM<span className="text-zinc-500">CONNECT</span></h1>}
            {company === 'GLX' && <GreenleafLogo />}
@@ -155,27 +163,24 @@ const App: React.FC = () => {
       </header>
 
       <div className="max-w-4xl mx-auto space-y-8 px-4">
-        {/* SECTION 01 */}
-        <section className={`bg-zinc-900/40 border-2 rounded-[2.5rem] p-8 shadow-2xl transition-all ${s1Ready ? '' : 'border-zinc-800 opacity-60'}`} style={{ borderColor: s1Ready ? themeHex : '' }}>
-          <h3 className={`text-[11px] font-black uppercase tracking-[0.6em] mb-8 ${s1Ready ? themeColor : 'text-zinc-500'}`}>[ 01 ] Identification</h3>
+        <section className={`bg-zinc-900/40 border-2 rounded-[2.5rem] p-8 shadow-2xl transition-all ${solarMode ? 'bg-zinc-50 border-zinc-200':'border-zinc-800'}`} style={{ borderColor: (company && driverName) ? themeHex : '' }}>
+          <h3 className={`text-[11px] font-black uppercase tracking-[0.6em] mb-8 ${(company && driverName) ? themeColor : 'text-zinc-500'}`}>[ 01 ] Identification</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <select className={getTacticalStyles(company)} value={company} onChange={(e)=>setCompany(e.target.value as any)}><option value="">SELECT CARRIER</option><option value="GLX">GREENLEAF XPRESS</option><option value="BST">BST EXPEDITE INC</option></select>
             <input type="text" placeholder="DRIVER NAME" className={getTacticalStyles(driverName)} value={driverName} onChange={(e)=>setDriverName(e.target.value.toUpperCase())} />
           </div>
         </section>
 
-        {/* SECTION 02 */}
-        <section className={`bg-zinc-900/40 border-2 rounded-[2.5rem] p-8 shadow-2xl transition-all ${s2Ready ? '' : 'border-zinc-800 opacity-60'}`} style={{ borderColor: s2Ready ? themeHex : '' }}>
-          <h3 className={`text-[11px] font-black uppercase tracking-[0.6em] mb-8 ${s2Ready ? themeColor : 'text-zinc-500'}`}>[ 02 ] References</h3>
+        <section className={`bg-zinc-900/40 border-2 rounded-[2.5rem] p-8 shadow-2xl transition-all ${solarMode ? 'bg-zinc-50 border-zinc-200':'border-zinc-800'}`} style={{ borderColor: (loadNum || bolNum) ? themeHex : '' }}>
+          <h3 className={`text-[11px] font-black uppercase tracking-[0.6em] mb-8 ${(loadNum || bolNum) ? themeColor : 'text-zinc-500'}`}>[ 02 ] References</h3>
           <div className="grid grid-cols-2 gap-4">
             <input type="text" placeholder="LOAD #" className={getTacticalStyles(loadNum)} value={loadNum} onChange={(e)=>setLoadNum(e.target.value.toUpperCase())} />
             <input type="text" placeholder="BOL #" className={getTacticalStyles(bolNum)} value={bolNum} onChange={(e)=>setBolNum(e.target.value.toUpperCase())} />
           </div>
         </section>
 
-        {/* SECTION 03 */}
-        <section className={`bg-zinc-900/40 border-2 rounded-[2.5rem] p-8 shadow-2xl transition-all ${s3Ready ? '' : 'border-zinc-800 opacity-60'}`} style={{ borderColor: s3Ready ? themeHex : '' }}>
-          <div className="flex justify-between items-center mb-8"><h3 className={`text-[11px] font-black uppercase tracking-[0.6em] ${s3Ready ? themeColor : 'text-zinc-500'}`}>[ 03 ] Route</h3><button onClick={() => { const tc=puCity; const ts=puState; setPuCity(delCity); setPuState(delState); setDelCity(tc); setDelState(ts); }} className="text-[10px] font-black border px-4 py-1 rounded-full uppercase transition-all hover:bg-white hover:text-black">⇅ Swap</button></div>
+        <section className={`bg-zinc-900/40 border-2 rounded-[2.5rem] p-8 shadow-2xl transition-all ${solarMode ? 'bg-zinc-50 border-zinc-200':'border-zinc-800'}`} style={{ borderColor: (puCity && delCity) ? themeHex : '' }}>
+          <h3 className={`text-[11px] font-black uppercase tracking-[0.6em] mb-8 ${(puCity && delCity) ? themeColor : 'text-zinc-500'}`}>[ 03 ] Route</h3>
           <div className="grid grid-cols-3 gap-6 mb-6">
             <div className="col-span-2"><input type="text" placeholder="PICKUP CITY" className={getTacticalStyles(puCity)} value={puCity} onChange={(e)=>setPuCity(e.target.value.toUpperCase())} /></div>
             <select className={getTacticalStyles(puState)} value={puState} onChange={(e)=>setPuState(e.target.value)}><option value="">STATE</option>{states.map(s=><option key={s} value={s}>{s}</option>)}</select>
@@ -186,10 +191,9 @@ const App: React.FC = () => {
           </div>
         </section>
 
-        {/* SECTION 04 */}
-        <section className={`bg-zinc-900/40 border-2 rounded-[2.5rem] p-8 ${s4Ready ? 'bg-black shadow-2xl' : 'border-zinc-800 border-dashed opacity-60'}`} style={{ borderColor: s4Ready ? themeHex : '' }}>
+        <section className={`bg-zinc-900/40 border-2 rounded-[2.5rem] p-8 ${solarMode ? 'bg-zinc-50 border-zinc-200':'border-zinc-800'} ${bolProtocol ? 'shadow-2xl' : 'border-dashed opacity-60'}`} style={{ borderColor: bolProtocol ? themeHex : '' }}>
           <div className="flex flex-col sm:flex-row justify-between items-center gap-6 mb-10">
-            <h3 className={`text-[11px] font-black uppercase tracking-[0.6em] ${s4Ready ? themeColor : 'text-zinc-500'}`}>[ 04 ] Uplink</h3>
+            <h3 className={`text-[11px] font-black uppercase tracking-[0.6em] ${bolProtocol ? themeColor : 'text-zinc-500'}`}>[ 04 ] Uplink</h3>
             <div className="flex gap-4">
               <button onClick={()=>setBolProtocol('PICKUP')} className={`px-6 py-2 rounded-xl text-[10px] font-black border-2 transition-all ${bolProtocol === 'PICKUP' ? `bg-black text-white border-[${themeHex}]` : 'bg-white text-zinc-500'}`}>PICKUP BOL</button>
               <button onClick={()=>setBolProtocol('DELIVERY')} className={`px-6 py-2 rounded-xl text-[10px] font-black border-2 transition-all ${bolProtocol === 'DELIVERY' ? `bg-black text-white border-[${themeHex}]` : 'bg-white text-zinc-500'}`}>DELIVERY BOL</button>
@@ -204,9 +208,8 @@ const App: React.FC = () => {
           </div>
         </section>
 
-        {/* SECTION 05 */}
         {bolProtocol === 'PICKUP' && (
-          <section className={`bg-zinc-900/40 border-2 rounded-[2.5rem] p-8 shadow-2xl transition-all ${uploadedFiles.some(f=>f.category==='freight') ? 'bg-black shadow-2xl' : 'border-zinc-800 border-dashed opacity-60'}`} style={{ borderColor: uploadedFiles.some(f=>f.category==='freight') ? themeHex : '' }}>
+          <section className={`bg-zinc-900/40 border-2 rounded-[2.5rem] p-8 shadow-2xl transition-all ${solarMode ? 'bg-zinc-50 border-zinc-200':'border-zinc-800'} ${uploadedFiles.some(f=>f.category==='freight') ? '' : 'border-dashed opacity-60'}`} style={{ borderColor: uploadedFiles.some(f=>f.category==='freight') ? themeHex : '' }}>
             <h3 className={`text-[11px] font-black uppercase tracking-[0.6em] mb-8 ${uploadedFiles.some(f=>f.category==='freight') ? themeColor : 'text-zinc-500'}`}>[ 05 ] Freight Loaded on Trailer Photos</h3>
             <div className="flex justify-center gap-16 py-6 transition-all">
               <button onClick={()=>freightCamRef.current?.click()} className="flex flex-col items-center gap-4 group"><div className="w-20 h-20 rounded-2xl bg-zinc-800 flex items-center justify-center text-4xl border border-zinc-700 shadow-xl group-active:scale-95">📸</div><span className="text-[10px] font-black uppercase text-zinc-500">Camera</span></button>
@@ -218,19 +221,19 @@ const App: React.FC = () => {
           </section>
         )}
 
-        <button onClick={()=>{ if(!isReady) playSound(100,'square',0.2); else { playSound(600,'sine',0.2); setShowVerification(true); }}} className={`w-full py-10 rounded-[2.5rem] font-black uppercase tracking-[1.5em] border-2 border-white transition-all duration-1000 ${isReady ? `bg-gradient-to-r from-green-600 via-green-400 to-green-600 text-black shadow-[0_0_80px_rgba(34,197,94,0.4)] scale-[1.02]` : 'bg-zinc-900 text-zinc-700'}`}>
+        <button onClick={()=>{ if(!isReady) playSound(100,'square',0.2); else { playSound(600,'sine',0.2); setShowVerification(true); }}} className={`w-full py-10 rounded-[2.5rem] font-black uppercase tracking-[1.5em] border-2 border-white transition-all duration-1000 ${isReady ? `bg-gradient-to-r ${company==='GLX'?'from-green-600 to-green-400':'from-blue-600 to-blue-400'} text-black shadow-2xl scale-[1.02]` : 'bg-zinc-900 text-zinc-700'}`}>
           {isReady ? 'REVIEW DOCUMENTS' : 'COMPLETE FIELDS'}
         </button>
       </div>
 
       {showFreightPrompt && (
-        <div className="fixed inset-0 z-[200] bg-black/90 backdrop-blur-md flex items-center justify-center p-6 animate-in fade-in">
-          <div className="bg-zinc-900 border-2 border-blue-500 rounded-[2.5rem] p-10 max-w-sm text-center shadow-2xl">
-            <h2 className="text-xl font-black uppercase mb-4 text-blue-500 italic">Pickup Detected</h2>
-            <p className="text-zinc-400 text-sm mb-8 font-bold italic tracking-widest uppercase">Take photos of the freight loaded on the trailer?</p>
+        <div className="fixed inset-0 z-[200] bg-black/90 flex items-center justify-center p-6 animate-in fade-in">
+          <div className={`bg-zinc-900 border-2 rounded-[2.5rem] p-10 max-w-sm text-center shadow-2xl ${company==='GLX'?'border-green-500':'border-blue-500'}`}>
+            <h2 className={`text-xl font-black uppercase mb-4 ${themeColor}`}>Pickup Detected</h2>
+            <p className="text-zinc-400 text-sm mb-8 font-bold italic tracking-widest uppercase text-center">Take photos of the freight loaded on the trailer?</p>
             <div className="flex flex-col gap-4">
-              <button onClick={()=>{ setShowFreightPrompt(false); freightCamRef.current?.click(); }} className="bg-green-500 text-black py-4 rounded-xl font-black uppercase tracking-widest shadow-xl">Yes, Open Camera</button>
-              <button onClick={()=>setShowFreightPrompt(false)} className="text-zinc-500 font-black uppercase text-[10px] tracking-widest">No, Skip</button>
+              <button onClick={()=>{ setShowFreightPrompt(false); freightCamRef.current?.click(); }} className={`${company==='GLX'?'bg-green-500':'bg-blue-600'} text-black py-4 rounded-xl font-black uppercase tracking-widest shadow-xl`}>Yes, Open Camera</button>
+              <button onClick={()=>setShowFreightPrompt(false)} className="text-zinc-500 font-black uppercase text-[10px]">No, Skip</button>
             </div>
           </div>
         </div>
@@ -244,9 +247,8 @@ const App: React.FC = () => {
              <h2 className={`text-2xl font-black italic uppercase tracking-widest mb-10 ${themeColor}`}>Final Review</h2>
              <div className="space-y-6 mb-12 font-mono text-sm text-white uppercase tracking-tighter">
                 <div className="flex justify-between border-b border-zinc-800 pb-2"><span>Carrier</span><span>{company === 'GLX' ? 'GREENLEAF XPRESS' : 'BST EXPEDITE'}</span></div>
-                <div className="flex justify-between border-b border-zinc-800 pb-2"><span>Driver</span><span>{driverName}</span></div>
                 <div className="flex justify-between border-b border-zinc-800 pb-2"><span>Type</span><span>{bolProtocol} BOL</span></div>
-                <div className="flex justify-between border-b border-zinc-800 pb-2"><span>Route</span><span>{puCity} → {delCity}</span></div>
+                <div className="flex justify-between border-b border-zinc-800 pb-2"><span>Load #</span><span>{loadNum}</span></div>
                 <div className="flex justify-between border-b border-zinc-800 pb-2"><span>Photos</span><span>{uploadedFiles.length} Total</span></div>
              </div>
              <button onClick={async ()=>{ setIsSubmitting(true); const base64=await Promise.all(uploadedFiles.map(async f=>{ return new Promise(resolve=>{ const r=new FileReader(); r.onload=()=>resolve({category:f.category,base64:r.result}); r.readAsDataURL(f.file); })} )); const payload={company,driverName,loadNum,bolNum,puCity,puState,delCity,delState,bolProtocol,files:base64}; localStorage.setItem('vault', JSON.stringify(payload)); try { await fetch(GOOGLE_SCRIPT_URL,{method:'POST',mode:'no-cors',body:JSON.stringify(payload)}); localStorage.removeItem('vault'); setShowSuccess(true); } catch(e){ setIsSubmitting(false); alert("OFFLINE: Data saved to phone vault."); } }} className="w-full py-8 bg-[#ccff00] text-black rounded-[1.5rem] font-black uppercase tracking-[0.4em] border-[3px] border-white shadow-[0_0_30px_rgba(204,255,0,0.4)] active:scale-95">
