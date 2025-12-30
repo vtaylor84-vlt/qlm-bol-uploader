@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 
-/** * LOGISTICS TERMINAL v23.0 - HIGH-VISIBILITY MASTER
- * - FIXED: Review Documents text is now White for maximum legibility.
- * - FIXED: Clear All button highlights Blue when data is present.
- * - FEATURES: Solar/Midnight Toggle, BST/GLX Logos, Offline Vaulting.
+/** * LOGISTICS TERMINAL v24.0 - SIGNATURE UI MASTER
+ * - FIXED: Clear All button turns Green with White text once data is entered.
+ * - FIXED: Restored exact v3.9 Gradient logic for Review Documents button.
+ * - FEATURES: Solar/Midnight, Offline Vaulting, Image Compression, BST/GLX Logos.
  */
 
 interface FileWithPreview {
@@ -144,7 +144,14 @@ const App: React.FC = () => {
       
       <header className="max-w-4xl mx-auto pt-10 px-4 mb-12">
         <div className="flex justify-between items-center mb-4">
-           <button onClick={()=>{ setCompany(''); setDriverName(''); setLoadNum(''); setBolNum(''); setPuCity(''); setPuState(''); setDelCity(''); setDelState(''); setBolProtocol(''); setUploadedFiles([]); playSound(100,'square',0.2); }} className={`px-4 py-2 border-2 rounded-full font-black uppercase text-[9px] tracking-widest transition-all ${isAnyFieldFilled ? 'border-blue-500 text-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]' : 'border-zinc-800 text-zinc-600 opacity-50'}`}>Clear All</button>
+           {/* GREEN "CLEAR ALL" BUTTON */}
+           <button 
+             onClick={()=>{ setCompany(''); setDriverName(''); setLoadNum(''); setBolNum(''); setPuCity(''); setPuState(''); setDelCity(''); setDelState(''); setBolProtocol(''); setUploadedFiles([]); playSound(100,'square',0.2); }} 
+             className={`px-4 py-2 border-2 rounded-full font-black uppercase text-[9px] tracking-widest transition-all 
+             ${isAnyFieldFilled ? 'bg-green-600 border-green-400 text-white shadow-[0_0_20px_rgba(34,197,94,0.5)]' : 'border-zinc-800 text-zinc-600 opacity-50'}`}
+           >
+             Clear All
+           </button>
            <button onClick={() => setSolarMode(!solarMode)} className={`p-3 rounded-full border-2 font-black uppercase text-[9px] tracking-widest ${solarMode ? 'bg-black text-white' : 'bg-white text-black'}`}>{solarMode ? '🌙 Midnight' : '☀️ Solar'}</button>
         </div>
         <div className={`w-full min-h-[220px] rounded-[3.5rem] border-2 transition-all duration-1000 flex items-center justify-center ${company ? 'bg-black shadow-2xl' : 'bg-zinc-900/50 border-zinc-800'}`} style={{ borderColor: company ? themeHex : '' }}>
@@ -217,12 +224,12 @@ const App: React.FC = () => {
           </section>
         )}
 
-        {/* HIGH-VISIBILITY BUTTON */}
+        {/* RE-RESTORED SIGNATURE BUTTON LOGIC */}
         <button 
           onClick={()=>{ if(!isReady) playSound(100,'square',0.2); else { playSound(600,'sine',0.2); setShowVerification(true); }}} 
           className={`w-full py-10 rounded-[2.5rem] font-black uppercase tracking-[1.5em] border-[3px] border-white transition-all duration-1000 
             ${isReady 
-              ? `bg-gradient-to-r ${company==='GLX'?'from-green-600 to-green-500':'from-blue-600 to-blue-500'} text-white shadow-[0_0_80px_rgba(255,255,255,0.2)] scale-[1.02]` 
+              ? `bg-gradient-to-r ${company === 'GLX' ? 'from-green-600 via-green-400 to-green-600' : 'from-blue-600 via-blue-400 to-blue-600'} text-black shadow-2xl scale-[1.02]` 
               : 'bg-zinc-900 text-zinc-700 opacity-50'}`}
         >
           {isReady ? 'REVIEW DOCUMENTS' : 'COMPLETE FIELDS'}
