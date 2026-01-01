@@ -62,23 +62,123 @@ const compressAndEnhanceImage = (file: File): Promise<Blob> => {
 };
 
 // --- LOGOS ---
-const GreenleafLogo = () => (
-  <div className="flex flex-col items-center justify-center animate-in fade-in zoom-in duration-1000 p-4 text-white">
-    <svg width="320" height="180" viewBox="0 0 400 220" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M150 130L50 200H350L250 130H150Z" fill="url(#roadGradient)" stroke="#333" strokeWidth="2"/><path d="M200 135V150M200 165V185M200 195V200" stroke="white" strokeWidth="4" strokeDasharray="8 8" opacity="0.6"/><path d="M200 20C200 20 130 50 130 100C130 140 200 150 200 150C200 150 270 140 270 100C270 50 200 20 200 20Z" fill="#15803d" /><path d="M200 25V145M200 50L160 80M200 80L150 115" stroke="#052e16" strokeWidth="3" strokeLinecap="round"/><defs><linearGradient id="roadGradient" x1="200" y1="130" x2="200" y2="200" gradientUnits="userSpaceOnUse"><stop stopColor="#444444"/><stop offset="1" stopColor="#111111"/></linearGradient></defs>
-    </svg>
-    <div className="text-center -mt-6"><h2 className="text-4xl sm:text-5xl font-black italic uppercase tracking-tighter">Greenleaf Xpress</h2><p className="text-[10px] font-bold text-zinc-500 tracking-[0.6em] mt-3 uppercase">Waterloo, Iowa</p></div>
-  </div>
-);
+import React from 'react';
 
-const BSTLogo = () => (
-  <div className="flex flex-col items-center justify-center p-6 animate-in zoom-in duration-1000">
-    <svg width="320" height="120" viewBox="0 0 400 140" xmlns="http://www.w3.org/2000/svg">
-      <defs><linearGradient id="bst-chrome" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stopColor="#ffffff" /><stop offset="50%" stopColor="#3b82f6" /><stop offset="100%" stopColor="#1e3a8a" /></linearGradient><filter id="bst-neon"><feGaussianBlur stdDeviation="2" result="blur" /><feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge></filter></defs>
-      <text x="50%" y="85" textAnchor="middle" style={{ fontFamily: 'Arial Black, sans-serif', fontSize: '110px', fontWeight: '900', fill: 'url(#bst-chrome)', filter: 'url(#bst-neon)', fontStyle: 'italic', letterSpacing: '-5px' }}>BST</text><text x="50%" y="125" textAnchor="middle" style={{ fontFamily: 'monospace', fontSize: '16px', fill: '#60a5fa', fontWeight: 'bold', letterSpacing: '8px', textTransform: 'uppercase' }}>EXPEDITE INC</text>
-    </svg>
-  </div>
-);
+export const GreenleafLogo: React.FC = () => {
+  return (
+    <div className="flex flex-col items-center justify-center p-4 animate-in fade-in zoom-in duration-1000">
+      <svg width="380" height="240" viewBox="0 0 500 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          {/* Metallic Silver Gradient for Text & Bridge */}
+          <linearGradient id="chrome-silver" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#FFFFFF" />
+            <stop offset="40%" stopColor="#BDC3C7" />
+            <stop offset="50%" stopColor="#7F8C8D" />
+            <stop offset="100%" stopColor="#DDE4E8" />
+          </linearGradient>
+
+          {/* Vibrant Green Gradient for Leaf */}
+          <linearGradient id="leaf-green" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#A8E063" />
+            <stop offset="100%" stopColor="#22C55E" />
+          </linearGradient>
+
+          {/* Road Perspective Gradient */}
+          <linearGradient id="road-view" x1="250" y1="180" x2="250" y2="100" gradientUnits="userSpaceOnUse">
+            <stop stopColor="#111111" />
+            <stop offset="1" stopColor="#444444" />
+          </linearGradient>
+        </defs>
+
+        {/* The Bridge / Triangle Frame */}
+        <path d="M250 50L50 200H450L250 50Z" fill="url(#road-view)" stroke="url(#chrome-silver)" strokeWidth="4"/>
+        <path d="M100 200L250 50M150 200L250 50M200 200L250 50M300 200L250 50M350 200L250 50M400 200L250 50" stroke="white" strokeWidth="1" opacity="0.3"/>
+        
+        {/* The Road Lines */}
+        <path d="M250 190V175M250 160V150M250 135V130" stroke="white" strokeWidth="4" opacity="0.6"/>
+
+        {/* The Green Leaf */}
+        <path d="M250 20C250 20 180 50 180 100C180 140 250 150 250 150C250 150 320 140 320 100C320 50 250 20 250 20Z" fill="url(#leaf-green)" />
+        <path d="M250 25V145M250 50L210 80M250 80L200 115M250 60L290 90M250 95L300 125" stroke="#052e16" strokeWidth="3" strokeLinecap="round" opacity="0.5"/>
+
+        {/* Main Text: Greenleaf Xpress */}
+        <text x="50%" y="245" textAnchor="middle" style={{ fontFamily: 'Arial Black, sans-serif', fontSize: '48px', fontWeight: '900', fill: 'url(#chrome-silver)', fontStyle: 'italic', letterSpacing: '-1px' }}>GREENLEAF XPRESS</text>
+        
+        {/* LLC Subtext */}
+        <text x="50%" y="270" textAnchor="middle" style={{ fontFamily: 'Arial Black, sans-serif', fontSize: '28px', fontWeight: '900', fill: '#4ade80' }}>LLC</text>
+        
+        {/* Location Text */}
+        <text x="50%" y="295" textAnchor="middle" style={{ fontFamily: 'monospace', fontSize: '14px', fill: '#BDC3C7', fontWeight: 'bold', letterSpacing: '4px' }}>WATERLOO, IOWA</text>
+      </svg>
+    </div>
+  );
+};
+
+import React from 'react';
+
+export const BstLogo: React.FC = () => {
+    return (
+        <div className="text-center py-2 flex flex-col items-center animate-in fade-in duration-700"> 
+            <svg 
+                width="320" 
+                height="120" 
+                viewBox="0 0 400 120" 
+                xmlns="http://www.w3.org/2000/svg"
+                className="drop-shadow-2xl"
+            >
+                <defs>
+                    {/* Metallic Blue Gradient */}
+                    <linearGradient id="bst-metal" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#0ea5e9" />
+                        <stop offset="50%" stopColor="#ffffff" />
+                        <stop offset="100%" stopColor="#2563eb" />
+                    </linearGradient>
+                    
+                    {/* High-Tech Glow Filter */}
+                    <filter id="neon-glow" x="-20%" y="-20%" width="140%" height="140%">
+                        <feGaussianBlur stdDeviation="3" result="blur" />
+                        <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                    </filter>
+                </defs>
+
+                {/* Main BST Text */}
+                <text 
+                    x="200" 
+                    y="75" 
+                    textAnchor="middle" 
+                    className="font-black italic"
+                    style={{ 
+                        fontSize: '95px', 
+                        fill: 'url(#bst-metal)', 
+                        filter: 'url(#neon-glow)',
+                        fontFamily: 'Arial Black, sans-serif'
+                    }}
+                >
+                    BST
+                </text>
+
+                {/* Secondary Subtitle */}
+                <text 
+                    x="200" 
+                    y="110" 
+                    textAnchor="middle" 
+                    className="tracking-[0.5em] font-bold uppercase"
+                    style={{ 
+                        fontSize: '16px', 
+                        fill: '#93c5fd',
+                        fontFamily: 'monospace'
+                    }}
+                >
+                    Expedite Inc
+                </text>
+                
+                {/* Decorative Accents */}
+                <rect x="20" y="80" width="80" height="2" fill="#3b82f6" opacity="0.3" />
+                <rect x="300" y="80" width="80" height="2" fill="#3b82f6" opacity="0.3" />
+            </svg>
+        </div>
+    );
+};
 
 const App: React.FC = () => {
   const [isLocked, setIsLocked] = useState(true);
