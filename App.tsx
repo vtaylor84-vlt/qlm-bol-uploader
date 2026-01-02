@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
  * - RESTORED: High-detail GLX Logo (Leaf Veins & Road Lines).
  * - RESTORED: Full Tactical Engine (Vault, Sounds, Storage, Freight Prompts).
  * - FIX: Widened view for GLX and Metallic BST Logo.
+ * - ADDED: Connection Diagnostic Button.
  */
 
 interface FileWithPreview {
@@ -223,7 +224,7 @@ const App: React.FC = () => {
       <p className="mt-8 text-[10px] font-black uppercase tracking-[0.5em] text-zinc-500 text-center animate-pulse">Click to Connect</p>
       
       {/* DIAGNOSTIC BUTTON */}
-      <button onClick={checkConnection} className="mt-12 px-6 py-2 border border-zinc-800 rounded-full text-[9px] font-black uppercase tracking-widest text-zinc-600 hover:text-white">Verify Connection</button>
+      <button onClick={checkConnection} className="mt-12 px-6 py-2 border border-zinc-800 rounded-full text-[9px] font-black uppercase tracking-widest text-zinc-600 hover:text-white transition-colors">Verify Connection</button>
 
       <div className="mt-10 space-y-3 font-mono text-[10px]">
         {['ENCRYPTING...', 'VERIFYING...', 'HANDSHAKE SECURE'].map((l, i) => (<div key={i} className={authStage > i ? (i===2?'text-green-500':'text-blue-400') : 'text-zinc-800'}>{`> ${l}`}</div>))}
