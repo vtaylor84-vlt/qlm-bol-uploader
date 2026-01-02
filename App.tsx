@@ -76,15 +76,11 @@ export const GreenleafLogo: React.FC = () => (
           <stop stopColor="#111111" /><stop offset="1" stopColor="#444444" />
         </linearGradient>
       </defs>
-      {/* RESTORED: Road with Perspective Lines */}
       <path d="M300 50L100 200H500L300 50Z" fill="url(#road-view)" stroke="url(#chrome-silver)" strokeWidth="4"/>
       <path d="M150 200L300 50M210 200L300 50M270 200L300 50M330 200L300 50M390 200L300 50M450 200L300 50" stroke="white" strokeWidth="1" opacity="0.2"/>
       <path d="M300 190V175M300 160V150M300 135V130" stroke="white" strokeWidth="4" opacity="0.6"/>
-      
-      {/* RESTORED: Leaf with Veins */}
       <path d="M300 20C300 20 230 50 230 100C230 140 300 150 300 150C300 150 370 140 370 100C370 50 300 20 300 20Z" fill="url(#leaf-green)" />
       <path d="M300 25V145M300 50L260 80M300 80L250 115M300 60L340 90M300 95L350 125" stroke="#052e16" strokeWidth="3" strokeLinecap="round" opacity="0.5"/>
-      
       <text x="300" y="250" textAnchor="middle" style={{ fontFamily: 'Arial Black, sans-serif', fontSize: '44px', fontWeight: '900', fill: 'url(#chrome-silver)', fontStyle: 'italic' }}>GREENLEAF XPRESS</text>
       <text x="300" y="285" textAnchor="middle" style={{ fontFamily: 'Arial Black, sans-serif', fontSize: '32px', fontWeight: '900', fill: '#62df62' }}>LLC</text>
       <text x="300" y="310" textAnchor="middle" style={{ fontFamily: 'monospace', fontSize: '14px', fill: '#BDC3C7', fontWeight: 'bold', letterSpacing: '6px' }}>WATERLOO, IOWA</text>
@@ -166,6 +162,15 @@ const App: React.FC = () => {
     return () => { window.removeEventListener('online', handleStatus); window.removeEventListener('offline', handleStatus); clearInterval(inv); };
   }, []);
 
+  // DIAGNOSTIC TOOL INTEGRATION
+  const checkConnection = () => {
+    if (!GOOGLE_SCRIPT_URL) {
+      alert("⚠️ CONNECTION BLANK: REACT_APP_GAS_URL is missing. Please trigger 'Clear Cache & Deploy' in Netlify.");
+    } else {
+      alert("✅ CONNECTION FOUND: App is linked to Google Apps Script.");
+    }
+  };
+
   const handleManualSync = async () => {
     if (vaultEntries.length === 0 || isSyncing) return;
     setIsSyncing(true); playSound(440, 'sine', 0.2);
@@ -216,6 +221,10 @@ const App: React.FC = () => {
         <span className="text-5xl">🛡️</span>
       </button>
       <p className="mt-8 text-[10px] font-black uppercase tracking-[0.5em] text-zinc-500 text-center animate-pulse">Click to Connect</p>
+      
+      {/* DIAGNOSTIC BUTTON */}
+      <button onClick={checkConnection} className="mt-12 px-6 py-2 border border-zinc-800 rounded-full text-[9px] font-black uppercase tracking-widest text-zinc-600 hover:text-white">Verify Connection</button>
+
       <div className="mt-10 space-y-3 font-mono text-[10px]">
         {['ENCRYPTING...', 'VERIFYING...', 'HANDSHAKE SECURE'].map((l, i) => (<div key={i} className={authStage > i ? (i===2?'text-green-500':'text-blue-400') : 'text-zinc-800'}>{`> ${l}`}</div>))}
       </div>
