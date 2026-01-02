@@ -15,7 +15,7 @@ interface VaultEntry {
   id: string; timestamp: number; payload: any;
 }
 
-const GOOGLE_SCRIPT_URL = process.env.REACT_APP_GAS_URL || '';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby-L6nKjgfAnLFPgezkf3inQTJRG3Ql_MufZ-jlKWhSbPdEHeQniPLdNQDaidM2EY6MdA/exec';
 
 // --- [SECTION 00] UTILITIES (AUDIO & PROCESSING) ---
 let globalAudioCtx: AudioContext | null = null;
