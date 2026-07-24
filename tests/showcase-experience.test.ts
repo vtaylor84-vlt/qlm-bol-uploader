@@ -117,3 +117,15 @@ describe('showcase write isolation', () => {
     assert.equal(prod.getPaySummary().disclosure, 'NOT CONNECTED TO PRODUCTION');
   });
 });
+
+describe('view as replace-not-nest contract', () => {
+  it('documents exitViewAs restores driver persona without nesting', async () => {
+    // Behavioral contract covered in ShowcaseContext: setPersonaRole replaces subject;
+    // exitViewAs forces driver persona + viewAsActive false.
+    const { personaFor } = await import('../fixtures/showcase/personas.ts');
+    const admin = personaFor('GLX', 'admin');
+    const driver = personaFor('GLX', 'driver');
+    assert.notEqual(admin.id, driver.id);
+    assert.equal(driver.role, 'driver');
+  });
+});

@@ -13,7 +13,7 @@ export type CapabilityState =
   | 'DEMO_ONLY'
   | 'ADMIN_TEST';
 
-const LABELS: Record<CapabilityState, string> = {
+const FALLBACK_LABELS: Record<CapabilityState, string> = {
   AVAILABLE: '',
   NEEDS_ATTENTION: 'Action required',
   COMING_SOON: 'Coming soon',
@@ -44,6 +44,8 @@ interface CapabilityStateBadgeProps {
   className?: string;
   /** When true, hide AVAILABLE (no decorative badge). */
   hideAvailable?: boolean;
+  /** Localized label override — preferred when caller has i18n. */
+  label?: string;
 }
 
 const CapabilityStateBadge: React.FC<CapabilityStateBadgeProps> = ({
@@ -51,9 +53,10 @@ const CapabilityStateBadge: React.FC<CapabilityStateBadgeProps> = ({
   count,
   className = '',
   hideAvailable = true,
+  label: labelOverride,
 }) => {
   if (state === 'AVAILABLE' && hideAvailable) return null;
-  const label = LABELS[state];
+  const label = labelOverride ?? FALLBACK_LABELS[state];
   if (!label) return null;
   const text =
     state === 'NEEDS_ATTENTION' && typeof count === 'number' && count > 0

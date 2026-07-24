@@ -3601,3 +3601,72 @@ html[data-carrier-theme='glx'] .mc-payroll-submit-card {
     grid-template-columns: minmax(0, 26rem) minmax(0, 1fr);
   }
 }
+
+/* Language selector — login + workspace */
+.elm-lang-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+}
+.elm-lang-selector-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(165, 243, 252, 0.75);
+}
+.elm-lang-selector-control {
+  min-height: 44px;
+  width: 100%;
+  max-width: 100%;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(34, 211, 238, 0.35);
+  background: rgba(8, 15, 30, 0.92);
+  color: #f4f7fb;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.3;
+}
+.elm-lang-selector--login .elm-lang-selector-control {
+  min-height: 48px;
+}
+.elm-lang-selector--shell {
+  min-width: 7.5rem;
+  max-width: 11rem;
+}
+.elm-lang-selector--shell .elm-lang-selector-label {
+  display: none;
+}
+.elm-lang-selector--shell .elm-lang-selector-control {
+  min-height: 40px;
+  font-size: 0.75rem;
+  padding: 0.35rem 0.5rem;
+}
+.elm-lang-selector--more {
+  max-width: 20rem;
+}
+.mc-shell-header-utils .elm-lang-selector {
+  margin-right: 0.25rem;
+  display: flex;
+  flex-shrink: 0;
+}
+.mc-shell-header-utils .elm-lang-selector-control {
+  min-width: 5.75rem;
+}
+.mc-desktop-rail-footer .elm-lang-selector {
+  margin-bottom: 0.75rem;
+  max-width: 100%;
+}
+@media (max-width: 640px) {
+  .mc-shell-header-utils .elm-lang-selector {
+    max-width: 6.75rem;
+  }
+  .mc-bottom-nav-label {
+    font-size: 0.62rem;
+    line-height: 1.15;
+    white-space: normal;
+    text-align: center;
+    max-width: 4.5rem;
+  }
+}

@@ -2,6 +2,11 @@
 node_modules/
 dist/
 
+# Local secrets / env (never commit)
+.env
+.env.*
+!.env.example
+
 # Local Netlify folder
 .netlify
 

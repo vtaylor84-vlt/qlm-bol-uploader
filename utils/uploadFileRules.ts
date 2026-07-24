@@ -1,3 +1,10 @@
+import type { MessageKey } from '../i18n/messages/en.ts';
+
+/**
+ * English fallback strings for non-React callers (tests, utilities, server-side code).
+ * React callers with access to `t()` should prefer `getFileRejectionMessageKey()` /
+ * the matching `upload.*` i18n keys instead of these raw strings.
+ */
 export const HEIC_BLOCK_MESSAGE =
   'This photo format is not supported in your browser. On iPhone: Settings → Camera → Formats → Most Compatible. Or upload JPG/PNG.';
 
@@ -59,6 +66,19 @@ export function getFileRejectionReason(file: File): string | null {
   if (isWebpFile(file)) return WEBP_BLOCK_MESSAGE;
   if (isHeicFile(file)) return null;
   if (!isAllowedJpegOrPng(file)) return UNSUPPORTED_FILE_MESSAGE;
+  return null;
+}
+
+/**
+ * i18n key equivalent of `getFileRejectionReason()`. React callers with access to `t()`
+ * should prefer this and translate with `t(key)` instead of showing the English fallback.
+ */
+export function getFileRejectionMessageKey(file: File): MessageKey | null {
+  if (isVideoFile(file)) return 'upload.videoBlock';
+  if (isPdfFile(file)) return 'upload.pdfBlock';
+  if (isWebpFile(file)) return 'upload.webpBlock';
+  if (isHeicFile(file)) return null;
+  if (!isAllowedJpegOrPng(file)) return 'upload.unsupported';
   return null;
 }
 

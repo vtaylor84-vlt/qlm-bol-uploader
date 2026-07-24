@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { useLocale } from '../../context/LocaleContext.tsx';
 
 interface LogoutConfirmDialogProps {
   open: boolean;
@@ -12,6 +13,7 @@ const LogoutConfirmDialog: React.FC<LogoutConfirmDialogProps> = ({
   onCancel,
 }) => {
   const cancelRef = useRef<HTMLButtonElement>(null);
+  const { t } = useLocale();
 
   useEffect(() => {
     if (open) cancelRef.current?.focus();
@@ -38,15 +40,12 @@ const LogoutConfirmDialog: React.FC<LogoutConfirmDialogProps> = ({
       <div className="terminal-glass-panel w-full max-w-sm p-6 space-y-5 shadow-[0_0_48px_rgba(59,130,246,0.2)]">
         <div>
           <p className="text-[8px] font-black uppercase tracking-[0.4em] text-blue-400/80 mb-2">
-            Session
+            {t('more.session')}
           </p>
-          <h2 id="logout-dialog-title" className="text-lg font-black uppercase tracking-tight text-white">
-            Logout?
+          <h2 id="logout-dialog-title" className="text-lg font-black tracking-tight text-white normal-case">
+            {t('logout.title')}
           </h2>
-          <p className="mt-2 text-sm text-zinc-400 normal-case">
-            Are you sure you want to log out? Your session will be cleared and you will return to
-            the login screen.
-          </p>
+          <p className="mt-2 text-sm text-zinc-400 normal-case">{t('logout.body')}</p>
         </div>
         <div className="flex gap-3">
           <button
@@ -55,14 +54,14 @@ const LogoutConfirmDialog: React.FC<LogoutConfirmDialogProps> = ({
             onClick={onCancel}
             className="flex-1 py-3 rounded-xl border border-zinc-700 text-[9px] font-black uppercase tracking-widest text-zinc-400 hover:border-zinc-600 transition-colors"
           >
-            Cancel
+            {t('common.cancel')}
           </button>
           <button
             type="button"
             onClick={onConfirm}
             className="flex-1 py-3 rounded-xl bg-gradient-to-r from-red-600/90 to-red-500/90 border border-red-400/40 text-[9px] font-black uppercase tracking-widest text-white hover:shadow-[0_0_20px_rgba(239,68,68,0.35)] transition-all active:scale-[0.98]"
           >
-            Logout
+            {t('logout.confirm')}
           </button>
         </div>
       </div>

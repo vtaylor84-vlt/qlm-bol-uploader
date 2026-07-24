@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import ElmBrandLogo from './ElmBrandLogo.tsx';
 import { TERMINAL_SHELL } from './terminalLayout.ts';
+import { useLocale } from '../../context/LocaleContext.tsx';
 
 interface TerminalAppHeaderProps {
   solarMode: boolean;
@@ -35,6 +36,13 @@ const TerminalAppHeader: React.FC<TerminalAppHeaderProps> = ({
   onToggleSolar,
 }) => {
   const navigate = useNavigate();
+  const { t } = useLocale();
+  const eventLabel =
+    eventType === 'PICKUP'
+      ? t('bolPod.labels.pickup')
+      : eventType === 'DELIVERY'
+        ? t('bolPod.labels.deliveryPod')
+        : eventType;
 
   return (
     <header
@@ -51,14 +59,14 @@ const TerminalAppHeader: React.FC<TerminalAppHeaderProps> = ({
               type="button"
               onClick={() => navigate('/today')}
               className="shrink-0 rounded-lg text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300"
-              aria-label="ELM CONNECT home"
+              aria-label={t('bolPod.a11y.elmHome')}
             >
               <ElmBrandLogo size="sm" subtitle={false} />
             </button>
             <div className="hidden md:block h-5 w-px bg-zinc-800 shrink-0" aria-hidden />
             <div className="hidden md:block min-w-0">
               <p className="text-[7px] font-black uppercase tracking-[0.35em] text-zinc-600">
-                Step {stepIndex + 1} of {stepTotal}
+                {t('bolPod.header.stepOf', { current: stepIndex + 1, total: stepTotal })}
               </p>
               <p className="text-[10px] font-bold uppercase tracking-wide text-zinc-300 truncate">
                 {stepLabel}
@@ -70,27 +78,27 @@ const TerminalAppHeader: React.FC<TerminalAppHeaderProps> = ({
             <div
               className="flex items-center gap-1 px-1.5 sm:px-2 py-1 rounded-full border border-green-500/30 bg-green-500/10"
               role="status"
-              aria-label="Application status — visual only"
-              title="Application status — visual only"
+              aria-label={t('bolPod.a11y.appStatusVisual')}
+              title={t('bolPod.a11y.appStatusVisual')}
             >
               <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse shadow-[0_0_6px_#22c55e]" aria-hidden />
               <span className="text-[7px] font-black uppercase tracking-widest text-green-400 hidden min-[380px]:inline" aria-hidden>
-                App ready
+                {t('bolPod.header.appReady')}
               </span>
             </div>
 
             {isAdmin ? (
               <span
                 className="px-1.5 sm:px-2 py-1 rounded-full text-[6px] sm:text-[7px] font-black uppercase tracking-[0.12em] border border-amber-500/50 bg-amber-500/15 text-amber-300 whitespace-nowrap"
-                title="Admin upload mode"
+                title={t('bolPod.a11y.adminUploadMode')}
               >
-                Admin Upload Mode
+                {t('bolPod.labels.adminUploadMode')}
               </span>
             ) : null}
 
-            {eventType ? (
+            {eventLabel ? (
               <span className="hidden lg:inline px-2 py-1 rounded-full text-[6px] font-black uppercase tracking-widest border border-zinc-700 bg-zinc-900/80 text-zinc-400 whitespace-nowrap">
-                {eventType}
+                {eventLabel}
               </span>
             ) : null}
 
@@ -116,16 +124,16 @@ const TerminalAppHeader: React.FC<TerminalAppHeaderProps> = ({
                   ? 'border-zinc-300 text-zinc-600 hover:border-red-400 hover:text-red-600'
                   : 'border-zinc-600/80 bg-zinc-900/60 text-zinc-200 hover:border-red-500/50 hover:text-red-400 hover:bg-red-500/10'
               }`}
-              aria-label="Log out"
+              aria-label={t('bolPod.a11y.logout')}
             >
-              Logout
+              {t('bolPod.header.logout')}
             </button>
 
             <button
               type="button"
               onClick={onToggleSolar}
               className="terminal-btn-ghost shrink-0 w-9 h-9 sm:w-auto sm:h-auto sm:px-2.5 sm:py-2 flex items-center justify-center text-[7px] font-black uppercase min-h-[44px]"
-              aria-label={solarMode ? 'Switch to dark mode' : 'Switch to light mode'}
+              aria-label={solarMode ? t('bolPod.a11y.switchToDark') : t('bolPod.a11y.switchToLight')}
             >
               {solarMode ? '🌙' : '☀️'}
             </button>
@@ -134,12 +142,16 @@ const TerminalAppHeader: React.FC<TerminalAppHeaderProps> = ({
 
         <div className="md:hidden flex items-center justify-between gap-2 pb-2 border-t border-zinc-800/50 pt-1.5">
           <p className="text-[7px] font-black uppercase tracking-[0.28em] text-zinc-500 truncate">
-            Step {stepIndex + 1}/{stepTotal} · {stepLabel}
+            {t('bolPod.header.stepOfCompact', {
+              current: stepIndex + 1,
+              total: stepTotal,
+              label: stepLabel,
+            })}
           </p>
           <div className="flex items-center gap-1 shrink-0">
-            {eventType ? (
+            {eventLabel ? (
               <span className="px-1.5 py-0.5 rounded text-[6px] font-black uppercase tracking-widest border border-zinc-700 bg-zinc-900/80 text-zinc-500">
-                {eventType}
+                {eventLabel}
               </span>
             ) : null}
             {companyLabel ? (

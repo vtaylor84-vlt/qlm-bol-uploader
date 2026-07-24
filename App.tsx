@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext.tsx';
 import { CarrierThemeProvider } from './context/CarrierThemeContext.tsx';
+import { LocaleProvider } from './context/LocaleContext.tsx';
 import { ShowcaseProvider } from './context/ShowcaseContext.tsx';
 import { SubmissionDraftProvider } from './context/SubmissionDraftContext.tsx';
 import ProtectedRoute from './components/routing/ProtectedRoute.tsx';
@@ -32,6 +33,7 @@ import AssistantPage from './pages/driver/AssistantPage.tsx';
  * Legacy aliases (/today, /loads, /workspace, /truck) redirect or remain reachable.
  */
 const App: React.FC = () => (
+  <LocaleProvider>
   <AuthProvider>
     <CarrierThemeProvider>
       <ShowcaseProvider>
@@ -154,6 +156,7 @@ const App: React.FC = () => (
       </ShowcaseProvider>
     </CarrierThemeProvider>
   </AuthProvider>
+  </LocaleProvider>
 );
 
 export default App;

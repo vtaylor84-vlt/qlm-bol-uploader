@@ -41,7 +41,7 @@ test.describe('Showcase experience workflows', () => {
     await expect(page.getByRole('button', { name: /Submit Trip Form/i }).first()).toBeVisible();
     await expect(page.getByRole('button', { name: /Add receipt/i })).toHaveCount(0);
     await expect(page.locator('[data-submit-future="receipt"]')).toBeVisible();
-    await expect(page.getByText(/Trip paperwork/i)).toHaveCount(0);
+    await expect(page.getByRole('heading', { name: /Trip paperwork/i })).toBeVisible();
   });
 
   test('Pay demonstration shows settlement lines without production claims', async ({ page }) => {
@@ -122,7 +122,7 @@ test.describe('Showcase experience workflows', () => {
   test('production pay stays disconnected', async ({ page }) => {
     await gotoAuthed(page, '/pay', driverSession('BST'));
     await expect(page.getByRole('button', { name: /Submit Trip Form/i }).first()).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Earnings' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Settlement not connected/i })).toBeVisible();
     await expect(page.getByText('Not available yet').first()).toBeVisible();
     await expect(page.getByText(/Submit trip for payroll/i)).toHaveCount(0);
   });

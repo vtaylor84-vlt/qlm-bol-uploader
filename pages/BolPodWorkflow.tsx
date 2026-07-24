@@ -9,6 +9,7 @@ import {
   TERMINAL_HEADER_OFFSET,
 } from '../components/terminal/terminalLayout.ts';
 import { useAuth } from '../context/AuthContext.tsx';
+import { useLocale } from '../context/LocaleContext.tsx';
 import type { DriverSessionProfile } from '../utils/driverSession.ts';
 import {
   buildBolPodUploadPayload,
@@ -16,10 +17,8 @@ import {
   submitDocumentUpload,
 } from '../utils/submissionUpload.ts';
 import {
-  getFileRejectionReason,
+  getFileRejectionMessageKey,
   isHeicFile,
-  HEIC_BLOCK_MESSAGE,
-  UPLOAD_FORMAT_HINT,
 } from '../utils/uploadFileRules.ts';
 import { GAS_WEB_APP_URL } from '../utils/gasWebAppUrl.ts';
 
@@ -75,12 +74,15 @@ type ManualPodPickupMatchStatus =
 
 const VISIBLE_FLOW_STEP_COUNT = 4;
 
-const VISIBLE_FLOW_STEPS = [
-  { label: 'Event Selected', short: 'Event' },
-  { label: 'Logistics Path', short: 'Route' },
-  { label: 'BOL & Photos', short: 'Documents' },
-  { label: 'Review & Submit', short: 'Review' },
-] as const;
+type LocaleT = ReturnType<typeof useLocale>['t'];
+
+const getVisibleFlowSteps = (t: LocaleT) =>
+  [
+    { label: t('bolPod.steps.eventSelected'), short: t('bolPod.steps.eventShort') },
+    { label: t('bolPod.steps.logisticsPath'), short: t('bolPod.steps.routeShort') },
+    { label: t('bolPod.steps.bolAndPhotos'), short: t('bolPod.steps.documentsShort') },
+    { label: t('bolPod.steps.reviewAndSubmit'), short: t('bolPod.steps.reviewShort') },
+  ] as const;
 type ManualCarrierOption = '' | 'BST Expedite Inc' | 'Greenleaf Xpress' | 'Other Carrier';
 
 // ----------------------------
@@ -386,7 +388,9 @@ const ConnectingGlyph = ({ accentClass }: { accentClass: string }) => (
 
 const BolPodWorkflow: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useLocale();
   const { session: authSession, logout: authLogout } = useAuth();
+  const VISIBLE_FLOW_STEPS = useMemo(() => getVisibleFlowSteps(t), [t]);
 
   // Core
   const [solarMode, setSolarMode] = useState(false);
@@ -564,7 +568,7 @@ const BolPodWorkflow: React.FC = () => {
       selectedLoad?.companyCode || selectedLoad?.company || company
     ) ||
     company ||
-    'Carrier not listed';
+    t('bolPod.labels.carrierNotListed');
 
   const selectedCarrierCode = String(
     selectedLoad?.companyCode || selectedLoad?.company || effectiveCompany || ''
@@ -723,9 +727,9 @@ const BolPodWorkflow: React.FC = () => {
 
   const manualPodPickupReviewLabel =
     manualPodPickupMatchStatus === 'PICKUP_MATCHES_BOL'
-      ? 'Pickup city/state matches BOL shipper'
+      ? t('bolPod.labels.pickupMatchesBolShort')
       : manualPodPickupMatchStatus === 'PICKUP_DOES_NOT_MATCH_BOL'
-        ? 'Pickup city/state does not match BOL shipper'
+        ? t('bolPod.labels.pickupDoesNotMatchBolShort')
         : '';
 
   const bolReviewFiles = uploadedFiles.filter((f) => f.category === 'bol');
@@ -799,11 +803,11 @@ const BolPodWorkflow: React.FC = () => {
   ];
 
   const stageLabels: Record<Stage, string> = {
-    EVENT: 'EVENT SELECTED',
-    OPERATOR: 'OPERATOR IDENTIFIED',
-    ASSIGNMENT: 'LOAD LINKED',
-    EVIDENCE: 'DOCUMENT CAPTURE',
-    REVIEW: 'VALIDATION'
+    EVENT: t('bolPod.status.eventSelectedChrome'),
+    OPERATOR: t('bolPod.status.operatorIdentifiedChrome'),
+    ASSIGNMENT: t('bolPod.status.loadLinkedChrome'),
+    EVIDENCE: t('bolPod.status.documentCaptureChrome'),
+    REVIEW: t('bolPod.status.validationChrome'),
   };
 
   const currentStageIndex = stageOrder.indexOf(currentStage);
@@ -817,14 +821,15 @@ const BolPodWorkflow: React.FC = () => {
   };
 
   const headerStepLabelsByVisible: Record<number, string> = {
-    0: 'Select Document Event',
-    1: 'Logistics Path',
-    2: 'BOL Number + Document Photos',
-    3: 'Review & Submit',
+    0: t('bolPod.steps.selectDocumentEvent'),
+    1: t('bolPod.steps.logisticsPath'),
+    2: t('bolPod.steps.bolNumberPhotos'),
+    3: t('bolPod.steps.reviewAndSubmit'),
   };
 
   const headerStepIndex = getVisibleFlowIndex();
-  const headerStepLabel = headerStepLabelsByVisible[headerStepIndex] || 'Workflow';
+  const headerStepLabel =
+    headerStepLabelsByVisible[headerStepIndex] || t('bolPod.steps.workflowFallback');
   const headerStepTotal = VISIBLE_FLOW_STEP_COUNT;
 
   const inpStyle = (v: string) =>
@@ -843,7 +848,7 @@ const BolPodWorkflow: React.FC = () => {
     : 'w-full p-5 rounded-2xl font-mono text-sm border-2 outline-none bg-black border-zinc-600 text-white shadow-lg';
 
   const reviewCarrierDisplay =
-    (selectedLoad ? confirmedCarrierLabel : effectiveCompany) || 'Carrier not listed';
+    (selectedLoad ? confirmedCarrierLabel : effectiveCompany) || t('bolPod.labels.carrierNotListed');
 
   const openReviewEdit = (card: Exclude<ReviewEditCard, null>) => {
     if (card === 'carrier' && carrierLockedFromDispatch) {
@@ -967,7 +972,7 @@ const BolPodWorkflow: React.FC = () => {
       });
     } catch (e) {
       const message =
-        e instanceof Error ? e.message : 'Upload failed. Please try again.';
+        e instanceof Error ? e.message : t('bolPod.alerts.uploadFailedRetry');
 
       try {
         savePayloadToVault(payload);
@@ -1033,10 +1038,10 @@ const BolPodWorkflow: React.FC = () => {
   const renderBolPageCountSelector = () => (
     <div className="space-y-5 animate-in fade-in slide-in-from-bottom-3 duration-400">
       <h3 className="text-lg sm:text-xl font-black text-white normal-case tracking-tight leading-snug">
-        How many pages is your BOL paperwork?
+        {t('bolPod.instructions.howManyPages')}
       </h3>
       <p className="text-[11px] text-zinc-400 normal-case">
-        Tap the number of pages you need to photograph.
+        {t('bolPod.instructions.tapPageCount')}
       </p>
       <div className="grid grid-cols-2 gap-3">
         {([1, 2, 3, 4] as const).map((count) => (
@@ -1046,7 +1051,9 @@ const BolPodWorkflow: React.FC = () => {
             onClick={() => selectBolPageCount(count)}
             className="min-h-[56px] rounded-2xl border-2 border-blue-500/35 bg-blue-500/10 px-4 py-4 text-[13px] font-black uppercase tracking-[0.12em] text-blue-200 shadow-[0_0_20px_rgba(59,130,246,0.12)] transition-all active:scale-[0.98] hover:border-blue-400/55 hover:bg-blue-500/15"
           >
-            {count === 4 ? '4+ Pages' : `${count} Page${count === 1 ? '' : 's'}`}
+            {count === 4
+              ? t('bolPod.labels.pagesMax')
+              : t(count === 1 ? 'bolPod.labels.pageSingular' : 'bolPod.labels.pagePlural', { count })}
           </button>
         ))}
       </div>
@@ -1056,7 +1063,10 @@ const BolPodWorkflow: React.FC = () => {
   const renderBolSlotCard = (slotIndex: number) => {
     if (expectedBolPageCount == null) return null;
     const file = getBolFileForSlot(slotIndex);
-    const pageLabel = `Page ${slotIndex + 1} of ${expectedBolPageCount}`;
+    const pageLabel = t('bolPod.labels.pageOfTotal', {
+      current: slotIndex + 1,
+      total: expectedBolPageCount,
+    });
 
     if (file) {
       return (
@@ -1070,12 +1080,12 @@ const BolPodWorkflow: React.FC = () => {
             onClick={() => setFullImage(file.preview)}
             className="absolute inset-x-0 bottom-0 bg-black/70 text-[8px] font-black uppercase tracking-widest text-blue-200 py-2"
           >
-            Tap to view
+            {t('bolPod.actions.tapToView')}
           </button>
           <button
             type="button"
             onClick={() => removeBolSlot(slotIndex)}
-            aria-label={`Remove ${pageLabel}`}
+            aria-label={t('bolPod.a11y.removePage', { page: pageLabel })}
             className="absolute top-2 right-2 w-9 h-9 rounded-full bg-red-600 border-2 border-red-400 text-white text-base font-black shadow-[0_0_16px_rgba(239,68,68,0.55)] flex items-center justify-center active:scale-95"
           >
             ✕
@@ -1105,7 +1115,7 @@ const BolPodWorkflow: React.FC = () => {
           >
             <div className="text-2xl mb-1">📸</div>
             <div className="text-[8px] font-black uppercase tracking-[0.15em] text-blue-200">
-              Take Photo
+              {t('bolPod.actions.takePhoto')}
             </div>
           </button>
           <button
@@ -1115,7 +1125,7 @@ const BolPodWorkflow: React.FC = () => {
           >
             <div className="text-2xl mb-1">🖼️</div>
             <div className="text-[8px] font-black uppercase tracking-[0.15em] text-blue-200">
-              Choose Existing
+              {t('bolPod.actions.chooseExisting')}
             </div>
           </button>
         </div>
@@ -1135,7 +1145,10 @@ const BolPodWorkflow: React.FC = () => {
                 ✓
               </div>
               <p className="text-[11px] font-black uppercase tracking-[0.14em] text-green-300 leading-relaxed">
-                Paperwork Completed ({bolSlotsFilledCount} of {expectedBolPageCount} Pages Attached)
+                {t('bolPod.status.paperworkCompleted', {
+                  filled: bolSlotsFilledCount,
+                  total: expectedBolPageCount,
+                })}
               </p>
             </div>
             <button
@@ -1143,7 +1156,7 @@ const BolPodWorkflow: React.FC = () => {
               onClick={() => setBolSlotsEditMode(true)}
               className="shrink-0 w-full sm:w-auto min-h-[44px] px-5 rounded-xl bg-blue-600 text-[10px] font-black uppercase tracking-[0.2em] text-white shadow-[0_0_16px_rgba(59,130,246,0.35)] active:scale-[0.98]"
             >
-              Change / Add
+              {t('bolPod.actions.changeAdd')}
             </button>
           </div>
         ) : null}
@@ -1152,7 +1165,7 @@ const BolPodWorkflow: React.FC = () => {
           {Array.from({ length: expectedBolPageCount }, (_, i) => renderBolSlotCard(i))}
         </div>
 
-        <p className="text-[8px] text-zinc-600 normal-case">{UPLOAD_FORMAT_HINT}</p>
+        <p className="text-[8px] text-zinc-600 normal-case">{t('upload.formatHint')}</p>
       </div>
     );
   };
@@ -1239,11 +1252,10 @@ const BolPodWorkflow: React.FC = () => {
       <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 sm:p-5 space-y-4 animate-in fade-in duration-300">
         <div>
           <p className="text-[9px] font-black uppercase tracking-[0.2em] text-amber-400">
-            POD pickup reference
+            {t('bolPod.labels.podPickupReference')}
           </p>
           <p className="text-sm text-zinc-400 normal-case mt-2 leading-relaxed">
-            For this manual delivery, confirm how the pickup city/state below relates to the BOL
-            shipper.
+            {t('bolPod.instructions.podPickupIntro')}
           </p>
           <p className="text-xs font-mono text-zinc-300 mt-2">
             {puCity}, {puState} → {delCity}, {delState}
@@ -1260,7 +1272,7 @@ const BolPodWorkflow: React.FC = () => {
             }`}
           >
             <span className="text-[10px] font-bold normal-case leading-snug">
-              The pickup city/state listed here matches the BOL.
+              {t('bolPod.labels.pickupMatchesBolOption')}
             </span>
           </button>
           <button
@@ -1273,17 +1285,17 @@ const BolPodWorkflow: React.FC = () => {
             }`}
           >
             <span className="text-[10px] font-bold normal-case leading-snug">
-              The pickup city/state listed here is not the shipper on the BOL.
+              {t('bolPod.labels.pickupDoesNotMatchBolOption')}
             </span>
           </button>
         </div>
         {isManualPodPickupConfirmed ? (
           <p className="text-[9px] font-black uppercase tracking-widest text-green-400 text-center">
-            ✓ Confirmed — continue to BOL entry below
+            {t('bolPod.status.pickupConfirmed')}
           </p>
         ) : (
           <p className="text-[9px] text-zinc-600 normal-case text-center">
-            Select one option to continue.
+            {t('bolPod.instructions.selectOneToContinue')}
           </p>
         )}
       </div>
@@ -1317,7 +1329,7 @@ const BolPodWorkflow: React.FC = () => {
           onClick={onChange}
           className="terminal-btn-ghost shrink-0 text-[8px] font-black uppercase tracking-widest text-blue-400 px-3 py-2.5 rounded-lg border border-blue-500/30 bg-blue-500/10 active:scale-95"
         >
-          Change
+          {t('bolPod.actions.change')}
         </button>
       ) : null}
     </div>
@@ -1327,7 +1339,7 @@ const BolPodWorkflow: React.FC = () => {
     if (selectedLoad && assignedLoadNumber) {
       return (
         <p className="text-[9px] font-mono text-zinc-600 normal-case tracking-normal">
-          Load #{' '}
+          {t('bolPod.labels.loadNumberPrefix')}{' '}
           <span className="text-zinc-400">{assignedLoadNumber}</span>
         </p>
       );
@@ -1335,7 +1347,7 @@ const BolPodWorkflow: React.FC = () => {
     if (!selectedLoad && (manualMode || hasManualAssignmentData)) {
       return (
         <p className="text-[8px] font-black uppercase tracking-[0.2em] text-zinc-600">
-          Manual assignment
+          {t('bolPod.labels.manualAssignment')}
         </p>
       );
     }
@@ -1657,15 +1669,15 @@ const BolPodWorkflow: React.FC = () => {
           : Array.from(e.target.files);
 
       for (const f of files) {
-        const rejection = getFileRejectionReason(f);
-        if (rejection) {
-          window.alert(rejection);
+        const rejectionKey = getFileRejectionMessageKey(f);
+        if (rejectionKey) {
+          window.alert(t(rejectionKey));
           continue;
         }
 
         const fingerprint = getFileFingerprint(f);
         if (uploadedFiles.some((item) => item.fingerprint === fingerprint)) {
-          window.alert('This photo is already attached.');
+          window.alert(t('bolPod.alerts.photoAlreadyAttached'));
           continue;
         }
 
@@ -1696,14 +1708,14 @@ const BolPodWorkflow: React.FC = () => {
             ];
           });
           if (duplicateAfterCompress) {
-            window.alert('This photo is already attached.');
+            window.alert(t('bolPod.alerts.photoAlreadyAttached'));
             continue;
           }
           if (cat === 'freight') {
             setFreightNotRequired(false);
           }
         } catch {
-          window.alert(isHeicFile(f) ? HEIC_BLOCK_MESSAGE : 'Could not process this photo. Use JPG or PNG.');
+          window.alert(isHeicFile(f) ? t('upload.heicBlock') : t('bolPod.alerts.couldNotProcessPhoto'));
         }
       }
     }
@@ -1745,9 +1757,9 @@ const BolPodWorkflow: React.FC = () => {
     if (hasAssignment && currentStage !== 'ASSIGNMENT' && !isScanning && !isConnecting) {
       return (
         <section className="space-y-3">
-          {renderWorkflowSectionHeader(2, 'Logistics Path', 'Logistics Path')}
+          {renderWorkflowSectionHeader(2, t('bolPod.steps.logisticsPath'), t('bolPod.steps.logisticsPath'))}
           {renderVerifiedSummary(
-            'Route confirmed',
+            t('bolPod.status.routeConfirmed'),
             `${puCity}, ${puState} → ${delCity}, ${delState}`,
             () => openAssignmentEdit('EVIDENCE')
           )}
@@ -1755,7 +1767,7 @@ const BolPodWorkflow: React.FC = () => {
             {renderAssignmentLoadRef()}
             {String(loadId || '').trim() && selectedLoad ? (
               <p className="text-[9px] font-mono text-zinc-600 normal-case">
-                Load ID: <span className="text-zinc-400">{String(loadId).trim()}</span>
+                {t('bolPod.labels.loadIdPrefix')}: <span className="text-zinc-400">{String(loadId).trim()}</span>
               </p>
             ) : null}
             <p className="text-[9px] text-zinc-500 normal-case">{reviewCarrierDisplay}</p>
@@ -1773,14 +1785,14 @@ const BolPodWorkflow: React.FC = () => {
             className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-blue-400 hover:text-blue-300 transition-colors mb-1 -mt-1"
           >
             <span aria-hidden>←</span>
-            Back
+            {t('bolPod.actions.back')}
           </button>
         ) : null}
         {renderWorkflowSectionHeader(
           2,
-          'Logistics Path',
-          'Logistics Path',
-          'Confirm pickup and delivery for this stop.'
+          t('bolPod.steps.logisticsPath'),
+          t('bolPod.steps.logisticsPath'),
+          t('bolPod.instructions.confirmPickupDelivery')
         )}
 
         <div className={`${premiumPanel} p-5 sm:p-6 lg:p-8`}>
@@ -1797,7 +1809,7 @@ const BolPodWorkflow: React.FC = () => {
                   themeMode === 'green' ? 'text-green-500' : 'text-blue-500'
                 }`}
               >
-                Finding your load...
+                {t('bolPod.status.findingLoad')}
               </span>
             </div>
           )}
@@ -1817,10 +1829,10 @@ const BolPodWorkflow: React.FC = () => {
                 themeMode === 'green' ? 'text-green-400' : 'text-blue-400'
               }`}
             >
-              Looking up your loads...
+              {t('bolPod.status.lookingUpLoads')}
             </div>
             <div className="mt-3 text-[10px] lg:text-xs font-black uppercase tracking-[0.25em] text-zinc-500 max-w-md leading-relaxed">
-              Matching your active assignments
+              {t('bolPod.status.matchingAssignments')}
             </div>
           </div>
         ) : isConnecting ? (
@@ -1843,10 +1855,10 @@ const BolPodWorkflow: React.FC = () => {
                     : 'text-cyan-400'
               }`}
             >
-              ELM IS CONNECTING
+              {t('bolPod.status.elmConnecting')}
             </div>
             <div className="mt-3 text-[10px] font-black uppercase tracking-[0.25em] text-zinc-500 max-w-md leading-relaxed">
-              Preparing your assignment
+              {t('bolPod.status.preparingAssignment')}
             </div>
           </div>
         ) : selectedLoad ? (
@@ -1857,7 +1869,7 @@ const BolPodWorkflow: React.FC = () => {
               <div
                 className={`text-[10px] font-black uppercase tracking-[0.3em] ${themeTextClass}`}
               >
-                Route confirmed
+                {t('bolPod.status.routeConfirmed')}
               </div>
               <p className="text-base font-bold text-white font-mono">
                 {puCity}, {puState} → {delCity}, {delState}
@@ -1868,13 +1880,13 @@ const BolPodWorkflow: React.FC = () => {
                   readOnly
                   className={`${confirmedFieldStyle} col-span-3`}
                   value={puCity}
-                  aria-label="Pickup city"
+                  aria-label={t('bolPod.a11y.pickupCity')}
                 />
                 <input
                   readOnly
                   className={confirmedFieldStyle}
                   value={puState}
-                  aria-label="Pickup state"
+                  aria-label={t('bolPod.a11y.pickupState')}
                 />
               </div>
 
@@ -1883,13 +1895,13 @@ const BolPodWorkflow: React.FC = () => {
                   readOnly
                   className={`${confirmedFieldStyle} col-span-3`}
                   value={delCity}
-                  aria-label="Delivery city"
+                  aria-label={t('bolPod.a11y.deliveryCity')}
                 />
                 <input
                   readOnly
                   className={confirmedFieldStyle}
                   value={delState}
-                  aria-label="Delivery state"
+                  aria-label={t('bolPod.a11y.deliveryState')}
                 />
               </div>
 
@@ -1897,19 +1909,19 @@ const BolPodWorkflow: React.FC = () => {
                 readOnly
                 className={confirmedFieldStyle}
                 value={confirmedCarrierLabel}
-                aria-label="Carrier"
+                aria-label={t('bolPod.a11y.carrier')}
               />
 
               {assignedLoadNumber || String(loadId || '').trim() ? (
                 <div className="pt-2 border-t border-zinc-800/60 space-y-1">
                   {assignedLoadNumber ? (
                     <p className="text-[9px] font-mono text-zinc-500 normal-case">
-                      Load # <span className="text-zinc-300">{assignedLoadNumber}</span>
+                      {t('bolPod.labels.loadNumberPrefix')} <span className="text-zinc-300">{assignedLoadNumber}</span>
                     </p>
                   ) : null}
                   {String(loadId || '').trim() ? (
                     <p className="text-[9px] font-mono text-zinc-500 normal-case">
-                      Load ID <span className="text-zinc-300">{String(loadId).trim()}</span>
+                      {t('bolPod.labels.loadIdPrefix')} <span className="text-zinc-300">{String(loadId).trim()}</span>
                     </p>
                   ) : null}
                 </div>
@@ -1920,7 +1932,7 @@ const BolPodWorkflow: React.FC = () => {
               onClick={clearSelectedLoadButKeepDriver}
               className="w-full py-4 rounded-2xl border border-zinc-700 text-[9px] font-black uppercase tracking-[0.25em] text-zinc-400"
             >
-              Change Assignment
+              {t('bolPod.actions.changeAssignment')}
             </button>
           </div>
         ) : !manualMode && availableLoads.length > 0 ? (
@@ -1958,17 +1970,19 @@ const BolPodWorkflow: React.FC = () => {
                             : 'text-white'
                         }`}
                       >
-                        {load.loadNumber ? `LOAD #${load.loadNumber}` : 'SELECT LOAD LEG'}
+                        {load.loadNumber
+                          ? `${t('bolPod.labels.loadNumberChrome')}${load.loadNumber}`
+                          : t('bolPod.labels.selectLoadLegChrome')}
                       </div>
 
                       {String(load.loadId || '').trim() ? (
                         <div className="mt-1 text-[9px] font-black uppercase tracking-[0.25em] text-zinc-500">
-                          Load ID: {load.loadId}
+                          {t('bolPod.labels.loadIdPrefix')}: {load.loadId}
                         </div>
                       ) : null}
 
                       <div className="mt-2 text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">
-                        Select Load Leg
+                        {t('bolPod.labels.selectLoadLeg')}
                       </div>
                     </div>
 
@@ -2031,7 +2045,7 @@ const BolPodWorkflow: React.FC = () => {
               }}
               className="w-full py-4 rounded-xl border border-dashed border-zinc-700/80 bg-zinc-950/40 text-[9px] font-black text-zinc-500 uppercase tracking-[0.25em] hover:border-blue-500/40 hover:text-blue-400 transition-colors lg:col-span-2"
             >
-              Load not listed — enter manually
+              {t('bolPod.actions.loadNotListedManual')}
             </button>
           </div>
         ) : (
@@ -2039,10 +2053,10 @@ const BolPodWorkflow: React.FC = () => {
             {loadSelectionError && !manualMode && (
               <div className="space-y-2">
                 <div className="p-4 bg-orange-500/10 border border-orange-500/30 rounded-2xl text-center text-[9px] font-black text-orange-500 uppercase">
-                  No active loads found for this operator.
+                  {t('bolPod.alerts.noActiveLoadsFound')}
                 </div>
                 <p className="text-center text-[9px] text-zinc-500 normal-case tracking-normal px-2">
-                  No active load was found. You may manually enter the load details below.
+                  {t('bolPod.instructions.noActiveLoadManual')}
                 </p>
               </div>
             )}
@@ -2050,10 +2064,10 @@ const BolPodWorkflow: React.FC = () => {
             {manualMode ? (
               <div className="rounded-xl border border-blue-500/25 bg-blue-500/5 px-4 py-3 mb-2 space-y-1">
                 <p className="text-[8px] font-black uppercase tracking-[0.3em] text-blue-400">
-                  Manual route entry
+                  {t('bolPod.labels.manualRouteEntry')}
                 </p>
                 <p className="text-[10px] text-zinc-500 normal-case">
-                  Enter pickup, delivery, and carrier for this stop.
+                  {t('bolPod.instructions.enterPickupDeliveryCarrier')}
                 </p>
                 {renderAssignmentLoadRef()}
               </div>
@@ -2062,7 +2076,7 @@ const BolPodWorkflow: React.FC = () => {
             <div className="grid grid-cols-4 gap-4">
               <input
                 className={`${inpStyle(puCity)} col-span-3`}
-                placeholder="PICKUP CITY"
+                placeholder={t('bolPod.placeholders.pickupCity')}
                 value={puCity}
                 onChange={(e) => setPuCity(e.target.value.toUpperCase())}
               />
@@ -2071,7 +2085,7 @@ const BolPodWorkflow: React.FC = () => {
                 value={puState}
                 onChange={(e) => setPuState(e.target.value.toUpperCase())}
               >
-                <option value="">ST</option>
+                <option value="">{t('bolPod.placeholders.stateAbbr')}</option>
                 {states.map((s) => (
                   <option key={s} value={s}>
                     {s}
@@ -2083,7 +2097,7 @@ const BolPodWorkflow: React.FC = () => {
             <div className="grid grid-cols-4 gap-4">
               <input
                 className={`${inpStyle(delCity)} col-span-3`}
-                placeholder="DELIVERY CITY"
+                placeholder={t('bolPod.placeholders.deliveryCity')}
                 value={delCity}
                 onChange={(e) => setDelCity(e.target.value.toUpperCase())}
               />
@@ -2092,7 +2106,7 @@ const BolPodWorkflow: React.FC = () => {
                 value={delState}
                 onChange={(e) => setDelState(e.target.value.toUpperCase())}
               >
-                <option value="">ST</option>
+                <option value="">{t('bolPod.placeholders.stateAbbr')}</option>
                 {states.map((s) => (
                   <option key={s} value={s}>
                     {s}
@@ -2110,31 +2124,31 @@ const BolPodWorkflow: React.FC = () => {
                 setCompany(val);
               }}
             >
-              <option value="">CARRIER NAME ASSIGNED TO THIS LOAD</option>
+              <option value="">{t('bolPod.placeholders.carrierNameAssigned')}</option>
               <option value="BST Expedite Inc">BST Expedite Inc</option>
               <option value="Greenleaf Xpress">Greenleaf Xpress</option>
-              <option value="Other Carrier">Other Carrier</option>
+              <option value="Other Carrier">{t('bolPod.labels.otherCarrier')}</option>
             </select>
 
             {hasManualAssignmentData ? (
               <div className="rounded-xl border border-green-500/25 bg-green-500/5 px-4 py-3 animate-in fade-in duration-300">
                 <p className="text-[8px] font-black uppercase tracking-widest text-green-400">
-                  Route entered
+                  {t('bolPod.status.routeEntered')}
                 </p>
                 <p className="text-sm font-bold text-white mt-1 font-mono">
                   {puCity}, {puState} → {delCity}, {delState}
                 </p>
                 {isManualPodPickupConfirmed ? (
                   <p className="text-[10px] text-zinc-400 normal-case mt-2">
-                    Logistics path saved — continue to BOL entry when ready.
+                    {t('bolPod.instructions.routeSavedContinue')}
                   </p>
                 ) : needsManualPodPickupConfirm ? (
                   <p className="text-[10px] text-zinc-500 normal-case mt-2">
-                    Confirm the POD pickup reference below to continue.
+                    {t('bolPod.instructions.confirmPodPickupBelow')}
                   </p>
                 ) : (
                   <p className="text-[10px] text-zinc-500 normal-case mt-2">
-                    Your route is ready — continue to BOL entry below.
+                    {t('bolPod.instructions.routeReadyContinue')}
                   </p>
                 )}
               </div>
@@ -2165,7 +2179,7 @@ const BolPodWorkflow: React.FC = () => {
                 }}
                 className="w-full text-[8px] font-black text-blue-500 uppercase tracking-widest pt-2"
               >
-                Back to Auto-Scan
+                {t('bolPod.actions.backToAutoScan')}
               </button>
             )}
           </div>
@@ -2233,7 +2247,7 @@ const BolPodWorkflow: React.FC = () => {
           onClick={() => navigate('/capture')}
           className="text-[8px] font-black uppercase tracking-widest text-blue-400 hover:text-blue-300"
         >
-          ← Back to Submit
+          ← {t('bolPod.actions.backToSubmit')}
         </button>
       </div>
 
@@ -2243,10 +2257,10 @@ const BolPodWorkflow: React.FC = () => {
         {!canSelectAnyDriver && authSession?.driverName ? (
           <section className={`${premiumPanel} p-5 sm:p-6 lg:p-8 border-blue-500/15`}>
             <h2 className="text-xl sm:text-2xl lg:text-3xl font-black text-white tracking-tight">
-              Good to see you, {authSession.driverName}
+              {t('bolPod.labels.goodToSeeYou', { name: authSession.driverName })}
             </h2>
             <p className="text-sm lg:text-base text-zinc-400 normal-case mt-2">
-              Let&apos;s get your paperwork submitted.
+              {t('bolPod.instructions.letsGetPaperworkSubmitted')}
             </p>
           </section>
         ) : null}
@@ -2256,11 +2270,11 @@ const BolPodWorkflow: React.FC = () => {
             <div className={`${premiumPanel} p-4 sm:p-5 lg:p-6 space-y-3`}>
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="px-2.5 py-1 rounded-full text-[7px] font-black uppercase tracking-[0.15em] border border-amber-500/50 bg-amber-500/15 text-amber-300">
-                  Admin Upload Mode
+                  {t('bolPod.labels.adminUploadMode')}
                 </span>
               </div>
               <p className="text-[10px] text-zinc-500 normal-case">
-                Select the driver you are submitting paperwork for.
+                {t('bolPod.instructions.selectDriverForPaperwork')}
               </p>
               {!manualMode ? (
                 <select
@@ -2295,18 +2309,18 @@ const BolPodWorkflow: React.FC = () => {
                     }
                   }}
                 >
-                  <option value="">Select driver</option>
+                  <option value="">{t('bolPod.placeholders.selectDriver')}</option>
                   {driverList.map((d) => (
                     <option key={d.value} value={d.value}>
                       {d.label}
                     </option>
                   ))}
-                  <option value="MANUAL">+ Manual entry</option>
+                  <option value="MANUAL">{t('bolPod.placeholders.manualEntryOption')}</option>
                 </select>
               ) : (
                 <input
                   type="text"
-                  placeholder="Type full name"
+                  placeholder={t('bolPod.placeholders.typeFullName')}
                   className={inpStyle(driverName)}
                   value={driverName}
                   onChange={(e) => setDriverName(e.target.value.toUpperCase())}
@@ -2317,19 +2331,19 @@ const BolPodWorkflow: React.FC = () => {
         ) : null}
 
         <section className="space-y-3">
-          {renderWorkflowSectionHeader(1, 'Event Selected', 'Select Document Event')}
+          {renderWorkflowSectionHeader(1, t('bolPod.steps.eventSelected'), t('bolPod.steps.selectDocumentEvent'))}
 
           {eventType && currentStageIndex > 0 ? (
             renderVerifiedSummary(
-              'Event selected',
-              eventType === 'DELIVERY' ? 'Delivery / POD' : 'Pickup',
+              t('bolPod.labels.eventSelectedSummary'),
+              eventType === 'DELIVERY' ? t('bolPod.labels.deliveryPod') : t('bolPod.labels.pickup'),
               () => setCurrentStage('EVENT')
             )
           ) : (
             <div className={`${premiumPanel} p-4 sm:p-5 lg:p-6`}>
               {canSelectAnyDriver && adminDriverRequired ? (
                 <p className="text-[10px] text-amber-400/90 normal-case mb-3 leading-relaxed">
-                  Select a driver above before choosing pickup or delivery.
+                  {t('bolPod.instructions.selectDriverBeforeEvent')}
                 </p>
               ) : null}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:gap-4">
@@ -2345,7 +2359,7 @@ const BolPodWorkflow: React.FC = () => {
                         : 'bg-zinc-950/80 border-zinc-700 text-zinc-400 hover:border-zinc-600'
                   }`}
                 >
-                  Pickup
+                  {t('bolPod.labels.pickup')}
                 </button>
                 <button
                   type="button"
@@ -2359,7 +2373,7 @@ const BolPodWorkflow: React.FC = () => {
                         : 'bg-zinc-950/80 border-zinc-700 text-zinc-400 hover:border-zinc-600'
                   }`}
                 >
-                  Delivery / POD
+                  {t('bolPod.labels.deliveryPod')}
                 </button>
               </div>
             </div>
@@ -2372,14 +2386,18 @@ const BolPodWorkflow: React.FC = () => {
           <section className="space-y-4">
             {renderWorkflowSectionHeader(
               3,
-              'BOL Number + Document Photos',
-              'BOL Number + Document Photos',
-              'Enter your BOL number, then add photos of the paperwork.'
+              t('bolPod.steps.bolNumberPhotos'),
+              t('bolPod.steps.bolNumberPhotos'),
+              t('bolPod.instructions.enterBolThenPhotos')
             )}
             {bolGuideCollapsed ? (
               renderVerifiedSummary(
-                'BOL complete',
-                `BOL # ${bolNum} · ${bolSlotsFilledCount} of ${expectedBolPageCount ?? bolPhotoCount} page${(expectedBolPageCount ?? bolPhotoCount) === 1 ? '' : 's'}`,
+                t('bolPod.labels.bolCompleteSummaryTitle'),
+                t('bolPod.labels.bolCompleteSummary', {
+                  bolNum,
+                  filled: bolSlotsFilledCount,
+                  total: expectedBolPageCount ?? bolPhotoCount,
+                }),
                 () => setBolEditOpen(true)
               )
             ) : (
@@ -2396,13 +2414,13 @@ const BolPodWorkflow: React.FC = () => {
                       htmlFor="bol-number-input"
                       className="block text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400"
                     >
-                      BOL Number <span className="text-red-400">*</span>
+                      {t('bolPod.labels.bolNumberLabel')} <span className="text-red-400">*</span>
                     </label>
                     <input
                       id="bol-number-input"
                       ref={bolNumInputRef}
                       className={`${inpStyle(bolNum)} ring-2 ring-blue-500/50 border-blue-500/60 shadow-[0_0_24px_rgba(59,130,246,0.15)]`}
-                      placeholder="Enter the BOL number from your paperwork (not the load number)"
+                      placeholder={t('bolPod.placeholders.bolNumberInput')}
                       value={bolNum}
                       onChange={(e) => {
                         const next = e.target.value.trim();
@@ -2427,7 +2445,7 @@ const BolPodWorkflow: React.FC = () => {
                           : 'bg-zinc-900/80 border border-zinc-800 text-zinc-600 opacity-50 cursor-not-allowed'
                       }`}
                     >
-                      Continue to Photos →
+                      {t('bolPod.actions.continueToPhotos')}
                     </button>
                   </div>
                 ) : (
@@ -2435,7 +2453,7 @@ const BolPodWorkflow: React.FC = () => {
                     <div className="flex items-center justify-between gap-3 pb-3 border-b border-zinc-800/80 bol-summary-collapse">
                       <div className="min-w-0">
                         <p className="text-[8px] font-black uppercase tracking-[0.2em] text-zinc-500">
-                          BOL Number
+                          {t('bolPod.labels.bolNumberLabel')}
                         </p>
                         <p className="text-lg font-bold text-white font-mono tracking-tight truncate">
                           {bolNum}
@@ -2446,7 +2464,7 @@ const BolPodWorkflow: React.FC = () => {
                         onClick={resetBolNumberStep}
                         className="shrink-0 text-[8px] font-black uppercase tracking-widest text-blue-400 px-3 py-2 rounded-lg border border-blue-500/30 bg-blue-500/10"
                       >
-                        Edit
+                        {t('bolPod.actions.edit')}
                       </button>
                     </div>
 
@@ -2469,10 +2487,10 @@ const BolPodWorkflow: React.FC = () => {
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="text-[9px] font-black uppercase tracking-[0.2em] text-amber-400">
-                        ✓ Freight Photos Waived
+                        {t('bolPod.status.freightPhotosWaived')}
                       </p>
                       <p className="text-[10px] text-zinc-400 normal-case mt-0.5">
-                        Confirmed by dispatch
+                        {t('bolPod.status.confirmedByDispatch')}
                       </p>
                     </div>
                     <button
@@ -2480,16 +2498,16 @@ const BolPodWorkflow: React.FC = () => {
                       onClick={reopenFreightWaiverChoice}
                       className="shrink-0 px-3 py-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 text-[8px] font-black uppercase tracking-widest text-amber-300 active:scale-95"
                     >
-                      Edit
+                      {t('bolPod.actions.edit')}
                     </button>
                   </div>
                   {documentsReadyForReview && isReady ? (
                     <div className="rounded-xl border border-green-500/40 bg-green-500/10 px-4 py-3 text-center">
                       <p className="text-[9px] font-black uppercase tracking-[0.2em] text-green-400">
-                        ✓ Documents complete
+                        {t('bolPod.status.documentsCompleteBadge')}
                       </p>
                       <p className="text-[10px] text-zinc-300 normal-case mt-1">
-                        Scroll down and tap <span className="text-white font-bold">Ready for review</span> to continue.
+                        {t('bolPod.instructions.scrollDownReadyForReview')}
                       </p>
                     </div>
                   ) : null}
@@ -2507,16 +2525,18 @@ const BolPodWorkflow: React.FC = () => {
                       </div>
                       <div>
                         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-green-400">
-                          Freight Photos
+                          {t('bolPod.labels.freightPhotos')}
                         </p>
                         <span className="inline-block mt-1 px-2 py-0.5 rounded text-[7px] font-black uppercase tracking-widest bg-green-500/15 text-green-300 border border-green-500/25">
-                          Pickup only
+                          {t('bolPod.labels.pickupOnly')}
                         </span>
                       </div>
                     </div>
                     {hasFreightPhotos ? (
                       <span className="text-[8px] font-black uppercase text-green-400">
-                        ✓ {freightPhotoCount} image{freightPhotoCount === 1 ? '' : 's'}
+                        {freightPhotoCount === 1
+                          ? t('bolPod.labels.imagesSingular', { count: freightPhotoCount })
+                          : t('bolPod.labels.imagesPlural', { count: freightPhotoCount })}
                       </span>
                     ) : null}
                   </div>
@@ -2525,16 +2545,16 @@ const BolPodWorkflow: React.FC = () => {
                     {!freightDocumentComplete ? (
                       <div className="rounded-xl border border-green-500/30 bg-green-500/10 px-4 py-3">
                         <p className="text-[9px] font-black uppercase tracking-[0.2em] text-green-300">
-                          Next — freight photos
+                          {t('bolPod.status.nextFreightPhotos')}
                         </p>
                         <p className="text-[10px] text-zinc-400 normal-case mt-1">
-                          Document freight on the trailer, or tap Not Required if dispatch waived it.
+                          {t('bolPod.instructions.documentFreightOrNotRequired')}
                         </p>
                       </div>
                     ) : null}
                     <p className="text-[8px] text-zinc-500 normal-case">
-                      Upload up to 5 freight photos
-                      {freightPhotoCount > 0 ? ` · ${freightPhotoCount} attached` : ''}
+                      {t('bolPod.labels.uploadUpTo5Freight')}
+                      {freightPhotoCount > 0 ? t('bolPod.labels.attachedSuffix', { count: freightPhotoCount }) : ''}
                     </p>
 
                     <div className="grid grid-cols-2 gap-2">
@@ -2545,7 +2565,7 @@ const BolPodWorkflow: React.FC = () => {
                       >
                         <div className="text-xl mb-1">📸</div>
                         <div className="text-[8px] font-black uppercase tracking-[0.15em] text-green-300">
-                          Take Photo
+                          {t('bolPod.actions.takePhoto')}
                         </div>
                       </button>
                       <button
@@ -2555,7 +2575,7 @@ const BolPodWorkflow: React.FC = () => {
                       >
                         <div className="text-xl mb-1">🖼️</div>
                         <div className="text-[8px] font-black uppercase tracking-[0.15em] text-green-300">
-                          Choose Existing
+                          {t('bolPod.actions.chooseExisting')}
                         </div>
                       </button>
                     </div>
@@ -2579,7 +2599,7 @@ const BolPodWorkflow: React.FC = () => {
                                 onClick={() => setFullImage(f.preview)}
                                 className="absolute inset-x-0 bottom-0 bg-black/75 text-[6px] font-black uppercase text-green-200 py-0.5"
                               >
-                                View
+                                {t('bolPod.actions.view')}
                               </button>
                               <button
                                 type="button"
@@ -2600,7 +2620,7 @@ const BolPodWorkflow: React.FC = () => {
                       onClick={() => setShowFreightConfirm(true)}
                       className="w-full text-center text-[8px] font-black uppercase tracking-widest text-zinc-600 py-1 active:scale-[0.98]"
                     >
-                      Not Required
+                      {t('bolPod.actions.notRequired')}
                     </button>
                   </div>
                 </div>
@@ -2615,7 +2635,7 @@ const BolPodWorkflow: React.FC = () => {
                     onClick={clearSelectedLoadButKeepDriver}
                     className="flex-1 py-3 rounded-xl border border-zinc-700 text-[8px] font-black uppercase tracking-[0.2em] text-zinc-500"
                   >
-                    Change assignment
+                    {t('bolPod.actions.changeAssignment')}
                   </button>
                 ) : null}
                 {manualMode ? (
@@ -2629,7 +2649,7 @@ const BolPodWorkflow: React.FC = () => {
                     }}
                     className="flex-1 py-3 rounded-xl border border-zinc-700 text-[8px] font-black uppercase tracking-[0.2em] text-zinc-500"
                   >
-                    Edit manual entry
+                    {t('bolPod.actions.editManualEntry')}
                   </button>
                 ) : null}
               </div>
@@ -2645,15 +2665,15 @@ const BolPodWorkflow: React.FC = () => {
                   </div>
                   <div className="min-w-0">
                     <p className="text-[10px] font-black uppercase tracking-[0.2em] text-green-400">
-                      You&apos;re all set
+                      {t('bolPod.status.allSet')}
                     </p>
                     <p className="text-[10px] text-zinc-400 normal-case mt-0.5 leading-relaxed">
                       {showFreightWaived
-                        ? 'BOL complete and freight photos waived.'
+                        ? t('bolPod.instructions.bolCompleteFreightWaived')
                         : eventType === 'DELIVERY'
-                          ? 'Your BOL number and photos are complete.'
-                          : 'Your BOL and freight documents are complete.'}{' '}
-                      Tap below to review before sending.
+                          ? t('bolPod.instructions.bolPhotosCompleteDelivery')
+                          : t('bolPod.instructions.bolFreightCompletePickup')}{' '}
+                      {t('bolPod.instructions.tapBelowToReview')}
                     </p>
                   </div>
                 </div>
@@ -2669,7 +2689,7 @@ const BolPodWorkflow: React.FC = () => {
                       : 'bg-blue-600 shadow-[0_0_24px_rgba(59,130,246,0.45)]'
                   }`}
                 >
-                  Ready for review →
+                  {t('bolPod.actions.readyForReview')}
                 </button>
               </div>
             ) : (
@@ -2686,21 +2706,26 @@ const BolPodWorkflow: React.FC = () => {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400">
-                    {documentProgressDone} of {documentProgressTotal} documents complete
+                    {t('bolPod.status.documentsCompleteCount', {
+                      done: documentProgressDone,
+                      total: documentProgressTotal,
+                    })}
                   </p>
                   {!bolNumberStepDone ? (
                     <p className="text-[9px] text-blue-400/80 normal-case mt-0.5">
-                      Enter your BOL number to continue
+                      {t('bolPod.instructions.enterBolToContinue')}
                     </p>
                   ) : !bolDocumentComplete ? (
                     <p className="text-[9px] text-blue-400/80 normal-case mt-0.5">
                       {expectedBolPageCount == null
-                        ? 'Select how many BOL pages to photograph'
-                        : `Fill all ${expectedBolPageCount} page slot${expectedBolPageCount === 1 ? '' : 's'} to continue`}
+                        ? t('bolPod.instructions.selectBolPageCount')
+                        : expectedBolPageCount === 1
+                          ? t('bolPod.instructions.fillPageSlotsSingular')
+                          : t('bolPod.instructions.fillPageSlotsPlural', { count: expectedBolPageCount })}
                     </p>
                   ) : eventType === 'PICKUP' && !freightDocumentComplete ? (
                     <p className="text-[9px] text-zinc-500 normal-case mt-0.5">
-                      Add freight photos or mark not required
+                      {t('bolPod.instructions.addFreightOrMarkNotRequired')}
                     </p>
                   ) : null}
                 </div>
@@ -2719,14 +2744,14 @@ const BolPodWorkflow: React.FC = () => {
                       : 'bg-blue-600 shadow-[0_0_16px_rgba(59,130,246,0.35)]'
                   }`}
                 >
-                  Ready for review →
+                  {t('bolPod.actions.readyForReview')}
                 </button>
               </div>
             )}
 
             <p className="text-center text-[8px] text-zinc-600 normal-case flex items-center justify-center gap-1.5">
               <span>🔒</span>
-              Ready for review — submit when your documents look correct.
+              {t('bolPod.instructions.readyForReviewFooter')}
             </p>
           </section>
         )}
@@ -2736,10 +2761,10 @@ const BolPodWorkflow: React.FC = () => {
         <div className="fixed inset-0 z-[500] bg-black/95 backdrop-blur-2xl flex items-center justify-center p-6 animate-in fade-in">
           <div className="bg-zinc-950 border-4 border-orange-500/40 rounded-[3.5rem] p-12 text-center max-w-sm">
             <h2 className="text-3xl font-black uppercase text-orange-500 mb-4 tracking-tighter">
-              Trailer Space
+              {t('bolPod.labels.trailerSpace')}
             </h2>
             <p className="text-zinc-500 text-[10px] mb-10 font-black uppercase tracking-widest leading-relaxed">
-              Document freight loaded on trailer to confirm remaining space?
+              {t('bolPod.instructions.documentFreightPrompt')}
             </p>
 
             <div className="flex flex-col gap-4">
@@ -2750,7 +2775,7 @@ const BolPodWorkflow: React.FC = () => {
                 }}
                 className="bg-orange-600 text-white py-6 rounded-2xl font-black uppercase tracking-widest active:scale-95 shadow-xl"
               >
-                Take Photo Now
+                {t('bolPod.actions.takePhotoNow')}
               </button>
 
               <button
@@ -2760,7 +2785,7 @@ const BolPodWorkflow: React.FC = () => {
                 }}
                 className="bg-zinc-800 text-white py-6 rounded-2xl font-black uppercase tracking-widest active:scale-95 shadow-xl border border-zinc-700"
               >
-                Select From Files / Camera Roll
+                {t('bolPod.actions.selectFromFilesOrCameraRoll')}
               </button>
 
               <button
@@ -2770,7 +2795,7 @@ const BolPodWorkflow: React.FC = () => {
                 }}
                 className="text-zinc-700 font-black uppercase text-[10px] tracking-widest py-4"
               >
-                Not Required
+                {t('bolPod.actions.notRequired')}
               </button>
             </div>
           </div>
@@ -2781,7 +2806,7 @@ const BolPodWorkflow: React.FC = () => {
         <div className="fixed inset-0 z-[550] bg-black/95 backdrop-blur-2xl flex items-center justify-center p-6 animate-in fade-in">
           <div className="bg-zinc-950 border-4 border-orange-500/40 rounded-[3.5rem] p-12 text-center max-w-sm">
             <p className="text-zinc-300 text-sm normal-case tracking-normal leading-relaxed mb-10">
-              Please confirm: Dispatch has told me that freight photos are not required for this load.
+              {t('bolPod.instructions.confirmFreightNotRequired')}
             </p>
             <div className="flex flex-col gap-4">
               <button
@@ -2791,7 +2816,7 @@ const BolPodWorkflow: React.FC = () => {
                 }}
                 className="bg-orange-600 text-white py-6 rounded-2xl font-black uppercase tracking-widest active:scale-95 shadow-xl"
               >
-                Confirm
+                {t('bolPod.actions.confirm')}
               </button>
               <button
                 onClick={() => {
@@ -2800,7 +2825,7 @@ const BolPodWorkflow: React.FC = () => {
                 }}
                 className="bg-zinc-800 text-white py-6 rounded-2xl font-black uppercase tracking-widest active:scale-95 shadow-xl border border-zinc-700"
               >
-                Cancel
+                {t('bolPod.actions.cancel')}
               </button>
             </div>
           </div>
@@ -2819,16 +2844,16 @@ const BolPodWorkflow: React.FC = () => {
                 }}
                 className="min-h-[36px] px-3 text-zinc-500 font-black uppercase text-[8px] tracking-widest border border-zinc-800 rounded-lg hover:border-zinc-600 transition-colors"
               >
-                Close ✕
+                {t('bolPod.actions.closeX')}
               </button>
             </div>
 
             <div className="flex items-center justify-between gap-1 px-0.5 pt-0.5 pb-1 lg:max-w-3xl lg:mx-auto">
               {[
-                { label: 'Event', done: true },
-                { label: 'Route', done: true },
-                { label: 'Documents', done: hasBolEvidence },
-                { label: 'Review', done: false, active: true },
+                { label: t('bolPod.steps.eventShort'), done: true },
+                { label: t('bolPod.steps.routeShort'), done: true },
+                { label: t('bolPod.steps.documentsShort'), done: hasBolEvidence },
+                { label: t('bolPod.steps.reviewShort'), done: false, active: true },
               ].map((step, idx) => (
                 <div key={step.label} className="flex-1 flex flex-col items-center gap-1 min-w-0">
                   <div className="flex items-center w-full">
@@ -2883,7 +2908,7 @@ const BolPodWorkflow: React.FC = () => {
               <div className="space-y-2.5 sm:space-y-3">
             <section className="space-y-1.5">
               <h3 className="text-[8px] font-black uppercase tracking-[0.32em] text-zinc-500 px-0.5">
-                Trip Ticket
+                {t('bolPod.labels.tripTicket')}
               </h3>
 
               <div
@@ -2897,7 +2922,7 @@ const BolPodWorkflow: React.FC = () => {
                 {manualPodPickupReviewLabel ? (
                   <div className="px-3 py-2 bg-amber-500/[0.08] border-b border-amber-500/20">
                     <p className="text-[7px] font-black uppercase tracking-[0.18em] text-amber-400">
-                      POD pickup reference
+                      {t('bolPod.labels.podPickupReference')}
                     </p>
                     <p className="text-[10px] text-zinc-300 normal-case mt-0.5 leading-snug">
                       {manualPodPickupReviewLabel}
@@ -2915,10 +2940,10 @@ const BolPodWorkflow: React.FC = () => {
                           ? reviewTheme.eventPillActive
                           : reviewTheme.eventPill
                       }`}
-                      aria-label="Edit event type"
+                      aria-label={t('bolPod.a11y.editEventType')}
                     >
                       <span aria-hidden>📦</span>
-                      {eventType || 'Event'}
+                      {eventType || t('bolPod.labels.eventFallback')}
                     </button>
                     {carrierLockedFromDispatch ? (
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border bg-zinc-900/60 border-zinc-700/50 text-[7px] font-black uppercase tracking-[0.16em] text-zinc-400">
@@ -2937,7 +2962,7 @@ const BolPodWorkflow: React.FC = () => {
                             ? reviewTheme.eventPillActive
                             : reviewTheme.carrierPillIdle
                         }`}
-                        aria-label="Edit carrier"
+                        aria-label={t('bolPod.a11y.editCarrier')}
                       >
                         <span aria-hidden>🚛</span>
                         {reviewCarrierDisplay}
@@ -2959,7 +2984,7 @@ const BolPodWorkflow: React.FC = () => {
                           ? reviewTheme.pickupEditActive
                           : 'hover:bg-white/[0.02]'
                       }`}
-                      aria-label="Edit pickup location"
+                      aria-label={t('bolPod.a11y.editPickupLocation')}
                     >
                         <div className="flex items-start gap-2.5">
                         <div className="flex flex-col items-center shrink-0 pt-0.5">
@@ -2967,7 +2992,7 @@ const BolPodWorkflow: React.FC = () => {
                         </div>
                         <div className="min-w-0 flex-1 pb-0.5">
                           <p className="text-[6px] font-black uppercase tracking-[0.2em] text-blue-400/90">
-                            Pickup
+                            {t('bolPod.labels.pickup')}
                           </p>
                           <p className="text-[12px] font-bold text-white uppercase tracking-tight mt-0.5 truncate">
                             {pickupRouteLabel}
@@ -2984,7 +3009,7 @@ const BolPodWorkflow: React.FC = () => {
                           ? 'bg-green-500/10 border-green-400/25 shadow-[0_0_16px_rgba(34,197,94,0.1)]'
                           : 'hover:bg-white/[0.02]'
                       }`}
-                      aria-label="Edit destination"
+                      aria-label={t('bolPod.a11y.editDestination')}
                     >
                       <div className="flex items-start gap-2.5">
                         <div className="flex flex-col items-center shrink-0 pt-0.5">
@@ -2992,7 +3017,7 @@ const BolPodWorkflow: React.FC = () => {
                         </div>
                         <div className="min-w-0 flex-1">
                           <p className="text-[6px] font-black uppercase tracking-[0.2em] text-green-400/90">
-                            Destination
+                            {t('bolPod.labels.destination')}
                           </p>
                           <p className="text-[12px] font-bold text-white uppercase tracking-tight mt-0.5 truncate">
                             {destinationRouteLabel}
@@ -3023,7 +3048,7 @@ const BolPodWorkflow: React.FC = () => {
                                 : 'bg-zinc-950/80 border-zinc-800 text-zinc-500'
                             }`}
                           >
-                            {opt}
+                            {opt === 'PICKUP' ? t('bolPod.labels.pickup') : t('bolPod.labels.deliveryPod')}
                           </button>
                         ))}
                       </div>
@@ -3040,10 +3065,10 @@ const BolPodWorkflow: React.FC = () => {
                           }))
                         }
                       >
-                        <option value="">Select carrier</option>
+                        <option value="">{t('bolPod.placeholders.selectCarrier')}</option>
                         <option value="BST Expedite Inc">BST Expedite Inc</option>
                         <option value="Greenleaf Xpress">Greenleaf Xpress</option>
-                        <option value="Other Carrier">Other Carrier</option>
+                        <option value="Other Carrier">{t('bolPod.labels.otherCarrier')}</option>
                       </select>
                     ) : null}
 
@@ -3051,7 +3076,7 @@ const BolPodWorkflow: React.FC = () => {
                       <div className="grid grid-cols-4 gap-2 mt-3">
                         <input
                           className={`${reviewCompactInput} col-span-3`}
-                          placeholder="City"
+                          placeholder={t('bolPod.placeholders.city')}
                           value={reviewDraft.puCity}
                           onChange={(e) =>
                             setReviewDraft((d) => ({
@@ -3070,7 +3095,7 @@ const BolPodWorkflow: React.FC = () => {
                             }))
                           }
                         >
-                          <option value="">ST</option>
+                          <option value="">{t('bolPod.placeholders.stateAbbr')}</option>
                           {states.map((s) => (
                             <option key={s} value={s}>
                               {s}
@@ -3084,7 +3109,7 @@ const BolPodWorkflow: React.FC = () => {
                       <div className="grid grid-cols-4 gap-2 mt-3">
                         <input
                           className={`${reviewCompactInput} col-span-3`}
-                          placeholder="City"
+                          placeholder={t('bolPod.placeholders.city')}
                           value={reviewDraft.delCity}
                           onChange={(e) =>
                             setReviewDraft((d) => ({
@@ -3103,7 +3128,7 @@ const BolPodWorkflow: React.FC = () => {
                             }))
                           }
                         >
-                          <option value="">ST</option>
+                          <option value="">{t('bolPod.placeholders.stateAbbr')}</option>
                           {states.map((s) => (
                             <option key={s} value={s}>
                               {s}
@@ -3119,14 +3144,14 @@ const BolPodWorkflow: React.FC = () => {
                         onClick={cancelReviewEdit}
                         className="flex-1 py-2 rounded-xl border border-zinc-700/80 text-[8px] font-black uppercase tracking-widest text-zinc-500 active:scale-95"
                       >
-                        Cancel
+                        {t('bolPod.actions.cancel')}
                       </button>
                       <button
                         type="button"
                         onClick={confirmReviewEdit}
                         className={`flex-1 py-2 rounded-xl text-[8px] font-black uppercase tracking-widest active:scale-95 ${reviewTheme.confirmBtn}`}
                       >
-                        Confirm
+                        {t('bolPod.actions.confirm')}
                       </button>
                     </div>
                   </div>
@@ -3157,12 +3182,12 @@ const BolPodWorkflow: React.FC = () => {
                       isReady ? 'text-emerald-300' : 'text-zinc-500'
                     }`}
                   >
-                    Ready to Submit
+                    {t('bolPod.status.readyToSubmit')}
                   </p>
                   <p className="text-[8px] text-zinc-500 normal-case tracking-normal mt-0.5 hidden sm:block">
                     {isReady
-                      ? 'Swipe right to submit.'
-                      : 'Complete your documents before submitting.'}
+                      ? t('bolPod.status.swipeRightToSubmit')
+                      : t('bolPod.status.completeDocsBeforeSubmit')}
                   </p>
                 </div>
               </div>
@@ -3171,9 +3196,6 @@ const BolPodWorkflow: React.FC = () => {
                 disabled={!isReady}
                 loading={isSubmitting}
                 onSubmit={handleDispatchSubmit}
-                idleLabel="Swipe to submit →"
-                slidingLabel="Keep sliding…"
-                doneLabel="Submitting…"
                 theme={reviewTheme.swipeTheme}
               />
             </div>
@@ -3183,13 +3205,15 @@ const BolPodWorkflow: React.FC = () => {
             <section className="space-y-1.5 lg:sticky lg:top-4">
               <div className="flex items-center justify-between px-0.5">
                 <h3 className="text-[8px] font-black uppercase tracking-[0.32em] text-zinc-500">
-                  Documents & Photos
+                  {t('bolPod.labels.documentsAndPhotos')}
                 </h3>
                 <span
                   className={`text-[6px] font-black uppercase tracking-widest flex items-center gap-1 ${reviewTheme.accentText}`}
                 >
                   <span>✓</span>
-                  {uploadedFiles.length} item{uploadedFiles.length === 1 ? '' : 's'}
+                  {uploadedFiles.length === 1
+                    ? t('bolPod.labels.itemsCountSingular', { count: uploadedFiles.length })
+                    : t('bolPod.labels.itemsCountPlural', { count: uploadedFiles.length })}
                 </span>
               </div>
 
@@ -3205,7 +3229,7 @@ const BolPodWorkflow: React.FC = () => {
                       type="button"
                       onClick={() => setFullImage(bolReviewFilesOrdered[0].preview)}
                       className={`shrink-0 w-14 h-14 rounded-lg overflow-hidden border ${reviewTheme.thumbBorder} relative`}
-                      aria-label="View BOL photo"
+                      aria-label={t('bolPod.a11y.viewBolPhoto')}
                     >
                       <img
                         src={bolReviewFilesOrdered[0].preview}
@@ -3220,7 +3244,7 @@ const BolPodWorkflow: React.FC = () => {
                       <span
                         className={`absolute inset-x-0 bottom-0 bg-black/75 text-[5px] font-black uppercase ${reviewTheme.thumbOverlay} py-0.5 text-center`}
                       >
-                        Tap to view
+                        {t('bolPod.actions.tapToView')}
                       </span>
                     </button>
                   ) : (
@@ -3231,24 +3255,24 @@ const BolPodWorkflow: React.FC = () => {
                     <p
                       className={`text-[7px] font-black uppercase tracking-[0.16em] leading-tight ${reviewTheme.accentText}`}
                     >
-                      BOL (Proof of Load)
+                      {t('bolPod.labels.bolProofOfLoad')}
                     </p>
                     <p className="text-[10px] font-bold text-white truncate leading-tight mt-0.5">
-                      BOL # {bolNum || '—'}
+                      {t('bolPod.labels.bolNumberValue', { bolNum: bolNum || '—' })}
                     </p>
                   </div>
 
                   <span
                     className={`shrink-0 text-[6px] font-black uppercase px-1.5 py-0.5 rounded-full border ${reviewTheme.statusVerified}`}
                   >
-                    ✓ Verified
+                    {t('bolPod.labels.verifiedBadge')}
                   </span>
 
                   <button
                     type="button"
                     onClick={() => openReviewEdit('bol')}
                     className="shrink-0 w-8 h-8 rounded-lg border border-zinc-700/70 flex items-center justify-center text-zinc-500 hover:text-white hover:border-zinc-500 transition-colors"
-                    aria-label="Edit BOL number"
+                    aria-label={t('bolPod.a11y.editBolNumber')}
                   >
                     <svg
                       width="13"
@@ -3268,7 +3292,7 @@ const BolPodWorkflow: React.FC = () => {
                   <div className={`px-2.5 pb-2.5 pt-0 border-t ${reviewTheme.accentBorder} animate-in slide-in-from-top-2`}>
                     <input
                       className={`${reviewCompactInput} mt-2`}
-                      placeholder="BOL #"
+                      placeholder={t('bolPod.placeholders.bolNumberShort')}
                       value={reviewDraft.bolNum}
                       onChange={(e) =>
                         setReviewDraft((d) => ({ ...d, bolNum: e.target.value.trim() }))
@@ -3280,14 +3304,14 @@ const BolPodWorkflow: React.FC = () => {
                         onClick={cancelReviewEdit}
                         className="flex-1 py-2 rounded-xl border border-zinc-700 text-[8px] font-black uppercase text-zinc-500"
                       >
-                        Cancel
+                        {t('bolPod.actions.cancel')}
                       </button>
                       <button
                         type="button"
                         onClick={confirmReviewEdit}
                         className={`flex-1 py-2 rounded-xl text-[8px] font-black uppercase text-white ${reviewTheme.confirmBtn}`}
                       >
-                        Confirm
+                        {t('bolPod.actions.confirm')}
                       </button>
                     </div>
                   </div>
@@ -3304,7 +3328,7 @@ const BolPodWorkflow: React.FC = () => {
                         type="button"
                         onClick={() => setFullImage(freightReviewFiles[0].preview)}
                         className="shrink-0 w-14 h-14 rounded-lg overflow-hidden border border-green-500/30 relative"
-                        aria-label="View freight photo"
+                        aria-label={t('bolPod.a11y.viewFreightPhoto')}
                       >
                         <img
                           src={freightReviewFiles[0].preview}
@@ -3317,7 +3341,7 @@ const BolPodWorkflow: React.FC = () => {
                           </span>
                         ) : null}
                         <span className="absolute inset-x-0 bottom-0 bg-black/75 text-[5px] font-black uppercase text-green-300 py-0.5 text-center">
-                          Tap to view
+                          {t('bolPod.actions.tapToView')}
                         </span>
                       </button>
                     ) : (
@@ -3328,19 +3352,21 @@ const BolPodWorkflow: React.FC = () => {
 
                     <div className="flex-1 min-w-0">
                       <p className="text-[7px] font-black uppercase tracking-[0.16em] text-green-400 leading-tight">
-                        Freight Photos
+                        {t('bolPod.labels.freightPhotos')}
                       </p>
                       {showFreightWaived ? (
                         <p className="text-[9px] text-amber-400/90 normal-case truncate leading-tight mt-0.5">
-                          Waived — dispatch confirmed
+                          {t('bolPod.labels.waivedDispatchConfirmed')}
                         </p>
                       ) : hasFreightPhotos ? (
                         <p className="text-[9px] text-zinc-400 normal-case truncate leading-tight mt-0.5">
-                          {freightPhotoCount} photo{freightPhotoCount === 1 ? '' : 's'} attached
+                          {freightPhotoCount === 1
+                            ? t('bolPod.labels.photosAttachedSingular', { count: freightPhotoCount })
+                            : t('bolPod.labels.photosAttachedPlural', { count: freightPhotoCount })}
                         </p>
                       ) : (
                         <p className="text-[9px] text-zinc-500 normal-case truncate leading-tight mt-0.5">
-                          No photos yet
+                          {t('bolPod.labels.noPhotosYet')}
                         </p>
                       )}
                     </div>
@@ -3349,7 +3375,7 @@ const BolPodWorkflow: React.FC = () => {
                       <span
                         className={`shrink-0 text-[6px] font-black uppercase px-1.5 py-0.5 rounded-full border ${reviewTheme.statusVerified}`}
                       >
-                        ✓ Verified
+                        {t('bolPod.labels.verifiedBadge')}
                       </span>
                     ) : null}
 
@@ -3357,7 +3383,7 @@ const BolPodWorkflow: React.FC = () => {
                       type="button"
                       onClick={returnToFreightDocuments}
                       className="shrink-0 w-8 h-8 rounded-lg border border-zinc-700/70 flex items-center justify-center text-zinc-500 hover:text-white hover:border-zinc-500 transition-colors"
-                      aria-label="Edit freight photos"
+                      aria-label={t('bolPod.a11y.editFreightPhotos')}
                     >
                       <svg
                         width="13"
@@ -3380,7 +3406,7 @@ const BolPodWorkflow: React.FC = () => {
 
             <p className="text-center text-[7px] text-zinc-600 normal-case tracking-normal flex items-center justify-center gap-1 pb-1">
               <span>🔒</span>
-              Ready to submit
+              {t('bolPod.instructions.readyToSubmitFooter')}
             </p>
           </div>
         </div>
@@ -3397,10 +3423,10 @@ const BolPodWorkflow: React.FC = () => {
           </div>
 
           <h2 className="text-4xl font-black italic text-blue-500 uppercase tracking-tighter mb-4">
-            Submitting…
+            {t('bolPod.actions.submitting')}
           </h2>
           <p className="text-orange-500 font-bold text-[11px] uppercase tracking-[0.4em] animate-pulse">
-            Please wait. Do not close the app.
+            {t('bolPod.instructions.pleaseWaitDoNotClose')}
           </p>
         </div>
       )}
@@ -3413,10 +3439,10 @@ const BolPodWorkflow: React.FC = () => {
             </div>
 
             <h2 className="text-3xl font-black italic text-white uppercase tracking-tighter mb-2">
-              Upload Failed
+              {t('bolPod.labels.uploadFailed')}
             </h2>
             <p className="text-red-400 font-bold text-[10px] uppercase tracking-[0.3em] mb-4">
-              Upload did not complete
+              {t('bolPod.status.uploadNotComplete')}
             </p>
 
             <p className="text-zinc-300 text-sm normal-case tracking-normal mb-6 px-2">
@@ -3426,17 +3452,16 @@ const BolPodWorkflow: React.FC = () => {
             {uploadSavedLocally ? (
               <div className="bg-orange-500/10 border border-orange-500/30 rounded-3xl p-5 mb-8 text-left">
                 <p className="text-orange-400 font-black text-[10px] uppercase tracking-[0.25em] mb-2">
-                  Saved locally, not submitted
+                  {t('bolPod.status.savedLocallyNotSubmitted')}
                 </p>
                 <p className="text-zinc-400 text-[11px] normal-case tracking-normal leading-relaxed">
-                  Your documents were saved on this device only. Contact dispatch or
-                  tap Try Again to resubmit when you have a connection.
+                  {t('bolPod.instructions.savedLocallyDetail')}
                 </p>
               </div>
             ) : (
               <div className="bg-zinc-900/50 border border-zinc-800 rounded-3xl p-5 mb-8 text-left">
                 <p className="text-zinc-400 text-[11px] normal-case tracking-normal leading-relaxed">
-                  Contact dispatch if this keeps happening, or tap Try Again.
+                  {t('bolPod.instructions.contactDispatchIfPersists')}
                 </p>
               </div>
             )}
@@ -3446,7 +3471,7 @@ const BolPodWorkflow: React.FC = () => {
                 onClick={() => setShowUploadFailure(false)}
                 className="w-full py-6 rounded-[2rem] font-black uppercase tracking-[0.5em] text-[10px] bg-red-600 text-white"
               >
-                Try Again
+                {t('bolPod.actions.tryAgain')}
               </button>
               <button
                 onClick={() => {
@@ -3456,7 +3481,7 @@ const BolPodWorkflow: React.FC = () => {
                 }}
                 className="w-full py-4 rounded-[2rem] font-black uppercase tracking-[0.4em] text-[10px] text-zinc-500 border border-zinc-800"
               >
-                Back to Edit
+                {t('bolPod.actions.backToEdit')}
               </button>
             </div>
           </div>
@@ -3474,39 +3499,39 @@ const BolPodWorkflow: React.FC = () => {
             </div>
 
             <h2 className="text-3xl font-black italic text-white uppercase tracking-tighter mb-2">
-              Submission received
+              {t('bolPod.status.submissionReceived')}
             </h2>
             <p className="text-zinc-500 font-bold text-[10px] uppercase tracking-[0.3em] mb-8">
-              Upload complete
+              {t('bolPod.status.uploadComplete')}
             </p>
 
             <div className="bg-zinc-900/50 border border-zinc-800 rounded-3xl p-6 mb-8 text-left space-y-3 font-mono text-[10px]">
               <div className="flex justify-between">
-                <span className="text-zinc-500">EVENT:</span>
+                <span className="text-zinc-500">{t('bolPod.labels.summaryEventLabel')}</span>
                 <span className="text-white font-bold">{eventType}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-zinc-500">LOAD #:</span>
-                <span className="text-white font-bold">{assignedLoadNumber || 'N/A'}</span>
+                <span className="text-zinc-500">{t('bolPod.labels.summaryLoadLabel')}</span>
+                <span className="text-white font-bold">{assignedLoadNumber || t('bolPod.labels.notAvailable')}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-zinc-500">BOL #:</span>
-                <span className="text-white font-bold">{bolNum || 'N/A'}</span>
+                <span className="text-zinc-500">{t('bolPod.labels.summaryBolLabel')}</span>
+                <span className="text-white font-bold">{bolNum || t('bolPod.labels.notAvailable')}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-zinc-500">LOAD ID:</span>
-                <span className="text-white font-bold">{loadId || 'N/A'}</span>
+                <span className="text-zinc-500">{t('bolPod.labels.summaryLoadIdLabel')}</span>
+                <span className="text-white font-bold">{loadId || t('bolPod.labels.notAvailable')}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-zinc-500">OPERATOR:</span>
+                <span className="text-zinc-500">{t('bolPod.labels.summaryOperatorLabel')}</span>
                 <span className="text-white font-bold">{driverName}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-zinc-500">CARRIER:</span>
-                <span className="text-white font-bold">{effectiveCompany || 'N/A'}</span>
+                <span className="text-zinc-500">{t('bolPod.labels.summaryCarrierLabel')}</span>
+                <span className="text-white font-bold">{effectiveCompany || t('bolPod.labels.notAvailable')}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-zinc-500">TIMESTAMP:</span>
+                <span className="text-zinc-500">{t('bolPod.labels.summaryTimestampLabel')}</span>
                 <span className="text-white font-bold">
                   {new Date().toLocaleTimeString()}
                 </span>
@@ -3523,7 +3548,7 @@ const BolPodWorkflow: React.FC = () => {
                     : 'bg-zinc-700'
               } text-white`}
             >
-              Restart Terminal
+              {t('bolPod.actions.restartTerminal')}
             </button>
           </div>
         </div>
@@ -3533,7 +3558,7 @@ const BolPodWorkflow: React.FC = () => {
         <div className="fixed inset-0 z-[800] bg-black/98 flex items-center justify-center p-6">
           <div className="w-full max-w-sm bg-zinc-900 border-2 border-zinc-800 rounded-[3.5rem] p-10 shadow-2xl">
             <h3 className="text-[10px] font-black text-zinc-500 uppercase mb-8 tracking-[0.4em] text-center">
-              Correct Entry
+              {t('bolPod.labels.correctEntry')}
             </h3>
 
             <div className="space-y-4">
@@ -3541,7 +3566,7 @@ const BolPodWorkflow: React.FC = () => {
                 <>
                   <input
                     type="text"
-                    placeholder="CITY"
+                    placeholder={t('bolPod.placeholders.cityUppercase')}
                     className={inpStyle(puCity)}
                     value={puCity}
                     onChange={(e) => setPuCity(e.target.value.toUpperCase())}
@@ -3564,7 +3589,7 @@ const BolPodWorkflow: React.FC = () => {
                 <>
                   <input
                     type="text"
-                    placeholder="CITY"
+                    placeholder={t('bolPod.placeholders.cityUppercase')}
                     className={inpStyle(delCity)}
                     value={delCity}
                     onChange={(e) => setDelCity(e.target.value.toUpperCase())}
@@ -3586,7 +3611,7 @@ const BolPodWorkflow: React.FC = () => {
               {editingField === 'driverName' && (
                 <input
                   type="text"
-                  placeholder="DRIVER NAME"
+                  placeholder={t('bolPod.placeholders.driverNameUppercase')}
                   className={inpStyle(driverName)}
                   value={driverName}
                   onChange={(e) => setDriverName(e.target.value.toUpperCase())}
@@ -3603,17 +3628,17 @@ const BolPodWorkflow: React.FC = () => {
                     setCompany(val);
                   }}
                 >
-                  <option value="">CARRIER NAME ASSIGNED TO THIS LOAD</option>
+                  <option value="">{t('bolPod.placeholders.carrierNameAssigned')}</option>
                   <option value="BST Expedite Inc">BST Expedite Inc</option>
                   <option value="Greenleaf Xpress">Greenleaf Xpress</option>
-                  <option value="Other Carrier">Other Carrier</option>
+                  <option value="Other Carrier">{t('bolPod.labels.otherCarrier')}</option>
                 </select>
               )}
 
               {editingField === 'reference' && (
                 <input
                   type="text"
-                  placeholder="BOL #"
+                  placeholder={t('bolPod.placeholders.bolNumberShort')}
                   className={inpStyle(bolNum)}
                   value={bolNum}
                   onChange={(e) => setBolNum(e.target.value.trim())}
@@ -3625,7 +3650,7 @@ const BolPodWorkflow: React.FC = () => {
               onClick={() => setEditingField(null)}
               className="w-full mt-10 py-6 rounded-3xl bg-white text-black font-black uppercase text-[10px] tracking-widest active:scale-95"
             >
-              Commit Changes
+              {t('bolPod.actions.commitChanges')}
             </button>
           </div>
         </div>
@@ -3637,7 +3662,7 @@ const BolPodWorkflow: React.FC = () => {
           onClick={() => setFullImage(null)}
         >
           <button className="absolute top-10 right-10 text-white text-[10px] font-black border-2 border-white/20 px-6 py-2 rounded-full uppercase">
-            Close [X]
+            {t('bolPod.actions.closeBracketX')}
           </button>
           <img
             src={fullImage}

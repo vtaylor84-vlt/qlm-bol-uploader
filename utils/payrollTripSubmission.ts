@@ -1,7 +1,10 @@
 /** External trip-form destination (separate product surface). */
 export const PAYROLL_TRIP_SUBMISSION_URL = 'https://payroll.elmconnect.net';
 
-/** Driver-facing label for the live trip-form action. */
+/**
+ * English defaults for Trip Form CTAs.
+ * Prefer i18n keys `tripForm.label` / `tripForm.helper` in UI; keep these for non-React callers.
+ */
 export const PAYROLL_TRIP_SUBMISSION_LABEL = 'Submit Trip Form';
 
 export const PAYROLL_TRIP_SUBMISSION_HELPER =

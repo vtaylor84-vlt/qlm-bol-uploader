@@ -35,6 +35,8 @@ interface ShowcaseContextValue {
   setScenario: (id: ScenarioId) => void;
   /** Restore carrier/persona/scenario to known fixture baseline without exiting Showcase. */
   resetShowcase: () => void;
+  /** Exit View As only — restore default driver persona for active carrier (no nesting). */
+  exitViewAs: () => void;
   isShowcaseActive: boolean;
 }
 
@@ -138,6 +140,18 @@ export const ShowcaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }));
   }, []);
 
+  const exitViewAs = useCallback(() => {
+    setState((s) => {
+      const persona = personaFor(s.carrierId, 'driver');
+      return {
+        ...s,
+        personaRole: 'driver',
+        personaId: persona.id,
+        viewAsActive: false,
+      };
+    });
+  }, []);
+
   const value = useMemo(
     () => ({
       state,
@@ -147,6 +161,7 @@ export const ShowcaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       setPersonaRole,
       setScenario,
       resetShowcase,
+      exitViewAs,
       isShowcaseActive: state.active && state.grantValid,
     }),
     [
@@ -157,6 +172,7 @@ export const ShowcaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       setPersonaRole,
       setScenario,
       resetShowcase,
+      exitViewAs,
     ]
   );
 
