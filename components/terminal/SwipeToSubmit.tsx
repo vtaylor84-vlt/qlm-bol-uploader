@@ -1,4 +1,5 @@
 import React, { useCallback, useRef, useState } from 'react';
+import { useLocale } from '../../context/LocaleContext.tsx';
 
 const HANDLE_SIZE = 52;
 const TRACK_PAD = 4;
@@ -77,11 +78,15 @@ const SwipeToSubmit: React.FC<SwipeToSubmitProps> = ({
   disabled = false,
   loading = false,
   onSubmit,
-  idleLabel = 'Swipe to submit →',
-  slidingLabel = 'Keep sliding…',
-  doneLabel = 'Submitting…',
+  idleLabel,
+  slidingLabel,
+  doneLabel,
   theme = 'bst',
 }) => {
+  const { t } = useLocale();
+  const resolvedIdleLabel = idleLabel ?? t('bolPod.actions.swipeToSubmit');
+  const resolvedSlidingLabel = slidingLabel ?? t('bolPod.actions.keepSliding');
+  const resolvedDoneLabel = doneLabel ?? t('bolPod.actions.submitting');
   const trackRef = useRef<HTMLDivElement>(null);
   const [offset, setOffset] = useState(0);
   const [dragging, setDragging] = useState(false);
@@ -172,12 +177,16 @@ const SwipeToSubmit: React.FC<SwipeToSubmitProps> = ({
           progress > 0.35 ? 'text-white/90' : 'text-zinc-500'
         }`}
       >
-        {loading || locked ? doneLabel : progress > 0.12 ? slidingLabel : idleLabel}
+        {loading || locked
+          ? resolvedDoneLabel
+          : progress > 0.12
+            ? resolvedSlidingLabel
+            : resolvedIdleLabel}
       </p>
 
       <div
         role="slider"
-        aria-label="Swipe to submit"
+        aria-label={t('bolPod.a11y.swipeToSubmit')}
         aria-valuenow={Math.round(progress * 100)}
         aria-valuemin={0}
         aria-valuemax={100}

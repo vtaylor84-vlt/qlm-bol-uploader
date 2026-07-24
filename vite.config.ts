@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react';
 import * as path from 'path';
 import { execSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
+import localNetlifyFunctionsPlugin from './vite.localNetlifyFunctions.ts';
 
 function resolveGitSha(): string {
   if (process.env.COMMIT_REF) return String(process.env.COMMIT_REF).trim();
@@ -43,7 +44,7 @@ const buildTime = process.env.VITE_RELEASE_BUILD_TIME || new Date().toISOString(
  * Vite exposes VITE_* values to the client bundle (non-secret metadata only).
  */
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), localNetlifyFunctionsPlugin()],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './'),

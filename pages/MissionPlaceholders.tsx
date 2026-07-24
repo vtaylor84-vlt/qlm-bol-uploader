@@ -3,25 +3,24 @@ import { Link, useNavigate } from 'react-router-dom';
 import MissionShell from '../components/mission-control/MissionShell.tsx';
 import RouteMilestoneBar from '../components/mission-control/RouteMilestoneBar.tsx';
 import ElmCard from '../design-system/components/ElmCard.tsx';
-import CapabilityStateBadge from '../components/mission-control/CapabilityStateBadge.tsx';
+import LocalizedCapabilityBadge from '../components/mission-control/LocalizedCapabilityBadge.tsx';
+import LanguageSelector from '../components/i18n/LanguageSelector.tsx';
 import { useAuth } from '../context/AuthContext.tsx';
 import { useDriverExperience } from '../context/DriverExperienceContext.tsx';
 import { useShowcaseOptional } from '../context/ShowcaseContext.tsx';
+import { useLocale } from '../context/LocaleContext.tsx';
 import { getCompanyDisplayName } from '../utils/companyMap.ts';
 import { ELM_VERSION } from '../design-system/tokens.ts';
 import { getReleaseIdentity } from '../utils/releaseIdentity.ts';
 import { isShowcaseGrantPresentAndUnexpired } from '../utils/showcaseGrantStorage.ts';
 import type { LoadBucket, LoadListItem } from '../services/dataSource/types.ts';
-import {
-  openPayrollTripSubmission,
-  PAYROLL_TRIP_SUBMISSION_HELPER,
-  PAYROLL_TRIP_SUBMISSION_LABEL,
-} from '../utils/payrollTripSubmission.ts';
+import { openPayrollTripSubmission } from '../utils/payrollTripSubmission.ts';
+import type { MessageKey } from '../i18n/messages/en.ts';
 
-const BUCKET_LABEL: Record<LoadBucket, string> = {
-  current: 'Current',
-  upcoming: 'Upcoming',
-  completed: 'Completed',
+const BUCKET_KEYS: Record<LoadBucket, MessageKey> = {
+  current: 'trips.current',
+  upcoming: 'trips.upcoming',
+  completed: 'trips.completed',
 };
 
 function tripBadgeTone(load: LoadListItem): 'ok' | 'info' | 'warning' | 'critical' {
@@ -35,6 +34,7 @@ function tripBadgeTone(load: LoadListItem): 'ok' | 'info' | 'warning' | 'critica
 /** Trips — driver-facing trip execution (internal load objects unchanged). */
 export const LoadsPage: React.FC = () => {
   const { mode, routePrefix, dataSource, actions } = useDriverExperience();
+  const { t } = useLocale();
   const loads = dataSource.getLoads();
   const truck = mode === 'showcase' ? dataSource.getTruckStatus() : null;
   const captureTo = `${routePrefix}/capture`;
@@ -76,22 +76,20 @@ export const LoadsPage: React.FC = () => {
 
   const runTripAction = async (label: string) => {
     if (mode !== 'showcase') {
-      setActionStatus('Trip status updates are not connected yet in Production.');
+      setActionStatus(t('trips.statusNotConnected'));
       return;
     }
     setActionStatus(`SIMULATED ACTION: ${label} recorded for demonstration only.`);
   };
 
   return (
-    <MissionShell title="Trips" activeNav="trips">
+    <MissionShell title={t('nav.trips')} activeNav="trips">
       <div className="mc-trips space-y-6">
         <header>
-          <p className="mc-kicker">Trips</p>
-          <h1 className="mc-page-title">Your trips</h1>
+          <p className="mc-kicker">{t('trips.kicker')}</p>
+          <h1 className="mc-page-title">{t('trips.title')}</h1>
           <p className="mc-section-copy">
-            {mode === 'showcase'
-              ? 'Demonstration data only — current, upcoming, and completed trips for this scenario.'
-              : 'Assigned trip details will appear here when dispatch integration is available.'}
+            {mode === 'showcase' ? t('trips.showcaseCopy') : t('trips.prodCopy')}
           </p>
         </header>
 
@@ -102,22 +100,36 @@ export const LoadsPage: React.FC = () => {
         ) : null}
 
         {loads.length === 0 ? (
-          <ElmCard variant="muted" padding="md" as="section" aria-label="Assigned trips">
-            <div className="flex items-start justify-between gap-3 mb-2">
-              <div>
-                <p className="mc-kicker mb-0">Trips</p>
-                <h2 className="mc-section-title">Assigned trips</h2>
-              </div>
-              <CapabilityStateBadge state="NOT_CONNECTED" />
+          <div className="space-y-4">
+            <div className="mc-filter-tabs" role="tablist" aria-label={t('trips.statusTabs')}>
+              {(['current', 'upcoming', 'completed'] as LoadBucket[]).map((id) => (
+                <button
+                  key={id}
+                  type="button"
+                  role="tab"
+                  aria-selected={bucket === id}
+                  className={`mc-filter-tab${bucket === id ? ' is-active' : ''}`}
+                  onClick={() => setBucket(id)}
+                >
+                  {t(BUCKET_KEYS[id])}
+                </button>
+              ))}
             </div>
-            <p className="mc-section-copy">
-              Assigned trip details will appear here when dispatch integration is available.
-            </p>
-          </ElmCard>
+            <ElmCard variant="muted" padding="md" as="section" aria-label={t('trips.assignedHeading')}>
+              <div className="flex items-start justify-between gap-3 mb-2">
+                <div>
+                  <p className="mc-kicker mb-0">{t('trips.kicker')}</p>
+                  <h2 className="mc-section-title">{t('trips.assignedHeading')}</h2>
+                </div>
+                <LocalizedCapabilityBadge state="NOT_CONNECTED" />
+              </div>
+              <p className="mc-section-copy">{t('trips.notConnected')}</p>
+            </ElmCard>
+          </div>
         ) : (
           <>
             <div className="space-y-3">
-              <div className="mc-filter-tabs" role="tablist" aria-label="Trip status">
+              <div className="mc-filter-tabs" role="tablist" aria-label={t('trips.statusTabs')}>
                 {(['current', 'upcoming', 'completed'] as LoadBucket[]).map((b) => (
                   <button
                     key={b}
@@ -127,7 +139,7 @@ export const LoadsPage: React.FC = () => {
                     className={`mc-filter-tab${bucket === b ? ' is-active' : ''}`}
                     onClick={() => setBucket(b)}
                   >
-                    {BUCKET_LABEL[b]}
+                    {t(BUCKET_KEYS[b])}
                     <span className="mc-filter-tab-count">{bucketCounts[b]}</span>
                   </button>
                 ))}
@@ -135,10 +147,10 @@ export const LoadsPage: React.FC = () => {
               <input
                 type="search"
                 className="elm-input"
-                placeholder="Search trip #, origin, or destination"
+                placeholder={t('trips.searchPlaceholder')}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                aria-label="Search trips"
+                aria-label={t('trips.searchPlaceholder')}
               />
             </div>
 
@@ -147,7 +159,7 @@ export const LoadsPage: React.FC = () => {
                 {filtered.length === 0 ? (
                   <li>
                     <ElmCard variant="muted" padding="md">
-                      <p className="mc-section-copy">No trips match this filter.</p>
+                      <p className="mc-section-copy">{t('trips.noMatches')}</p>
                     </ElmCard>
                   </li>
                 ) : (
@@ -325,7 +337,7 @@ export const LoadsPage: React.FC = () => {
                         className="mc-live-action mc-live-action--compact"
                         onClick={() => openPayrollTripSubmission()}
                       >
-                        <span className="mc-live-action-title">{PAYROLL_TRIP_SUBMISSION_LABEL}</span>
+                        <span className="mc-live-action-title">{t('tripForm.label')}</span>
                       </button>
                     ) : null}
                     {mode === 'showcase' ? (
@@ -355,6 +367,7 @@ export const LoadsPage: React.FC = () => {
 /** Pay — driver-facing Payroll view (not admin Payroll product). */
 export const PayPage: React.FC = () => {
   const { mode, dataSource, actions } = useDriverExperience();
+  const { t } = useLocale();
   const pay = dataSource.getPaySummary();
   const [status, setStatus] = useState('');
 
@@ -372,63 +385,37 @@ export const PayPage: React.FC = () => {
   ) || [];
 
   return (
-    <MissionShell title="Pay" activeNav="pay">
+    <MissionShell title={t('nav.pay')} activeNav="pay">
       <div className="space-y-6 max-w-3xl">
         <header>
-          <p className="mc-kicker">Pay</p>
-          <h1 className="mc-page-title">Your pay</h1>
+          <p className="mc-kicker">{t('pay.kicker')}</p>
+          <h1 className="mc-page-title">{t('pay.title')}</h1>
           <p className="mc-section-copy">
-            {mode === 'showcase'
-              ? 'Demonstration settlement for this scenario — not a live payroll run.'
-              : 'Submit completed trip details for review. Finalized earnings are not shown here yet.'}
+            {mode === 'showcase' ? t('pay.showcaseCopy') : t('pay.prodCopy')}
           </p>
         </header>
 
-        <section className="mc-home-live-actions" aria-label="Live pay actions">
+        <section className="mc-home-live-actions" aria-label={t('home.tripFormKicker')}>
           <button
             type="button"
             className="mc-live-action"
             onClick={() => openPayrollTripSubmission()}
-            aria-label={PAYROLL_TRIP_SUBMISSION_LABEL}
+            aria-label={t('tripForm.label')}
           >
-            <span className="mc-live-action-kicker">Trip form</span>
-            <span className="mc-live-action-title">{PAYROLL_TRIP_SUBMISSION_LABEL}</span>
-            <span className="mc-live-action-copy">
-              {PAYROLL_TRIP_SUBMISSION_HELPER} This does not display finalized earnings, confirm
-              approval, or prove payment.
-            </span>
+            <span className="mc-live-action-kicker">{t('home.tripFormKicker')}</span>
+            <span className="mc-live-action-title">{t('tripForm.label')}</span>
+            <span className="mc-live-action-copy">{t('pay.tripFormHint')}</span>
           </button>
         </section>
 
         {mode === 'production' ? (
           <>
-            <ElmCard variant="muted" padding="md" as="section" aria-label="Earnings">
+            <ElmCard variant="muted" padding="md" as="section" aria-label={t('pay.notConnectedTitle')}>
               <div className="flex items-start justify-between gap-3 mb-2">
-                <h2 className="mc-section-title">Earnings</h2>
-                <CapabilityStateBadge state="NOT_CONNECTED" />
+                <h2 className="mc-section-title">{t('pay.notConnectedTitle')}</h2>
+                <LocalizedCapabilityBadge state="NOT_CONNECTED" />
               </div>
-              <p className="mc-section-copy">
-                Not available yet. Finalized settlement earnings are not connected in this build.
-              </p>
-            </ElmCard>
-            <ElmCard variant="muted" padding="md" as="section" aria-label="Statements">
-              <div className="flex items-start justify-between gap-3 mb-2">
-                <h2 className="mc-section-title">Statements</h2>
-                <CapabilityStateBadge state="NOT_CONNECTED" />
-              </div>
-              <p className="mc-section-copy">
-                Not available yet. Pay statements will appear here when connected to authoritative
-                Production Payroll.
-              </p>
-            </ElmCard>
-            <ElmCard variant="muted" padding="md" as="section" aria-label="Year to date">
-              <div className="flex items-start justify-between gap-3 mb-2">
-                <h2 className="mc-section-title">YTD information</h2>
-                <CapabilityStateBadge state="NOT_CONNECTED" />
-              </div>
-              <p className="mc-section-copy">
-                Not available yet. Year-to-date totals are not calculated or displayed in this build.
-              </p>
+              <p className="mc-section-copy">{t('pay.notConnectedBody')}</p>
             </ElmCard>
           </>
         ) : (
@@ -442,7 +429,7 @@ export const PayPage: React.FC = () => {
                     <p className="mc-section-copy">{pay.payrollStatusLabel}</p>
                   ) : null}
                 </div>
-                <CapabilityStateBadge state="DEMO_ONLY" />
+                <LocalizedCapabilityBadge state="DEMO_ONLY" />
               </div>
 
               <dl className="mc-metric-grid">
@@ -580,7 +567,7 @@ export const PayPage: React.FC = () => {
                 </p>
               ) : null}
               <button type="button" className="mc-exception-action mt-4" onClick={reportPayQuestion}>
-                Ask about pay
+                {t('pay.askAboutPay')}
               </button>
             </ElmCard>
           </>
@@ -601,8 +588,9 @@ interface MoreLink {
 /** More — driver mental model sections (not a tile wall). */
 export const MorePage: React.FC = () => {
   const { session, logout } = useAuth();
-  const { mode, routePrefix, dataSource } = useDriverExperience();
+  const { mode, routePrefix } = useDriverExperience();
   const showcase = useShowcaseOptional();
+  const { t } = useLocale();
   const navigate = useNavigate();
   const [entering, setEntering] = useState(false);
   const company = getCompanyDisplayName(session?.companyCode);
@@ -764,52 +752,53 @@ export const MorePage: React.FC = () => {
           href: demo ? `${p}/preferences` : '#',
           state: demo ? 'DEMO_ONLY' : 'COMING_SOON',
         },
-        {
-          id: 'language',
-          label: 'Language',
-          detail: 'Coming soon',
-          href: '#',
-          state: 'COMING_SOON',
-        },
       ],
     },
   ];
 
   return (
-    <MissionShell title="More" activeNav="more">
+    <MissionShell title={t('nav.more')} activeNav="more">
       <div className="mc-more space-y-8">
         <header>
-          <p className="mc-kicker">More</p>
-          <h1 className="mc-page-title">Account &amp; tools</h1>
-          <p className="mc-section-copy">
-            Vehicle, safety, support, and account settings — organized for drivers.
-          </p>
+          <p className="mc-kicker">{t('more.kicker')}</p>
+          <h1 className="mc-page-title">{t('more.title')}</h1>
+          <p className="mc-section-copy">{t('more.copy')}</p>
         </header>
 
-        <ElmCard variant="default" padding="md" as="section" aria-label="Profile">
-          <p className="mc-kicker mb-2">Profile</p>
-          <h2 className="mc-section-title">{session?.driverName || 'Driver'}</h2>
+        <ElmCard variant="default" padding="md" as="section" aria-label={t('more.profile')}>
+          <p className="mc-kicker mb-2">{t('more.profile')}</p>
+          <h2 className="mc-section-title">{session?.driverName || t('common.driver')}</h2>
           <dl className="mc-meta-grid mt-4">
             <div>
-              <dt>Email</dt>
+              <dt>{t('more.email')}</dt>
               <dd className="normal-case font-medium break-all">
                 {session?.maskedEmail || '—'}
               </dd>
             </div>
             <div>
-              <dt>Role</dt>
-              <dd>{session?.authRole === 'admin' ? 'Admin' : 'Driver'}</dd>
+              <dt>{t('more.role')}</dt>
+              <dd>{session?.authRole === 'admin' ? t('common.admin') : t('common.driver')}</dd>
             </div>
             <div>
-              <dt>Company information</dt>
+              <dt>{t('more.company')}</dt>
               <dd>{company || '—'}</dd>
             </div>
             <div>
-              <dt>Session</dt>
-              <dd>Roster-verified email</dd>
+              <dt>{t('more.session')}</dt>
+              <dd>{t('more.sessionValue')}</dd>
             </div>
           </dl>
         </ElmCard>
+
+        <section className="mc-more-section" aria-labelledby="more-language">
+          <h2 id="more-language" className="mc-more-section-title">
+            {t('more.language')}
+          </h2>
+          <ElmCard variant="default" padding="md" as="div">
+            <p className="mc-section-copy mb-3">{t('more.languageDetail')}</p>
+            <LanguageSelector variant="more" id="elm-more-language" />
+          </ElmCard>
+        </section>
 
         {sections.map((section) => (
           <section key={section.id} className="mc-more-section" aria-labelledby={`more-${section.id}`}>
@@ -830,7 +819,7 @@ export const MorePage: React.FC = () => {
                     </div>
                     <div className="mc-more-item-meta">
                       {item.state && item.state !== 'AVAILABLE' ? (
-                        <CapabilityStateBadge state={item.state} />
+                        <LocalizedCapabilityBadge state={item.state} />
                       ) : null}
                       {!unavailable ? <span aria-hidden>›</span> : null}
                     </div>

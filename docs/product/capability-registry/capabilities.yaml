@@ -1,0 +1,488 @@
+# ELM CONNECT Capability Registry — Phase 1 seed
+# Governance metadata only. Not a remote feature-flag service.
+version: 1
+updated: 2026-07-24
+capabilities:
+  - id: access-identity
+    name: Access and identity
+    userProblem: Drivers and admins need secure company-scoped access.
+    intendedOutcome: Roster-verified session with tenant isolation.
+    productDomain: access
+    uiLocation: /login
+    audience: shared
+    productionStatus: partial
+    productionBehavior: Email roster login; bridge admins; sessionStorage profile.
+    comingSoonBehavior: MFA/SSO shown as future in vision docs only.
+    showcaseBehavior: Grant mint on admin login; Showcase entry separate.
+    ownership: owned
+    canonicalRecords: [Driver, UserIdentity, Carrier, Role, Permission]
+    permissions: Roster eligibility; BRIDGE_ADMINS for admin.
+    auditRequirements: Login verify events; no secrets in client logs.
+    offlineRequirements: Session may persist briefly offline; privileged writes require online.
+    integrationDependencies: []
+    activationCriteria: Existing roster path remains Live.
+    roadmapPhase: 1
+    applicableTests: [tests/auth-cleanup.test.ts, e2e/rc1-driver-experience.spec.ts]
+    benchmark: Enterprise identity (future SSO)
+
+  - id: home
+    name: Driver Home
+    userProblem: What am I doing now, next, and what blocks pay/work?
+    intendedOutcome: Attention-first home with live actions and truthful slots.
+    productDomain: home
+    uiLocation: /home
+    audience: driver
+    productionStatus: partial
+    productionBehavior: Live BOL/POD + Trip Form; trips/attention/HOS/messages not connected.
+    comingSoonBehavior: Section-level Not available yet / Coming soon; no fake counts.
+    showcaseBehavior: Scenario fixtures fill haul/tasks/attention.
+    ownership: owned
+    canonicalRecords: [Trip, Task, Message, Notification, Earning]
+    permissions: Session company scope
+    auditRequirements: No fabricated operational facts in production.
+    offlineRequirements: View cached trip later (Phase 3+)
+    integrationDependencies: [TMS]
+    activationCriteria: Assigned-trip API verified (Phase 4)
+    roadmapPhase: 1
+    applicableTests: [e2e/rc1-driver-experience.spec.ts, tests/rc1-isolation.test.ts]
+    benchmark: Eleos home workflow
+
+  - id: trips
+    name: Trips
+    userProblem: See current, upcoming, and completed assigned trips.
+    intendedOutcome: Trip list and detail from authoritative assignment.
+    productDomain: trips
+    uiLocation: /trips
+    audience: driver
+    productionStatus: not_connected
+    productionBehavior: Empty Current/Upcoming/Completed structure; truthful copy.
+    comingSoonBehavior: Not available yet until dispatch connected.
+    showcaseBehavior: Fixture loads with carrier isolation.
+    ownership: owned
+    canonicalRecords: [Trip, Stop, Assignment, TripEvent]
+    permissions: Assigned trips only
+    auditRequirements: Status history when Live
+    offlineRequirements: Downloaded trips (later)
+    integrationDependencies: [TMS]
+    activationCriteria: getDriverLoads or replacement verified (Phase 4) — not Phase 1
+    roadmapPhase: 4
+    applicableTests: [tests/rc1-isolation.test.ts, e2e/rc1-driver-experience.spec.ts]
+    benchmark: Eleos trip workflow
+
+  - id: submit
+    name: Submit destination
+    userProblem: One place to send documents, forms, and evidence.
+    intendedOutcome: Permanent Submit center at /capture.
+    productDomain: submit
+    uiLocation: /capture
+    audience: driver
+    productionStatus: partial
+    productionBehavior: Available now live cards; grouped Coming soon lists.
+    comingSoonBehavior: Disabled non-activating rows with Coming soon badge.
+    showcaseBehavior: Simulate BOL/POD only; futures stay Coming soon.
+    ownership: owned
+    canonicalRecords: [Submission, Document, Exception]
+    permissions: UploaderAllowed / session
+    auditRequirements: Intake rows for live uploads
+    offlineRequirements: multi_vault for failed live uploads
+    integrationDependencies: []
+    activationCriteria: Label Submit + route /capture locked
+    roadmapPhase: 1
+    applicableTests: [e2e/rc1-driver-experience.spec.ts]
+    benchmark: Eleos document capture
+
+  - id: bol-pod-upload
+    name: BOL/POD upload
+    userProblem: Submit pickup/delivery paperwork.
+    intendedOutcome: Files in tenant Drive + DB_Docs + notifications.
+    productDomain: submit
+    uiLocation: /submissions/bol-pod
+    audience: driver
+    productionStatus: live
+    productionBehavior: Full EVENT→REVIEW workflow via Netlify→GAS.
+    comingSoonBehavior: n/a
+    showcaseBehavior: Simulated action; write block + gateway reject.
+    ownership: owned
+    canonicalRecords: [Document, Submission]
+    permissions: Upload token server-side; company allow list
+    auditRequirements: DB_Docs intake
+    offlineRequirements: multi_vault on failure
+    integrationDependencies: [Google Drive, Google Sheets, Email/SMS]
+    activationCriteria: Existing E2E upload path
+    roadmapPhase: 1
+    applicableTests: [e2e/rc1-driver-experience.spec.ts]
+    benchmark: Eleos document capture
+
+  - id: trip-form
+    name: Submit Trip Form
+    userProblem: Send trip details for payroll review.
+    intendedOutcome: Open external payroll trip form without inventing settlement.
+    productDomain: submit
+    uiLocation: /capture (Available now)
+    audience: driver
+    productionStatus: live
+    productionBehavior: Opens https://payroll.elmconnect.net in new tab.
+    comingSoonBehavior: n/a
+    showcaseBehavior: Same external link available; no payroll mutation.
+    ownership: orchestrated
+    canonicalRecords: [Trip, Settlement]
+    permissions: Authenticated session
+    auditRequirements: External system owns form audit
+    offlineRequirements: Requires network
+    integrationDependencies: [payroll.elmconnect.net]
+    activationCriteria: URL preserved
+    roadmapPhase: 1
+    applicableTests: [e2e/rc1-driver-experience.spec.ts]
+    benchmark: Enterprise payroll handoff
+
+  - id: receipts
+    name: Receipts
+    userProblem: Submit expense receipts.
+    intendedOutcome: Receipt intake when Drive destination verified.
+    productDomain: submit
+    uiLocation: /capture (Trip paperwork)
+    audience: driver
+    productionStatus: coming_soon
+    productionBehavior: Coming soon; /submissions/receipt gated.
+    comingSoonBehavior: Disabled card; no upload.
+    showcaseBehavior: Coming soon (no prod write).
+    ownership: owned
+    canonicalRecords: [Document, Submission, Reimbursement]
+    permissions: Session
+    auditRequirements: Intake when activated
+    offlineRequirements: Queue later
+    integrationDependencies: [Google Drive]
+    activationCriteria: Drive destination verified (Phase 3)
+    roadmapPhase: 3
+    applicableTests: [e2e/rc1-driver-experience.spec.ts]
+    benchmark: Eleos expenses
+
+  - id: freight-photos
+    name: Freight photos
+    userProblem: Capture cargo condition photos.
+    intendedOutcome: Photos linked to trip.
+    productDomain: submit
+    uiLocation: /capture
+    audience: driver
+    productionStatus: coming_soon
+    productionBehavior: Coming soon disabled row.
+    comingSoonBehavior: Non-activating
+    showcaseBehavior: Coming soon
+    ownership: owned
+    canonicalRecords: [Document, Trip]
+    permissions: Session
+    auditRequirements: Evidence retention when Live
+    offlineRequirements: Capture queue later
+    integrationDependencies: []
+    activationCriteria: Product approval + storage path
+    roadmapPhase: 3
+    applicableTests: [e2e/rc1-driver-experience.spec.ts]
+    benchmark: Eleos evidence
+
+  - id: guided-exceptions
+    name: Guided exceptions
+    userProblem: Report delays, OS&D, detention, breakdowns, etc.
+    intendedOutcome: Guided forms creating ops/finance candidates via orchestration.
+    productDomain: submit
+    uiLocation: /capture (Exceptions)
+    audience: driver
+    productionStatus: coming_soon
+    productionBehavior: Coming soon rows only; no fan-out.
+    comingSoonBehavior: Disabled list items
+    showcaseBehavior: Narrative cards on Home; guided demos Phase 2
+    ownership: owned
+    canonicalRecords: [Exception, Task, AuditEvent]
+    permissions: Driver create; ops resolve
+    auditRequirements: Immutable timeline when Live
+    offlineRequirements: Queue with device event IDs later
+    integrationDependencies: []
+    activationCriteria: Ops orchestration (Phase 5)
+    roadmapPhase: 2
+    applicableTests: [e2e/rc1-driver-experience.spec.ts]
+    benchmark: Eleos exception reporting
+
+  - id: pay
+    name: Pay
+    userProblem: Understand earnings, deductions, settlements.
+    intendedOutcome: Authoritative settlement view.
+    productDomain: pay
+    uiLocation: /pay
+    audience: driver
+    productionStatus: not_connected
+    productionBehavior: Explicit not connected; Trip Form link only; no invented figures.
+    comingSoonBehavior: Not available yet cards
+    showcaseBehavior: Demonstration settlement fixtures labeled demo.
+    ownership: owned
+    canonicalRecords: [Earning, Deduction, Reimbursement, EscrowTransaction, SavingsTransaction, Settlement]
+    permissions: Driver self; finance roles later
+    auditRequirements: Immutable snapshots when Live
+    offlineRequirements: View last statement later
+    integrationDependencies: [Payroll system]
+    activationCriteria: Payroll API — not Phase 1
+    roadmapPhase: 5
+    applicableTests: [e2e/rc1-driver-experience.spec.ts, tests/rc1-isolation.test.ts]
+    benchmark: Enterprise payroll transparency
+
+  - id: messaging-notifications
+    name: Messaging and notifications
+    userProblem: Communicate with dispatch/payroll/safety and see alerts.
+    intendedOutcome: Context threads + notification center.
+    productDomain: support
+    uiLocation: /messages, /notifications
+    audience: driver
+    productionStatus: not_connected
+    productionBehavior: Empty truthful states.
+    comingSoonBehavior: Not available yet / Coming soon
+    showcaseBehavior: Fixture inbox + notifications.
+    ownership: orchestrated
+    canonicalRecords: [Message, Notification]
+    permissions: Role-based visibility later
+    auditRequirements: Retention policy later
+    offlineRequirements: Queue messages later
+    integrationDependencies: [SMS/Push]
+    activationCriteria: Messaging service
+    roadmapPhase: 5
+    applicableTests: [e2e/rc1-driver-experience.spec.ts]
+    benchmark: Eleos communication
+
+  - id: my-vehicle
+    name: My vehicle
+    userProblem: See assigned equipment and defects.
+    intendedOutcome: Tractor/trailer status and DVIR.
+    productDomain: equipment
+    uiLocation: /equipment
+    audience: driver
+    productionStatus: not_connected
+    productionBehavior: Empty state.
+    comingSoonBehavior: Not available yet
+    showcaseBehavior: Fixture truck/trailer.
+    ownership: owned
+    canonicalRecords: [Equipment, MaintenanceItem]
+    permissions: Assignment-scoped
+    auditRequirements: Defect history later
+    offlineRequirements: DVIR offline later
+    integrationDependencies: [Telematics]
+    activationCriteria: Fleet assignment feed
+    roadmapPhase: 5
+    applicableTests: [e2e/rc1-driver-experience.spec.ts]
+    benchmark: Platform Science fleet
+
+  - id: safety-compliance
+    name: Safety and compliance
+    userProblem: Credentials, HOS, training, inspections.
+    intendedOutcome: Compliance visibility without punitive UX.
+    productDomain: safety
+    uiLocation: /safety
+    audience: driver
+    productionStatus: coming_soon
+    productionBehavior: Empty / Coming soon.
+    comingSoonBehavior: Coming soon
+    showcaseBehavior: Fixture safety status.
+    ownership: orchestrated
+    canonicalRecords: [ComplianceItem, TrainingAssignment, SafetyEvent]
+    permissions: Driver self; safety admin later
+    auditRequirements: Log audit later
+    offlineRequirements: Partial later
+    integrationDependencies: [ELD]
+    activationCriteria: ELD partner + compliance feeds
+    roadmapPhase: 6
+    applicableTests: [e2e/rc1-driver-experience.spec.ts]
+    benchmark: Platform Science HOS
+
+  - id: support-resources
+    name: Support and resources
+    userProblem: Find help, contacts, handbook, training.
+    intendedOutcome: Support hub under More.
+    productDomain: support
+    uiLocation: /more
+    audience: driver
+    productionStatus: coming_soon
+    productionBehavior: Coming soon / Not available yet links.
+    comingSoonBehavior: Disabled or empty destinations
+    showcaseBehavior: Demo help modules.
+    ownership: owned
+    canonicalRecords: [Task, TrainingAssignment]
+    permissions: Carrier-scoped content
+    auditRequirements: Acknowledgments later
+    offlineRequirements: Offline materials later
+    integrationDependencies: []
+    activationCriteria: Content CMS or Drive packs
+    roadmapPhase: 5
+    applicableTests: [e2e/rc1-driver-experience.spec.ts]
+    benchmark: Eleos productivity
+
+  - id: elm-ai
+    name: ELM AI
+    userProblem: Ask grounded operational questions.
+    intendedOutcome: Authorized answers from ELM records only.
+    productDomain: support
+    uiLocation: /assistant
+    audience: driver
+    productionStatus: coming_soon
+    productionBehavior: Empty Coming soon state.
+    comingSoonBehavior: Not available yet
+    showcaseBehavior: Scripted demo replies; no prod writes.
+    ownership: owned
+    canonicalRecords: [Trip, Document, Settlement, Message]
+    permissions: Deny pay/doc approval mutations
+    auditRequirements: Prompt/response audit later
+    offlineRequirements: Limited later
+    integrationDependencies: [LLM provider]
+    activationCriteria: Grounded retrieval over Live APIs
+    roadmapPhase: 5
+    applicableTests: [e2e/showcase-experience.spec.ts]
+    benchmark: Enterprise grounded AI
+
+  - id: offline-behavior
+    name: Offline behavior
+    userProblem: Keep working with poor connectivity.
+    intendedOutcome: Queue and sync with idempotency.
+    productDomain: platform
+    uiLocation: Cross-cutting
+    audience: driver
+    productionStatus: partial
+    productionBehavior: multi_vault for failed uploads only.
+    comingSoonBehavior: Full offline trips/forms later
+    showcaseBehavior: n/a for vault
+    ownership: owned
+    canonicalRecords: [Submission, TripEvent]
+    permissions: Same as online actions
+    auditRequirements: Device + server timestamps
+    offlineRequirements: Event IDs, sync state, retry
+    integrationDependencies: []
+    activationCriteria: Sync service (Phase 3+)
+    roadmapPhase: 3
+    applicableTests: [tests/rc1-isolation.test.ts]
+    benchmark: Eleos offline
+
+  - id: document-intelligence
+    name: Document intelligence
+    userProblem: Faster accurate document processing.
+    intendedOutcome: Edge detect, classify, match to trip.
+    productDomain: submit
+    uiLocation: Capture pipeline
+    audience: shared
+    productionStatus: missing
+    productionBehavior: Basic upload only.
+    comingSoonBehavior: Vision docs only
+    showcaseBehavior: n/a
+    ownership: orchestrated
+    canonicalRecords: [Document]
+    permissions: Ops verification queue later
+    auditRequirements: Extraction confidence later
+    offlineRequirements: Capture then process
+    integrationDependencies: [OCR/Doc AI vendor]
+    activationCriteria: Vendor + quality gates
+    roadmapPhase: 5
+    applicableTests: []
+    benchmark: Eleos capture quality
+
+  - id: admin-showcase
+    name: Admin Showcase
+    userProblem: Demonstrate full future UX safely.
+    intendedOutcome: Isolated demo with grant + write block.
+    productDomain: platform
+    uiLocation: /showcase/*
+    audience: admin
+    productionStatus: live
+    productionBehavior: Drivers denied; admins need grant.
+    comingSoonBehavior: n/a
+    showcaseBehavior: Fixtures + Demo controls + banner.
+    ownership: owned
+    canonicalRecords: []
+    permissions: admin + canSelectAnyDriver + HMAC grant
+    auditRequirements: Grant validation server-side
+    offlineRequirements: n/a
+    integrationDependencies: []
+    activationCriteria: SHOWCASE_GRANT_SECRET configured
+    roadmapPhase: 1
+    applicableTests: [e2e/showcase-experience.spec.ts, e2e/rc1-driver-experience.spec.ts, tests/showcase-experience.test.ts]
+    benchmark: Enterprise demo governance
+
+  - id: view-as
+    name: View As
+    userProblem: Preview another persona in Showcase.
+    intendedOutcome: Replace-not-nest View As with clear banner.
+    productDomain: platform
+    uiLocation: Showcase Demo controls
+    audience: admin
+    productionStatus: showcase_only
+    productionBehavior: Invisible to drivers.
+    comingSoonBehavior: n/a
+    showcaseBehavior: Persona switch; exitViewAs; no nesting.
+    ownership: owned
+    canonicalRecords: []
+    permissions: Showcase grant required
+    auditRequirements: Admin remains auditing actor
+    offlineRequirements: n/a
+    integrationDependencies: []
+    activationCriteria: Existing View As UI
+    roadmapPhase: 1
+    applicableTests: [tests/showcase-experience.test.ts, e2e/showcase-experience.spec.ts]
+    benchmark: Enterprise impersonation hygiene
+
+  - id: multilingual
+    name: Multilingual support
+    userProblem: Operate UI in English, Spanish, or Bosnian.
+    intendedOutcome: Persistent locale with English fallback.
+    productDomain: platform
+    uiLocation: Login + shell + More
+    audience: shared
+    productionStatus: live
+    productionBehavior: EN/ES/BS selectors; static UI translated; dynamic records original.
+    comingSoonBehavior: n/a
+    showcaseBehavior: Same locale system; isolation unchanged.
+    ownership: owned
+    canonicalRecords: []
+    permissions: User preference
+    auditRequirements: No certified legal/payroll claims without review
+    offlineRequirements: Locale preference in localStorage
+    integrationDependencies: []
+    activationCriteria: Phase 1 i18n shipped
+    roadmapPhase: 1
+    applicableTests: [tests/i18n.test.ts, e2e/rc1-driver-experience.spec.ts]
+    benchmark: Enterprise localization
+
+  - id: connected-vehicle
+    name: Connected-vehicle capabilities
+    userProblem: Navigation, HOS hardware, telematics, cameras.
+    intendedOutcome: Integrated partner data in ELM views.
+    productDomain: connected
+    uiLocation: Home / Safety / Equipment (future)
+    audience: shared
+    productionStatus: missing
+    productionBehavior: Coming soon slots only.
+    comingSoonBehavior: Coming soon
+    showcaseBehavior: Conceptual labels only
+    ownership: integrated
+    canonicalRecords: [Device, TelemetryEvent, Equipment]
+    permissions: Carrier-scoped
+    auditRequirements: Integration health later
+    offlineRequirements: Edge sync later
+    integrationDependencies: [ELD, Nav, Telematics, Cameras]
+    activationCriteria: Partner contracts (Phase 6)
+    roadmapPhase: 6
+    applicableTests: []
+    benchmark: Platform Science
+
+  - id: admin-platform
+    name: Future administrative platform
+    userProblem: Ops/payroll command centers and fleet control.
+    intendedOutcome: Permissioned admin Mission Control.
+    productDomain: admin
+    uiLocation: Future admin app (not driver nav)
+    audience: admin
+    productionStatus: missing
+    productionBehavior: Not in driver shell.
+    comingSoonBehavior: Vision only
+    showcaseBehavior: Driver Showcase is not the admin platform
+    ownership: owned
+    canonicalRecords: [Permission, AuditEvent, Integration]
+    permissions: RBAC later
+    auditRequirements: Full admin audit
+    offlineRequirements: n/a
+    integrationDependencies: [Many]
+    activationCriteria: Phase 7
+    roadmapPhase: 7
+    applicableTests: []
+    benchmark: Oracle/SAP/ServiceNow ops control

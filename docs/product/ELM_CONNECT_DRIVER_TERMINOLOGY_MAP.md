@@ -6,7 +6,8 @@
 |-----------------------|-------------|
 | Today (nav) | **Home** |
 | Loads (nav) | **Trips** |
-| Upload (as destination) | **Capture** (destination) / “Upload BOL” etc. as task verbs |
+| Upload (as destination) | **Submit** (destination label) / “Upload BOL” etc. as task verbs; route remains `/capture` |
+| Capture (as tab name) | Prefer **Submit** for the primary destination |
 | Truck / Equipment (vague nav) | **My vehicle** / **Assigned truck & trailer** |
 | Timeline | **Activity** / **Trip activity** |
 | Assistant | **ELM AI** |

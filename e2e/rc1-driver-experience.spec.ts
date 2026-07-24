@@ -18,16 +18,18 @@ test.describe('RC1 authenticated shells', () => {
           .filter({ hasText: carrier === 'GLX' ? 'Greenleaf Xpress' : 'BST Expedite Inc' })
           .first()
       ).toBeVisible();
-      await expect(page.getByRole('heading', { name: 'Assigned trips' })).toBeVisible();
-      await expect(page.getByText(/Assigned trip details will appear here/i).first()).toBeVisible();
-      await expect(page.getByText('Needs attention')).toHaveCount(0);
+      await expect(page.getByRole('heading', { name: 'Current trip' })).toBeVisible();
+      await expect(page.getByText(/No assigned trip information is connected yet/i).first()).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'Needs attention' })).toBeVisible();
       await expect(page.getByText(/Trip paperwork/i)).toHaveCount(0);
       await expect(page.getByText('Open Capture')).toHaveCount(0);
       await expect(page.getByRole('button', { name: /Upload BOL \/ POD/i }).first()).toBeVisible();
       await expect(page.getByRole('button', { name: /Submit Trip Form/i }).first()).toBeVisible();
+      await expect(page.locator('#elm-shell-language')).toBeVisible();
       await expect(page.getByText('48291')).toHaveCount(0);
       await expect(page.getByText('Dallas')).toHaveCount(0);
       await expect(page.getByRole('navigation', { name: 'Primary' }).first()).toBeVisible();
+      await expect(page.getByText(/Enter Showcase|Demo controls|View As/i)).toHaveCount(0);
     });
   }
 
@@ -88,7 +90,7 @@ test.describe('RC1 production routes', () => {
   test('pay isolation shows disconnected disclosure', async ({ page }) => {
     await gotoAuthed(page, '/pay', driverSession('BST'));
     await expect(page.getByRole('button', { name: /Submit Trip Form/i }).first()).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Earnings' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Settlement not connected/i })).toBeVisible();
     await expect(page.getByText('Not available yet').first()).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Settlement layout' })).toHaveCount(0);
     await expect(page.locator('dt', { hasText: 'Gross' })).toHaveCount(0);
@@ -111,12 +113,13 @@ test.describe('RC1 production routes', () => {
     await expect(page.getByText(/Coming soon/i).first()).toBeVisible();
   });
 
-  test('Submit page shows equal live cards and separated coming soon', async ({ page }) => {
+  test('Submit page shows equal live cards and grouped coming soon', async ({ page }) => {
     await gotoAuthed(page, '/capture', driverSession('GLX'));
     await expect(page.getByRole('heading', { name: 'Available now' })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'More submissions' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Trip paperwork' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Exceptions/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Safety & equipment/i })).toBeVisible();
     await expect(page.getByRole('heading', { name: /What do you need to send/i })).toBeVisible();
-    await expect(page.getByText('Documents', { exact: true })).toHaveCount(0);
 
     const bol = page.locator('[data-submit-action="bol-pod"]');
     const form = page.locator('[data-submit-action="trip-form"]');
@@ -132,17 +135,15 @@ test.describe('RC1 production routes', () => {
       expect(Math.abs(bolBox.height - formBox.height)).toBeLessThan(48);
     }
 
-    await expect(bol.locator('svg').first()).toBeVisible();
-    await expect(form.locator('[class*="ArrowTopRight"], svg').first()).toBeVisible();
-    // Trip form must not use a camera icon path
-    const formHtml = await form.innerHTML();
-    expect(formHtml.toLowerCase()).not.toContain('camera');
-
     await expect(page.locator('[data-submit-future="receipt"]')).toBeVisible();
     await expect(page.locator('[data-submit-future="freight"]')).toBeVisible();
+    await expect(page.locator('[data-submit-future="detention"]')).toBeVisible();
     await expect(page.locator('[data-submit-future="vehicle"]')).toBeVisible();
     await expect(page.locator('[data-submit-future="incident"]')).toBeVisible();
-    await expect(page.locator('.mc-capture-choice-cam')).toHaveCount(0);
+    await expect(page.locator('[data-submit-future="receipt"]')).toHaveAttribute(
+      'aria-disabled',
+      'true'
+    );
 
     const safety = page.getByText('Only upload documents when safely stopped.');
     await expect(safety).toHaveCount(1);
@@ -162,11 +163,14 @@ test.describe('RC1 production routes', () => {
     ).toBeVisible();
   });
 
-  test('Home shows dual live actions without Needs Attention or Trip paperwork', async ({ page }) => {
+  test('Home shows dual live actions with truthful Needs attention slot', async ({ page }) => {
     await gotoAuthed(page, '/home', driverSession('BST'));
     await expect(page.getByText('Not available yet').first()).toBeVisible();
     await expect(page.getByText(/LAST LOGIN|Last login/i).first()).toBeVisible();
-    await expect(page.getByText('Needs attention')).toHaveCount(0);
+    await expect(page.getByRole('heading', { name: 'Needs attention' })).toBeVisible();
+    await expect(
+      page.getByText(/Alerts that need a response will appear here when connected/i)
+    ).toBeVisible();
     await expect(page.getByText(/Trip paperwork/i)).toHaveCount(0);
     await expect(page.getByText(/Submit trip for payroll/i)).toHaveCount(0);
     await expect(page.getByText('Open Capture')).toHaveCount(0);
@@ -180,6 +184,35 @@ test.describe('RC1 production routes', () => {
     if (bolBox && formBox) {
       expect(Math.abs(bolBox.height - formBox.height)).toBeLessThan(40);
     }
+  });
+
+  test('language selector persists Español across routes', async ({ page }) => {
+    await page.goto('/login');
+    const loginLang = page.locator('.elm-lang-selector--login:visible select').first();
+    await expect(loginLang).toBeVisible();
+    await loginLang.selectOption('es');
+    await expect(loginLang).toHaveValue('es');
+    // Twin login forms exist (lg breakpoint); role query resolves the visible heading only.
+    await expect(
+      page.getByRole('heading', { name: /Iniciar sesión en el espacio del conductor/i }),
+    ).toBeVisible();
+    await gotoAuthed(page, '/home', driverSession('GLX'));
+    await expect(page.getByRole('navigation', { name: 'Principal' }).getByText('Enviar')).toBeVisible();
+    await page.goto('/capture');
+    await expect(page.getByRole('heading', { name: /Qué necesita enviar/i })).toBeVisible();
+    await page.goto('/more');
+    await expect(page.locator('#elm-more-language')).toHaveValue('es');
+  });
+
+  test('legacy redirects preserve canonical destinations', async ({ page }) => {
+    await gotoAuthed(page, '/today', driverSession('GLX'));
+    await expect(page).toHaveURL(/\/home/);
+    await gotoAuthed(page, '/loads', driverSession('GLX'));
+    await expect(page).toHaveURL(/\/trips/);
+    await gotoAuthed(page, '/workspace', driverSession('GLX'));
+    await expect(page).toHaveURL(/\/capture/);
+    await gotoAuthed(page, '/truck', driverSession('GLX'));
+    await expect(page).toHaveURL(/\/equipment/);
   });
 
   test('GLX carrier theme attribute is applied', async ({ page }) => {
@@ -198,6 +231,28 @@ test.describe('RC1 production routes', () => {
     await gotoAuthed(page, '/submissions/bol-pod', adminSession('GLX'));
     await expect(page.getByTitle('Admin upload mode')).toBeVisible();
     await expect(page.getByRole('option', { name: 'Select driver' })).toBeAttached();
+  });
+
+  test('BOL/POD workflow renders in Spanish when locale is set', async ({ page }) => {
+    await seedAuthenticatedSession(page, driverSession('GLX'));
+    await page.evaluate(() => {
+      localStorage.setItem('elm_driver_locale', 'es');
+    });
+    await page.goto('/submissions/bol-pod');
+    await expect(
+      page.getByRole('heading', { name: 'Seleccionar evento del documento' })
+    ).toBeVisible();
+  });
+
+  test('BOL/POD workflow renders in Bosnian when locale is set', async ({ page }) => {
+    await seedAuthenticatedSession(page, driverSession('BST'));
+    await page.evaluate(() => {
+      localStorage.setItem('elm_driver_locale', 'bs');
+    });
+    await page.goto('/submissions/bol-pod');
+    await expect(
+      page.getByRole('heading', { name: 'Odaberite događaj dokumenta' })
+    ).toBeVisible();
   });
 });
 

@@ -13,7 +13,9 @@ import { ShellIcons } from './ShellIcons.tsx';
 import { useDriverExperienceOptional } from '../../context/DriverExperienceContext.tsx';
 import { useShowcaseOptional } from '../../context/ShowcaseContext.tsx';
 import { useCarrierTheme } from '../../context/CarrierThemeContext.tsx';
+import { useLocale } from '../../context/LocaleContext.tsx';
 import { getCompanyDisplayName } from '../../utils/companyMap.ts';
+import LanguageSelector from '../i18n/LanguageSelector.tsx';
 
 interface MissionShellProps {
   title: string;
@@ -39,21 +41,21 @@ const MissionShell: React.FC<MissionShellProps> = ({
   const experience = useDriverExperienceOptional();
   const showcase = useShowcaseOptional();
   const { theme: brandTheme, label: brandLabel } = useCarrierTheme();
+  const { t } = useLocale();
   const routePrefix = experience?.routePrefix || '';
   const homePath = routePrefix ? `${routePrefix}/home` : '/home';
   const company = getCompanyDisplayName(session?.companyCode);
   const modeLabel =
     experience?.mode === 'showcase'
-      ? 'Showcase'
+      ? t('common.showcase')
       : session?.authRole === 'admin'
-        ? 'Admin'
-        : 'Driver';
+        ? t('common.admin')
+        : t('common.driver');
   const navActive = normalizeActiveNav(activeNav);
   const unreadNotifications =
     experience?.mode === 'showcase'
       ? (experience.dataSource.getNotifications?.().filter((n) => n.unread).length ?? 0)
       : 0;
-  /** Production chrome: carrier logo only when exactly one authoritative carrier. Showcase keeps ELM. */
   const headerBrandTheme =
     experience?.mode === 'showcase' ? 'elm' : brandTheme;
   const headerBrandLabel =
@@ -80,7 +82,7 @@ const MissionShell: React.FC<MissionShellProps> = ({
                 type="button"
                 onClick={goHome}
                 className="mc-shell-brand-btn"
-                aria-label={`${headerBrandLabel} home`}
+                aria-label={t('shell.homeAria', { brand: headerBrandLabel })}
               >
                 {headerBrandTheme === 'elm' ? (
                   <ElmBrandLogo size="sm" subtitle={false} />
@@ -91,21 +93,22 @@ const MissionShell: React.FC<MissionShellProps> = ({
               <div className="mc-shell-header-meta min-w-0">
                 <p className="mc-shell-header-title">{title}</p>
                 <p className="mc-shell-header-context truncate">
-                  {session?.driverName || 'Driver'}
+                  {session?.driverName || t('common.driver')}
                   {company ? ` · ${company}` : ''}
                   {` · ${modeLabel}`}
                   {connectionLabel ? ` · ${connectionLabel}` : ''}
                 </p>
               </div>
             </div>
-            <div className="mc-shell-header-utils" aria-label="Global utilities">
+            <div className="mc-shell-header-utils" aria-label={t('nav.globalUtilities')}>
+              <LanguageSelector variant="shell" id="elm-shell-language" />
               {experience?.mode === 'showcase' ? (
                 <>
                   <NavLink
                     to={`${routePrefix}/search`}
                     className="mc-shell-util"
-                    aria-label="Search"
-                    title="Search"
+                    aria-label={t('common.search')}
+                    title={t('common.search')}
                   >
                     <ShellIcons.Search />
                   </NavLink>
@@ -114,10 +117,10 @@ const MissionShell: React.FC<MissionShellProps> = ({
                     className="mc-shell-util"
                     aria-label={
                       unreadNotifications > 0
-                        ? `Notifications, ${unreadNotifications} unread`
-                        : 'Notifications'
+                        ? t('shell.notificationsUnread', { count: unreadNotifications })
+                        : t('common.notifications')
                     }
-                    title="Notifications"
+                    title={t('common.notifications')}
                   >
                     <ShellIcons.Notifications />
                     {unreadNotifications > 0 ? (
@@ -129,8 +132,8 @@ const MissionShell: React.FC<MissionShellProps> = ({
                   <NavLink
                     to={`${routePrefix}/assistant`}
                     className="mc-shell-util"
-                    aria-label="ELM AI"
-                    title="ELM AI"
+                    aria-label={t('common.elmAi')}
+                    title={t('common.elmAi')}
                   >
                     <ShellIcons.ElmAi />
                   </NavLink>
@@ -140,11 +143,11 @@ const MissionShell: React.FC<MissionShellProps> = ({
                 type="button"
                 onClick={openLogout}
                 className="mc-shell-header-logout"
-                aria-label="Sign out"
-                title="Sign out"
+                aria-label={t('common.signOut')}
+                title={t('common.signOut')}
               >
                 <ShellIcons.SignOut />
-                <span className="mc-shell-header-logout-label">Sign out</span>
+                <span className="mc-shell-header-logout-label">{t('common.signOut')}</span>
               </button>
             </div>
           </div>

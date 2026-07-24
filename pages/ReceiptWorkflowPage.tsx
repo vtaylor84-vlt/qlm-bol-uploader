@@ -25,16 +25,14 @@ import {
   validateExpenseDetails,
 } from '../utils/expenseForm.ts';
 import { compressImage } from '../utils/imageCompress.ts';
-import {
-  getFileRejectionReason,
-  isHeicFile,
-  HEIC_BLOCK_MESSAGE,
-} from '../utils/uploadFileRules.ts';
+import { getFileRejectionMessageKey, isHeicFile } from '../utils/uploadFileRules.ts';
+import { useLocale } from '../context/LocaleContext.tsx';
 
 type WizardStep = 'details' | 'upload';
 
 const ReceiptWorkflowPage: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useLocale();
   const { session } = useAuth();
   const { draft, updateExpense, updateDriverName, updateCompany, setDocuments, setReceiptBlob } =
     useSubmissionDraft();
@@ -154,12 +152,12 @@ const ReceiptWorkflowPage: React.FC = () => {
 
   const handlePickReceipt = async (file: File) => {
     if (isHeicFile(file)) {
-      setError(HEIC_BLOCK_MESSAGE);
+      setError(t('upload.heicBlock'));
       return;
     }
-    const rejection = getFileRejectionReason(file);
-    if (rejection) {
-      setError(rejection);
+    const rejectionKey = getFileRejectionMessageKey(file);
+    if (rejectionKey) {
+      setError(t(rejectionKey));
       return;
     }
     try {
@@ -169,7 +167,7 @@ const ReceiptWorkflowPage: React.FC = () => {
       setReceiptFile({ file: compressed, preview, name: file.name });
       setError('');
     } catch {
-      setError('Could not process image. Try another photo.');
+      setError(t('upload.couldNotProcessImage'));
     }
   };
 

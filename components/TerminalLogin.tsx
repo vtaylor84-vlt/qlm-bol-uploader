@@ -7,6 +7,8 @@ import LoginFooter from './terminal/LoginFooter.tsx';
 import StatusBadge from '../design-system/components/StatusBadge.tsx';
 import GlassCard from '../design-system/components/GlassCard.tsx';
 import DesignPrimaryActionButton from '../design-system/components/PrimaryActionButton.tsx';
+import LanguageSelector from './i18n/LanguageSelector.tsx';
+import { useLocale } from '../context/LocaleContext.tsx';
 import { ELM_VERSION } from '../design-system/tokens.ts';
 
 const REMEMBER_EMAIL_KEY = 'elm_login_remember_email';
@@ -43,6 +45,7 @@ const MailIcon = () => (
  * Visual Terminal Online badge is application chrome, not a live backend health check.
  */
 const TerminalLogin: React.FC<TerminalLoginProps> = ({ onLogin }) => {
+  const { t } = useLocale();
   const [email, setEmail] = useState('');
   const [rememberMe, setRememberMe] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -73,7 +76,7 @@ const TerminalLogin: React.FC<TerminalLoginProps> = ({ onLogin }) => {
     setError('');
     const trimmed = email.trim().toLowerCase();
     if (!trimmed) {
-      setError('Enter your approved email address.');
+      setError(t('login.errorEmpty'));
       return;
     }
 
@@ -81,7 +84,7 @@ const TerminalLogin: React.FC<TerminalLoginProps> = ({ onLogin }) => {
     try {
       const result = await verifyDriverEmail(trimmed);
       if (!result.success || !result.profile) {
-        setError(result.error || 'Access denied. Use an approved driver or admin email.');
+        setError(result.error || t('login.errorDenied'));
         setIsSubmitting(false);
         return;
       }
@@ -99,26 +102,28 @@ const TerminalLogin: React.FC<TerminalLoginProps> = ({ onLogin }) => {
 
       onLogin(result.profile);
     } catch {
-      setError('Connection failed. Try again.');
+      setError(t('login.connectionFailed'));
       setIsSubmitting(false);
     }
   };
 
   const renderLoginForm = (fieldId: string) => (
     <GlassCard glowColor="cyan" padding="lg" className="w-full login-card-enter">
-      <div className="text-center space-y-1.5 mb-6">
+      <div className="text-center space-y-1.5 mb-4">
         <h1 className="text-lg sm:text-xl font-bold text-white tracking-tight normal-case">
-          Sign in to Driver Workspace
+          {t('login.signInTitle')}
         </h1>
-        <p className="text-xs text-zinc-500 normal-case">
-          Upload BOL / POD and Submit Trip Form from one workspace.
-        </p>
+        <p className="text-xs text-zinc-500 normal-case">{t('login.languageHint')}</p>
+      </div>
+
+      <div className="mb-5">
+        <LanguageSelector variant="login" id={`${fieldId}-language`} />
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label htmlFor={fieldId} className="login-field-label">
-            Driver email
+            {t('login.emailLabel')}
           </label>
           <div className="login-input-wrap">
             <span className="login-input-icon" aria-hidden>
@@ -129,7 +134,7 @@ const TerminalLogin: React.FC<TerminalLoginProps> = ({ onLogin }) => {
               type="email"
               inputMode="email"
               autoComplete="email"
-              placeholder="Enter your email address"
+              placeholder={t('login.emailPlaceholder')}
               value={email}
               onChange={(ev) => setEmail(ev.target.value)}
               disabled={isSubmitting}
@@ -148,22 +153,20 @@ const TerminalLogin: React.FC<TerminalLoginProps> = ({ onLogin }) => {
               onChange={(e) => setRememberMe(e.target.checked)}
               className="login-remember-checkbox w-4 h-4 rounded border border-cyan-500/40 bg-[#0a1628] accent-cyan-500"
             />
-            <span className="text-[12px] text-zinc-400 normal-case">Remember my session</span>
+            <span className="text-[12px] text-zinc-400 normal-case">{t('login.rememberMe')}</span>
           </label>
           <button
             type="button"
             className="text-[12px] text-cyan-400/90 normal-case hover:text-cyan-300 transition-colors min-h-[48px] px-1 self-start sm:self-auto focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300 rounded"
-            onClick={() =>
-              setError('Contact your dispatcher or admin if you need help with your login email.')
-            }
+            onClick={() => setError(t('login.forgotEmailHelp'))}
           >
-            Forgot email?
+            {t('login.forgotEmail')}
           </button>
         </div>
 
         <DesignPrimaryActionButton
           type="submit"
-          label={isSubmitting ? 'Verifying driver access…' : 'Connect to Terminal'}
+          label={isSubmitting ? t('login.submitting') : t('login.submit')}
           variant="primary"
           fullWidth
           disabled={isSubmitting}
@@ -185,7 +188,7 @@ const TerminalLogin: React.FC<TerminalLoginProps> = ({ onLogin }) => {
 
       <p className="mt-6 flex items-start justify-center gap-2 text-[10px] text-zinc-500 normal-case text-center leading-relaxed border-t border-white/10 pt-4">
         <LockIcon />
-        <span>Secure driver access · Roster-verified email</span>
+        <span>{t('login.securityNote')}</span>
       </p>
     </GlassCard>
   );
@@ -200,39 +203,38 @@ const TerminalLogin: React.FC<TerminalLoginProps> = ({ onLogin }) => {
             <BrandMark theme="elm" size="md" />
           </div>
           <StatusBadge
-            label={`TERMINAL ONLINE ${ELM_VERSION}`}
+            label={t('login.terminalOnlineLabel', { version: ELM_VERSION })}
             tone="online"
-            ariaLabel="Application status — visual only, not a live backend health check"
+            ariaLabel={t('login.statusAria')}
           />
         </header>
 
         <main className="flex-1 max-w-6xl w-full mx-auto px-8 py-10 grid grid-cols-12 gap-10 items-center">
           <div className="col-span-6 space-y-6">
             <p className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs font-mono">
-              Secure driver access
+              {t('login.secureAccess')}
             </p>
             <h2 className="text-4xl xl:text-5xl font-extrabold tracking-tight text-white leading-tight normal-case">
-              Your documents and trip form—{' '}
+              {t('login.heroLine1')}{' '}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-300">
-                ready when you are
+                {t('login.heroHighlight')}
               </span>
             </h2>
             <p className="text-zinc-400 text-sm leading-relaxed max-w-lg normal-case">
-              Sign in with your approved email to open the Driver Workspace. Upload BOL / POD and
-              Submit Trip Form when you have work to complete.
+              {t('login.heroBody')}
             </p>
             <div className="grid grid-cols-2 gap-3 max-w-md pt-1">
               <div className="p-3.5 rounded-xl bg-white/5 border border-white/10 flex items-center gap-3">
                 <span className="text-emerald-400 text-sm" aria-hidden>
                   ✓
                 </span>
-                <span className="text-xs font-medium text-zinc-200 normal-case">Roster-verified access</span>
+                <span className="text-xs font-medium text-zinc-200 normal-case">{t('login.rosterVerified')}</span>
               </div>
               <div className="p-3.5 rounded-xl bg-white/5 border border-white/10 flex items-center gap-3">
                 <span className="text-cyan-400 text-sm" aria-hidden>
                   ✓
                 </span>
-                <span className="text-xs font-medium text-zinc-200 normal-case">Verified document upload</span>
+                <span className="text-xs font-medium text-zinc-200 normal-case">{t('login.verifiedUpload')}</span>
               </div>
             </div>
           </div>
@@ -240,16 +242,16 @@ const TerminalLogin: React.FC<TerminalLoginProps> = ({ onLogin }) => {
         </main>
 
         <footer className="p-4 text-center text-[11px] text-zinc-600 font-mono z-20">
-          © {new Date().getFullYear()} ELM CONNECT · Driver Terminal
+          {t('login.footerCopyright', { year: new Date().getFullYear() })}
         </footer>
       </div>
 
       <div className="lg:hidden relative z-10 flex flex-col items-center w-full max-w-[400px] mx-auto px-5 pt-6 pb-10 min-h-screen">
         <div className="w-full flex justify-center mb-4">
           <StatusBadge
-            label={`TERMINAL ONLINE ${ELM_VERSION}`}
+            label={t('login.terminalOnlineLabel', { version: ELM_VERSION })}
             tone="online"
-            ariaLabel="Application status — visual only, not a live backend health check"
+            ariaLabel={t('login.statusAria')}
           />
         </div>
         <LoginBrandHero />

@@ -3,6 +3,7 @@ import { ShellIcons } from './ShellIcons.tsx';
 
 /**
  * Authoritative Driver Workspace mobile destinations (exactly five).
+ * Visible label for capture id is Submit; canonical route remains /capture.
  * Nested destinations (messages, equipment, safety) live under More — not peer tabs.
  */
 export type PrimaryNavId = 'home' | 'trips' | 'capture' | 'pay' | 'more';
@@ -12,6 +13,7 @@ export type BottomNavId = PrimaryNavId;
 
 export interface ShellNavItem {
   id: PrimaryNavId;
+  /** English fallback label — prefer i18n `nav.{id}` at render time. */
   label: string;
   path: string;
   matchSuffixes?: string[];

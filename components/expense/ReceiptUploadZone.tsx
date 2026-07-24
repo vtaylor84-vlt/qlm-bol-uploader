@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { UPLOAD_FORMAT_HINT } from '../../utils/uploadFileRules.ts';
+import { useLocale } from '../../context/LocaleContext.tsx';
 
 interface ReceiptUploadZoneProps {
   preview?: string | null;
@@ -18,6 +18,7 @@ const ReceiptUploadZone: React.FC<ReceiptUploadZoneProps> = ({
   onRemove,
   error,
 }) => {
+  const { t } = useLocale();
   const camRef = useRef<HTMLInputElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -49,7 +50,7 @@ const ReceiptUploadZone: React.FC<ReceiptUploadZoneProps> = ({
             Tap to take photo or choose from gallery
           </p>
           <p className="text-xs text-zinc-500 normal-case mt-3 max-w-xs mx-auto leading-relaxed">
-            {UPLOAD_FORMAT_HINT}
+            {t('upload.formatHint')}
           </p>
         </button>
       ) : (

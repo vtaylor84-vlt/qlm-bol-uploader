@@ -4,17 +4,19 @@
 **Authority:** `ELM_CONNECT_Enterprise_Product_Architecture_and_Navigation.md`  
 **Updated:** 2026-07-22
 
-## Persistent mobile destinations (exactly five)
+**Persistent mobile destinations (exactly five)**
 
 | # | Label | Path | Owns |
 |---|-------|------|------|
 | 1 | **Home** | `/home` (`/showcase/home`) | Next step, needs attention, current trip, recent activity, shortcuts |
 | 2 | **Trips** | `/trips` (`/showcase/trips`) | Current / upcoming / completed trips, stops, paperwork, trip actions |
-| 3 | **Capture** | `/capture` | Camera-first submissions (not a document repository) |
+| 3 | **Submit** | `/capture` | Permanent submission center (label Submit; route `/capture`) |
 | 4 | **Pay** | `/pay` | Driver-facing settlement view into Payroll |
 | 5 | **More** | `/more` | My work, My vehicle, Safety, Support, Account |
 
 Desktop uses the **same five** destinations in the rail. Messages, vehicle, and safety are **not** peer tabs.
+
+**Languages:** English, Español, Bosanski — login + workspace selectors; preference persisted in `localStorage` (`elm_driver_locale`).
 
 ## Nested destinations (under More / utilities)
 
